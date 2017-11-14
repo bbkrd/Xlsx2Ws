@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.bundesbank.jdemetra.csv2ws;
+package de.bundesbank.jdemetra.xlsx2ws;
 
 import de.bundesbank.webservice.BubaWebBean;
 import de.bundesbank.webservice.BubaWebProvider;
@@ -27,13 +27,16 @@ import ec.tss.tsproviders.TsProviders;
 import ec.tstoolkit.MetaData;
 import ec.tstoolkit.information.InformationSet;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 /**
  *
@@ -41,36 +44,70 @@ import java.util.stream.Stream;
  */
 public class Creater {
 
+    private static final int MAX_COLUMNS = 45;
+    Map<String, Set<String>> map = new HashMap<>();
+
     public void createWorkspace(File selectedFile) {
-        WorkspaceFactory.getInstance().newWorkspace();
         Workspace ws = WorkspaceFactory.getInstance().getActiveWorkspace();
         String fileName = selectedFile.getName();
-        ws.setName(fileName.substring(0, fileName.length() - 4));
+        ws.setName(fileName.substring(0, fileName.length() - 5));
         ws.sort();
+        List<String[]> list = readExcelFile(selectedFile);
 
-        try (Stream<String> stream = Files.lines(selectedFile.toPath())) {
-            stream.skip(1)
-                    .map(line -> line.split(";", -1))
-                    .forEach(split -> {
-                        String multiDocumentName = split[0];
-                        String saItemName = split[1];
-                        String tsName = split[2];
+        list.stream().skip(1)
+                .filter(information -> !(information[2].isEmpty()))
+                .forEach(split -> {
+                    String multiDocumentName = split[0];
+                    String saItemName = split[1];
+                    String tsName = split[2];
 
-                        Ts ts = createTs(tsName);
-                        if (ts == null) {
-                            return;
-                        }
+                    if (map.containsKey(multiDocumentName)
+                            && map.get(multiDocumentName).contains(saItemName.toUpperCase(Locale.GERMAN))) {
+                        //TODO Log
+                        return;
+                    }
 
-                        SaItem item = new SaItem(X13Specification.RSA5, ts);
-                        item.setName(saItemName);
-                        item.setMetaData(createMetaData(split));
+                    Ts ts = createTs(tsName);
+                    if (ts == null) {
+                        //TODO Log
+                        return;
+                    }
 
-                        MultiProcessingDocument document = createAbsentMultiDoc(multiDocumentName);
-                        document.getCurrent().add(item);
-                    });
-        } catch (IOException ex) {
-            Logger.getLogger(Creater.class.getName()).log(Level.SEVERE, null, ex);
+                    SaItem item = new SaItem(X13Specification.RSA5, ts);
+                    item.setName(saItemName);
+                    item.setMetaData(createMetaData(split));
+
+                    MultiProcessingDocument document = createAbsentMultiDoc(multiDocumentName);
+                    map.get(multiDocumentName).add(saItemName.toUpperCase(Locale.GERMAN));
+                    document.getCurrent().add(item);
+                });
+    }
+
+    private List<String[]> readExcelFile(File selectedFile) {
+        List<String[]> list = new ArrayList<>();
+        try (FileInputStream excelFile = new FileInputStream(selectedFile);) {
+            Workbook workbook = new XSSFWorkbook(excelFile);
+            Sheet datatypeSheet = workbook.getSheetAt(0);
+            Iterator<Row> iterator = datatypeSheet.iterator();
+
+            while (iterator.hasNext()) {
+                Row currentRow = iterator.next();
+                String[] infos = new String[MAX_COLUMNS];
+
+                for (int column_counter = 0; column_counter < MAX_COLUMNS; column_counter++) {
+                    Cell currentCell = currentRow.getCell(column_counter);
+                    String information = "";
+                    if (currentCell != null) {
+                        information = currentCell.getStringCellValue();
+                    }
+                    infos[column_counter] = information;
+                }
+                list.add(infos);
+            }
+        } catch (IOException e) {
+            Logger.getLogger(Creater.class.getName()).log(Level.SEVERE, null, e);
         }
+        return list;
     }
 
     private MultiProcessingDocument createAbsentMultiDoc(String name) {
@@ -81,6 +118,7 @@ public class Creater {
         if (doc == null) {
             doc = mgr.create(ws);
             doc.setDisplayName(name);
+            map.put(name, new HashSet<>());
         }
         if (doc.getElement() instanceof MultiProcessingDocument) {
             return (MultiProcessingDocument) doc.getElement();
