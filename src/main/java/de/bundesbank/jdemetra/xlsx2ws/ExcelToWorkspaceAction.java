@@ -40,7 +40,7 @@ public final class ExcelToWorkspaceAction implements ActionListener {
         WorkspaceFactory.getInstance().newWorkspace();
         File selectedFile = wsFileChooser.showOpenDialog();
         if (selectedFile != null) {
-            new Creater().createWorkspace(selectedFile);
+            new Creator().createWorkspace(selectedFile);
             NotifyDescriptor nd = new NotifyDescriptor.Message("DONE?");
             DialogDisplayer.getDefault().notify(nd);
         }
