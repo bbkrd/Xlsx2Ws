@@ -5,24 +5,37 @@
  */
 package de.bundesbank.jdemetra.xlsx2ws;
 
-import de.bundesbank.jdemetra.xlsx2ws.reader.IProviderReader;
+import de.bundesbank.jdemetra.xlsx2ws.provider.IProviderReader;
+import de.bundesbank.jdemetra.xlsx2ws.provider.IProviderReaderFactory;
+import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationReader;
+import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationReaderFactory;
 import ec.nbdemetra.sa.MultiProcessingDocument;
 import ec.nbdemetra.sa.MultiProcessingManager;
 import ec.nbdemetra.ws.Workspace;
 import ec.nbdemetra.ws.WorkspaceFactory;
 import ec.nbdemetra.ws.WorkspaceItem;
-import ec.satoolkit.x13.X13Specification;
+import ec.satoolkit.ISaSpecification;
 import ec.tss.Ts;
 import ec.tss.sa.SaItem;
 import ec.tstoolkit.MetaData;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import lombok.extern.java.Log;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -43,45 +56,41 @@ public class Creator {
         String fileName = selectedFile.getName();
         ws.setName(fileName.substring(0, fileName.length() - 5));
         ws.sort();
-        List<AllRowInfos> list = readSaItemSheet(selectedFile);
+        List<AllRowInfo> list = readSaItemSheet(selectedFile);
 
-        list.stream().forEach(informations -> {
-            String multiDocumentName = informations.getMultidocName();
-            String saItemName = informations.getSaItemName();
-            String providerName = informations.getProviderName();
+        list.stream().forEach(information -> {
+            String multiDocumentName = information.getMultidocName();
+            String saItemName = information.getSaItemName();
 
             if (map.containsKey(multiDocumentName)
-                    && map.get(multiDocumentName).contains(saItemName.toUpperCase(Locale.GERMAN))) {
+                    && map.get(multiDocumentName).contains(saItemName.toUpperCase(Locale.ENGLISH))) {
                 //TODO Log
                 return;
             }
-            Optional<? extends IProviderReader> optionalProvider = Lookup.getDefault().lookupAll(IProviderReader.class).stream().filter(provider -> provider.getProviderName().equalsIgnoreCase(providerName)).findFirst();
-            if (!optionalProvider.isPresent()) {
-                return;
-            }
-            IProviderReader provider = optionalProvider.get();
-            informations.getProviderInfos().entrySet().forEach((entry) -> {
-                provider.putInformation(entry.getKey(), entry.getValue());
-            });
-
-            Ts ts = provider.loadTs();
+            Ts ts = readTs(information);
             if (ts == null) {
                 //TODO Log
                 return;
             }
 
-            SaItem item = new SaItem(X13Specification.RSA5, ts);
+            ISaSpecification specification = readSpecification(information);
+            if (specification == null) {
+                //TODO Log
+                return;
+            }
+
+            SaItem item = new SaItem(specification, ts);
             item.setName(saItemName);
-            item.setMetaData(new MetaData(informations.getMetaData()));
+            item.setMetaData(new MetaData(information.getMetaData()));
 
             MultiProcessingDocument document = createAbsentMultiDoc(multiDocumentName);
-            map.get(multiDocumentName).add(saItemName.toUpperCase(Locale.GERMAN));
+            map.get(multiDocumentName).add(saItemName.toUpperCase(Locale.ENGLISH));
             document.getCurrent().add(item);
         });
     }
 
-    private List<AllRowInfos> readSaItemSheet(File selectedFile) {
-        List<AllRowInfos> list = new ArrayList<>();
+    private List<AllRowInfo> readSaItemSheet(File selectedFile) {
+        List<AllRowInfo> list = new ArrayList<>();
         try (FileInputStream excelFile = new FileInputStream(selectedFile);) {
             Workbook workbook = new XSSFWorkbook(excelFile);
             Sheet datatypeSheet = workbook.getSheetAt(0);
@@ -91,18 +100,18 @@ public class Creator {
 
             while (iterator.hasNext()) {
                 Row currentRow = iterator.next();
-                AllRowInfos allRowInfos = new AllRowInfos();
+                AllRowInfo allRowInfos = new AllRowInfo();
                 for (Iterator<Cell> cellIterator = currentRow.cellIterator(); cellIterator.hasNext();) {
                     Cell cell = cellIterator.next();
                     int columnIndex = cell.getColumnIndex();
                     if (headers.containsKey(columnIndex)) {
                         InformationDTO informationDTO = headers.get(columnIndex);
                         String information = "";
-                        switch (cell.getCellType()) {
-                            case Cell.CELL_TYPE_NUMERIC:
+                        switch (cell.getCellTypeEnum()) {
+                            case NUMERIC:
                                 information = Double.toString(cell.getNumericCellValue());
                                 break;
-                            case Cell.CELL_TYPE_STRING:
+                            case STRING:
                                 information = cell.getStringCellValue();
                                 break;
                         }
@@ -165,12 +174,44 @@ public class Creator {
         Map<Integer, InformationDTO> headers = new TreeMap();
         for (Iterator<Cell> cellIterator = headerRow.cellIterator(); cellIterator.hasNext();) {
             Cell cell = cellIterator.next();
-            if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
+            if (cell.getCellTypeEnum() == CellType.STRING) {
                 int columnIndex = cell.getColumnIndex();
                 String information = cell.getStringCellValue();
                 headers.put(columnIndex, new InformationDTO(information));
             }
         }
         return headers;
+    }
+
+    private Ts readTs(AllRowInfo information) {
+        String providerName = information.getProviderName();
+        Optional<? extends IProviderReaderFactory> optionalProvider = Lookup.getDefault().lookupAll(IProviderReaderFactory.class).stream().filter(provider -> provider.getProviderName().equalsIgnoreCase(providerName)).findFirst();
+        if (!optionalProvider.isPresent()) {
+            //TODO Log
+            return null;
+        }
+
+        IProviderReader provider = optionalProvider.get().getNewInstance();
+        information.getProviderInfos().entrySet().forEach((entry) -> {
+            provider.putInformation(entry.getKey(), entry.getValue());
+        });
+
+        Ts ts = provider.readTs();
+        return ts;
+    }
+
+    private ISaSpecification readSpecification(AllRowInfo information) {
+        String specificationName = information.getSpecificationName();
+        Optional<? extends ISpecificationReaderFactory> optionalSpecificationReader = Lookup.getDefault().lookupAll(ISpecificationReaderFactory.class).stream().filter(spec -> spec.getSpecificationName().equalsIgnoreCase(specificationName)).findFirst();
+        if (!optionalSpecificationReader.isPresent()) {
+            return null;
+        }
+        ISpecificationReader specificationReader = optionalSpecificationReader.get().getNewInstance();
+        information.getSpecificationInfos().entrySet().forEach((entry) -> {
+            specificationReader.putInformation(entry.getKey(), entry.getValue());
+        });
+
+        ISaSpecification specification = specificationReader.readSpecification();
+        return specification;
     }
 }

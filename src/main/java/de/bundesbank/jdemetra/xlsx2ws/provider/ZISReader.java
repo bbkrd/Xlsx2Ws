@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.bundesbank.jdemetra.xlsx2ws.reader;
+package de.bundesbank.jdemetra.xlsx2ws.provider;
 
 import de.bundesbank.webservice.BubaWebBean;
 import de.bundesbank.webservice.BubaWebProvider;
@@ -19,27 +19,19 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import lombok.extern.java.Log;
-import org.openide.util.lookup.ServiceProvider;
 
 /**
  *
  * @author Thomas Witthohn
  */
 @Log
-@ServiceProvider(service = IProviderReader.class)
 public class ZISReader implements IProviderReader {
 
-    private static final String PROVIDER_NAME = "ZISDB";
     public static final String TIMESERIES_KEY = "timeserieskey";
     private final Map<String, String> informations = new HashMap<>();
 
     @Override
-    public String getProviderName() {
-        return PROVIDER_NAME;
-    }
-
-    @Override
-    public Ts loadTs() {
+    public Ts readTs() {
         if (!informations.containsKey(TIMESERIES_KEY)) {
             return null;
         }

@@ -3,21 +3,17 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.bundesbank.jdemetra.xlsx2ws.reader;
+package de.bundesbank.jdemetra.xlsx2ws.provider;
 
 import ec.tss.Ts;
-import ec.tstoolkit.design.ServiceDefinition;
 
 /**
  *
  * @author Thomas Witthohn
  */
-@ServiceDefinition
 public interface IProviderReader {
 
-    String getProviderName();
-
-    Ts loadTs();
+    Ts readTs();
 
     void putInformation(String key, String value);
 

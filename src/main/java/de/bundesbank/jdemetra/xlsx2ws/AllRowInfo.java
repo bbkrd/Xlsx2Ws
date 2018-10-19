@@ -13,7 +13,7 @@ import java.util.Map;
  * @author Thomas Witthohn
  */
 @lombok.Data
-public class AllRowInfos {
+public final class AllRowInfo {
 
     private String multidocName;
     private String saItemName;
@@ -24,15 +24,15 @@ public class AllRowInfos {
     private final Map<String, String> metaData = new HashMap<>();
 
     public void addProviderInfo(String key, String value) {
-        providerInfos.put(key, value);
+        providerInfos.put(key, value.trim());
     }
 
     public void addSpecificationInfos(String key, String value) {
-        specificationInfos.put(key, value);
+        specificationInfos.put(key, value.trim());
     }
 
     public void addMetaData(String key, String value) {
-        metaData.put(key, value);
+        metaData.put(key, value.trim());
     }
 
     public boolean isValid() {
