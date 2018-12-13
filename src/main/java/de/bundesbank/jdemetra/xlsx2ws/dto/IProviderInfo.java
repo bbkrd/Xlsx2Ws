@@ -3,20 +3,18 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.bundesbank.jdemetra.xlsx2ws;
+package de.bundesbank.jdemetra.xlsx2ws.dto;
+
+import java.util.Map;
 
 /**
  *
  * @author Thomas Witthohn
  */
-public enum InformationType {
-    MULTIDOCUMENT_NAME,
-    SAITEM_NAME,
-    PROVIDER_NAME,
-    SPECIFICATION_NAME,
-    PROVIDER_INFO,
-    SPECIFICATION_INFO,
-    METADATA,
-    UNKNOWN;
+public interface IProviderInfo {
+
+    String getProviderName();
+
+    Map<String, String> getProviderInfos();
 
 }

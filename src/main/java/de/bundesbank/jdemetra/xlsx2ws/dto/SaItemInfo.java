@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.bundesbank.jdemetra.xlsx2ws;
+package de.bundesbank.jdemetra.xlsx2ws.dto;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,7 +13,7 @@ import java.util.Map;
  * @author Thomas Witthohn
  */
 @lombok.Data
-public final class AllRowInfo {
+public final class SaItemInfo implements IProviderInfo {
 
     private String multidocName;
     private String saItemName;

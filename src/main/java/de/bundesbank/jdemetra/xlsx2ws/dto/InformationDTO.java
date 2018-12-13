@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.bundesbank.jdemetra.xlsx2ws;
+package de.bundesbank.jdemetra.xlsx2ws.dto;
 
 import java.util.Locale;
 
@@ -19,12 +19,12 @@ public class InformationDTO {
 
     public InformationDTO(String input) {
         String lowercaseInput = input.toLowerCase(Locale.ENGLISH);
-        if (lowercaseInput.equals("multidoc")) {
+        if (lowercaseInput.equals("multidoc") || lowercaseInput.equals("variables")) {
             name = lowercaseInput;
-            type = InformationType.MULTIDOCUMENT_NAME;
-        } else if (lowercaseInput.equals("saitem")) {
+            type = InformationType.DOCUMENT_NAME;
+        } else if (lowercaseInput.equals("saitem") || lowercaseInput.equals("name")) {
             name = lowercaseInput;
-            type = InformationType.SAITEM_NAME;
+            type = InformationType.ITEM_NAME;
         } else if (lowercaseInput.equals("providername")) {
             name = lowercaseInput;
             type = InformationType.PROVIDER_NAME;

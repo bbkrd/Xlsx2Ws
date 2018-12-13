@@ -5,19 +5,27 @@
  */
 package de.bundesbank.jdemetra.xlsx2ws;
 
+import de.bundesbank.jdemetra.xlsx2ws.dto.IProviderInfo;
+import de.bundesbank.jdemetra.xlsx2ws.dto.InformationDTO;
+import de.bundesbank.jdemetra.xlsx2ws.dto.RegressorInfo;
+import de.bundesbank.jdemetra.xlsx2ws.dto.SaItemInfo;
 import de.bundesbank.jdemetra.xlsx2ws.provider.IProviderReader;
 import de.bundesbank.jdemetra.xlsx2ws.provider.IProviderReaderFactory;
 import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationReader;
 import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationReaderFactory;
 import ec.nbdemetra.sa.MultiProcessingDocument;
 import ec.nbdemetra.sa.MultiProcessingManager;
+import ec.nbdemetra.ui.variables.VariablesDocumentManager;
 import ec.nbdemetra.ws.Workspace;
 import ec.nbdemetra.ws.WorkspaceFactory;
 import ec.nbdemetra.ws.WorkspaceItem;
 import ec.satoolkit.ISaSpecification;
+import ec.tss.DynamicTsVariable;
 import ec.tss.Ts;
 import ec.tss.sa.SaItem;
 import ec.tstoolkit.MetaData;
+import ec.tstoolkit.algorithm.ProcessingContext;
+import ec.tstoolkit.timeseries.regression.TsVariables;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -49,14 +57,16 @@ import org.openide.util.Lookup;
 @Log
 public class Creator {
 
-    Map<String, Set<String>> map = new HashMap<>();
+    private final Map<String, Set<String>> map = new HashMap<>();
+    private final Map<String, Set<String>> variablesMap = new HashMap<>();
 
     public void createWorkspace(File selectedFile) {
         Workspace ws = WorkspaceFactory.getInstance().getActiveWorkspace();
         String fileName = selectedFile.getName();
         ws.setName(fileName.substring(0, fileName.length() - 5));
         ws.sort();
-        List<AllRowInfo> list = readSaItemSheet(selectedFile);
+        readRegressorSheet(selectedFile);
+        List<SaItemInfo> list = readSaItemSheet(selectedFile);
 
         list.stream().forEach(information -> {
             String multiDocumentName = information.getMultidocName();
@@ -89,8 +99,7 @@ public class Creator {
         });
     }
 
-    private List<AllRowInfo> readSaItemSheet(File selectedFile) {
-        List<AllRowInfo> list = new ArrayList<>();
+    private List<SaItemInfo> readSaItemSheet(File selectedFile) {
         try (FileInputStream excelFile = new FileInputStream(selectedFile);) {
             Workbook workbook = new XSSFWorkbook(excelFile);
             Sheet datatypeSheet = workbook.getSheetAt(0);
@@ -98,9 +107,10 @@ public class Creator {
 
             Map<Integer, InformationDTO> headers = readHeaders(iterator.next());
 
+            List<SaItemInfo> list = new ArrayList<>();
             while (iterator.hasNext()) {
                 Row currentRow = iterator.next();
-                AllRowInfo allRowInfos = new AllRowInfo();
+                SaItemInfo saItemInfo = new SaItemInfo();
                 for (Iterator<Cell> cellIterator = currentRow.cellIterator(); cellIterator.hasNext();) {
                     Cell cell = cellIterator.next();
                     int columnIndex = cell.getColumnIndex();
@@ -116,42 +126,42 @@ public class Creator {
                                 break;
                         }
                         switch (informationDTO.getType()) {
-                            case MULTIDOCUMENT_NAME:
-                                allRowInfos.setMultidocName(information);
+                            case DOCUMENT_NAME:
+                                saItemInfo.setMultidocName(information);
                                 break;
-                            case SAITEM_NAME:
-                                allRowInfos.setSaItemName(information);
+                            case ITEM_NAME:
+                                saItemInfo.setSaItemName(information);
                                 break;
                             case PROVIDER_NAME:
-                                allRowInfos.setProviderName(information);
+                                saItemInfo.setProviderName(information);
                                 break;
                             case SPECIFICATION_NAME:
-                                allRowInfos.setSpecificationName(information);
+                                saItemInfo.setSpecificationName(information);
                                 break;
                             case PROVIDER_INFO:
-                                allRowInfos.addProviderInfo(informationDTO.getName(), information);
+                                saItemInfo.addProviderInfo(informationDTO.getName(), information);
                                 break;
                             case SPECIFICATION_INFO:
-                                allRowInfos.addSpecificationInfos(informationDTO.getName(), information);
+                                saItemInfo.addSpecificationInfos(informationDTO.getName(), information);
                                 break;
                             case METADATA:
                             //TODO: Different view on none Metadata?
                             default:
-                                allRowInfos.addMetaData(informationDTO.getName(), information);
+                                saItemInfo.addMetaData(informationDTO.getName(), information);
                                 break;
                         }
                     }
 
                 }
-                if (allRowInfos.isValid()) {
-                    list.add(allRowInfos);
+                if (saItemInfo.isValid()) {
+                    list.add(saItemInfo);
                 }
             }
+            return list;
         } catch (IOException e) {
             Logger.getLogger(Creator.class.getName()).log(Level.SEVERE, null, e);
             return new ArrayList<>();
         }
-        return list;
     }
 
     private MultiProcessingDocument createAbsentMultiDoc(String name) {
@@ -183,7 +193,7 @@ public class Creator {
         return headers;
     }
 
-    private Ts readTs(AllRowInfo information) {
+    private Ts readTs(IProviderInfo information) {
         String providerName = information.getProviderName();
         Optional<? extends IProviderReaderFactory> optionalProvider = Lookup.getDefault().lookupAll(IProviderReaderFactory.class).stream().filter(provider -> provider.getProviderName().equalsIgnoreCase(providerName)).findFirst();
         if (!optionalProvider.isPresent()) {
@@ -200,7 +210,7 @@ public class Creator {
         return ts;
     }
 
-    private ISaSpecification readSpecification(AllRowInfo information) {
+    private ISaSpecification readSpecification(SaItemInfo information) {
         String specificationName = information.getSpecificationName();
         Optional<? extends ISpecificationReaderFactory> optionalSpecificationReader = Lookup.getDefault().lookupAll(ISpecificationReaderFactory.class).stream().filter(spec -> spec.getSpecificationName().equalsIgnoreCase(specificationName)).findFirst();
         if (!optionalSpecificationReader.isPresent()) {
@@ -213,5 +223,96 @@ public class Creator {
 
         ISaSpecification specification = specificationReader.readSpecification();
         return specification;
+    }
+
+    private void readRegressorSheet(File selectedFile) {
+        try (FileInputStream excelFile = new FileInputStream(selectedFile);) {
+            Workbook workbook = new XSSFWorkbook(excelFile);
+            if (workbook.getNumberOfSheets() < 2) {
+                return;
+            }
+            Sheet datatypeSheet = workbook.getSheet("regressor") == null ? workbook.getSheetAt(1) : workbook.getSheet("regressor");
+            Iterator<Row> iterator = datatypeSheet.iterator();
+
+            Map<Integer, InformationDTO> headers = readHeaders(iterator.next());
+
+            List<RegressorInfo> regressorInfos = new ArrayList<>();
+
+            while (iterator.hasNext()) {
+                Row currentRow = iterator.next();
+                RegressorInfo info = new RegressorInfo();
+                for (Iterator<Cell> cellIterator = currentRow.cellIterator(); cellIterator.hasNext();) {
+                    Cell cell = cellIterator.next();
+                    int columnIndex = cell.getColumnIndex();
+                    if (headers.containsKey(columnIndex)) {
+                        InformationDTO informationDTO = headers.get(columnIndex);
+                        String information = "";
+                        switch (cell.getCellTypeEnum()) {
+                            case NUMERIC:
+                                information = Double.toString(cell.getNumericCellValue());
+                                break;
+                            case STRING:
+                                information = cell.getStringCellValue();
+                                break;
+                        }
+                        switch (informationDTO.getType()) {
+                            case DOCUMENT_NAME:
+                                info.setDocumentName(information);
+                                break;
+                            case ITEM_NAME:
+                                info.setName(information);
+                                break;
+                            case PROVIDER_NAME:
+                                info.setProviderName(information);
+                                break;
+                            case PROVIDER_INFO:
+                                info.addProviderInfo(informationDTO.getName(), information);
+                                break;
+                        }
+                    }
+                }
+                regressorInfos.add(info);
+            }
+
+            regressorInfos.stream().forEach(information -> {
+                String variablesListName = information.getDocumentName();
+                String itemName = information.getName();
+
+                if (variablesMap.containsKey(variablesListName)
+                        && variablesMap.get(variablesListName).contains(itemName.toUpperCase(Locale.ENGLISH))) {
+                    //TODO Log
+                    return;
+                }
+                Ts ts = readTs(information);
+                if (ts == null) {
+                    //TODO Log
+                    return;
+                }
+
+                TsVariables document = createAbsentVariablesList(variablesListName);
+                variablesMap.get(variablesListName).add(itemName.toUpperCase(Locale.ENGLISH));
+                document.set(itemName, new DynamicTsVariable(ts.getRawName(), ts.getMoniker(), ts.getTsData()));
+            });
+
+        } catch (IOException e) {
+            Logger.getLogger(Creator.class.getName()).log(Level.SEVERE, null, e);
+        }
+    }
+
+    private TsVariables createAbsentVariablesList(String name) {
+        Workspace ws = WorkspaceFactory.getInstance().getActiveWorkspace();
+        WorkspaceItem<?> doc = ws.searchDocumentByName(VariablesDocumentManager.ID, name);
+        if (doc == null) {
+            VariablesDocumentManager mgr = WorkspaceFactory.getInstance().getManager(VariablesDocumentManager.class);
+            doc = mgr.create(ws);
+            doc.setDisplayName(name);
+            ProcessingContext.getActiveContext().getTsVariableManagers().rename(doc.getIdentifier(), name);
+
+            variablesMap.put(name, new HashSet<>());
+        }
+        if (doc.getElement() instanceof TsVariables) {
+            return (TsVariables) doc.getElement();
+        }
+        return null;
     }
 }

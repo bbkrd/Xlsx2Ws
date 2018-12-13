@@ -12,6 +12,7 @@ import ec.satoolkit.x13.X13Specification;
 import ec.tstoolkit.Parameter;
 import ec.tstoolkit.ParameterType;
 import ec.tstoolkit.modelling.DefaultTransformationType;
+import ec.tstoolkit.modelling.TsVariableDescriptor;
 import ec.tstoolkit.modelling.arima.x13.ArimaSpec;
 import ec.tstoolkit.modelling.arima.x13.BasicSpec;
 import ec.tstoolkit.modelling.arima.x13.RegArimaSpecification;
@@ -23,8 +24,10 @@ import ec.tstoolkit.timeseries.regression.IOutlierVariable;
 import ec.tstoolkit.timeseries.regression.LevelShift;
 import ec.tstoolkit.timeseries.regression.SeasonalOutlier;
 import ec.tstoolkit.timeseries.regression.TransitoryChange;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,12 +41,13 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
 
     private static final Pattern DATE_PATTERN = Pattern.compile("\\d{4}(\\.(0[1-9]|1[0-2])(\\.(0[1-9]|[12]\\d|3[01]))?)?");
     private static final Pattern ARIMA_PATTERN = Pattern.compile("\\(([0-6])\\s*([0-2])\\s*([0-6])\\)\\s*\\(([01])\\s*([01])\\s*([01])\\)");
+    private static final Pattern REGRESSOR_PATTERN = Pattern.compile(".*\\..+?(\\*)([cituy]|sa?)", Pattern.CASE_INSENSITIVE);
 
     public static final String BASE = "base", MAXLEAD = "maxlead", OUTLIER = "outlier_", CRITICAL_VALUE = "critical_value",
             HENDERSON = "henderson", TRANSFORM = "transform", UPPER_SIGMA = "usigma", LOWER_SIGMA = "lsigma",
             SERIES_START = "series_start", SERIES_END = "series_end", ARIMA_AUTO = "automdl",
             ARIMA = "arima", P = "p_", BP = "bp_", Q = "q_", BQ = "bq_", SEASONALFILTER = "seasonalfilters_",
-            MEAN = "mean";
+            MEAN = "mean", REGRESSOR = "regressor_";
 
     private final Map<String, String> information = new HashMap<>();
 
@@ -51,6 +55,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
     public X13Specification readSpecification() {
         X13Specification specification = X13Specification.fromString(information.containsKey(BASE) ? information.get(BASE) : "").clone();
         readOutliers(specification.getRegArimaSpecification().getRegression());
+        readRegressors(specification.getRegArimaSpecification().getRegression());
 
         if (information.containsKey(MAXLEAD) && !"X11".equals(information.get(BASE))) {
             int forecastHorizon = (int) Double.parseDouble(information.get(MAXLEAD));
@@ -100,7 +105,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
                         return;
                     }
                     IOutlierVariable outlier;
-                    switch (outlierInfo.substring(0, 2)) {
+                    switch (outlierInfo.substring(0, 2).toUpperCase()) {
                         case AdditiveOutlier.CODE:
                             outlier = new AdditiveOutlier(day);
                             break;
@@ -275,4 +280,61 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         }
     }
 
+    private void readRegressors(RegressionSpec regressionSpec) {
+        List<TsVariableDescriptor> variableDescriptors = new ArrayList<>();
+        List<String> userDefinedCalendarEffects = new ArrayList<>();
+        information.entrySet().stream()
+                .filter(x -> x.getKey().startsWith(REGRESSOR) && REGRESSOR_PATTERN.matcher(x.getValue()).matches())
+                .map(x -> x.getValue())
+                .forEach(regressorInfo -> {
+                    int lastStar = regressorInfo.lastIndexOf('*');
+                    String variable, typ;
+                    if (lastStar == -1) {
+                        variable = regressorInfo;
+                        typ = "m";
+                    } else {
+                        variable = regressorInfo.substring(0, lastStar);
+                        typ = regressorInfo.substring(lastStar + 1).toLowerCase(Locale.ENGLISH);
+                    }
+
+                    if (typ.equals("c")) {
+                        userDefinedCalendarEffects.add(variable);
+                        return;
+                    }
+
+                    TsVariableDescriptor regressor = new TsVariableDescriptor(variable);
+
+                    switch (typ) {
+                        case "i":
+                            regressor.setEffect(TsVariableDescriptor.UserComponentType.Irregular);
+                            break;
+                        case "t":
+                            regressor.setEffect(TsVariableDescriptor.UserComponentType.Trend);
+                            break;
+                        case "y":
+                            regressor.setEffect(TsVariableDescriptor.UserComponentType.Series);
+                            break;
+                        case "s":
+                            regressor.setEffect(TsVariableDescriptor.UserComponentType.Seasonal);
+                            break;
+                        case "sa":
+                            regressor.setEffect(TsVariableDescriptor.UserComponentType.SeasonallyAdjusted);
+                            break;
+                        case "u":
+                            regressor.setEffect(TsVariableDescriptor.UserComponentType.Undefined);
+                            break;
+                        default:
+                            //TODO Log missing or wrong typ
+                            regressor.setEffect(TsVariableDescriptor.UserComponentType.Undefined);
+                            break;
+                    }
+                    variableDescriptors.add(regressor);
+                });
+        if (!variableDescriptors.isEmpty()) {
+            regressionSpec.setUserDefinedVariables(variableDescriptors.toArray(new TsVariableDescriptor[variableDescriptors.size()]));
+        }
+        if (!userDefinedCalendarEffects.isEmpty()) {
+            regressionSpec.getTradingDays().setUserVariables(userDefinedCalendarEffects.toArray(new String[userDefinedCalendarEffects.size()]));
+        }
+    }
 }
