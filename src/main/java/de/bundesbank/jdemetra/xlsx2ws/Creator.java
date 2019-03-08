@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -41,6 +42,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import lombok.extern.java.Log;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -62,40 +64,79 @@ public class Creator {
 
     public void createWorkspace(File selectedFile) {
         Workspace ws = WorkspaceFactory.getInstance().getActiveWorkspace();
-        String fileName = selectedFile.getName();
-        ws.setName(fileName.substring(0, fileName.length() - 5));
-        ws.sort();
+        readExistingWorkspace(ws);
         readRegressorSheet(selectedFile);
         List<SaItemInfo> list = readSaItemSheet(selectedFile);
 
         list.stream().forEach(information -> {
             String multiDocumentName = information.getMultidocName();
             String saItemName = information.getSaItemName();
+            SaItem old = null;
+            MultiProcessingDocument document = null;
 
-            if (map.containsKey(multiDocumentName)
-                    && map.get(multiDocumentName).contains(saItemName.toUpperCase(Locale.ENGLISH))) {
-                //TODO Log
-                return;
+            if (map.containsKey(multiDocumentName)) {
+                WorkspaceItem<?> doc = ws.searchDocumentByName(MultiProcessingManager.ID, multiDocumentName);
+                document = (MultiProcessingDocument) doc.getElement();
+                if (map.get(multiDocumentName).contains(saItemName.toUpperCase(Locale.ENGLISH))) {
+                    old = document.getCurrent().stream().filter(item -> item.getRawName().equals(saItemName)).findFirst().orElse(null);
+                    //return;
+                }
             }
+
             Ts ts = readTs(information);
-            if (ts == null) {
-                //TODO Log
-                return;
+            ISaSpecification specification = readSpecification(information, old);
+
+            if (old == null) {
+                if (ts == null) {
+                    //TODO LOG
+                    return;
+                }
+                SaItem item = new SaItem(specification, ts);
+                item.setName(saItemName);
+                item.setMetaData(new MetaData(information.getMetaData()));
+                if (document == null) {
+                    document = createAbsentMultiDoc(multiDocumentName);
+                }
+                map.get(multiDocumentName).add(saItemName.toUpperCase(Locale.ENGLISH));
+                document.getCurrent().add(item);
+            } else {
+                if (ts == null && information.getMetaData().isEmpty()) {
+                    //TODO LOG (No change)
+                    return;
+                }
+                ts = ts == null ? old.getTs() : ts;
+                MetaData meta = old.getMetaData();
+                if (meta == null) {
+                    meta = new MetaData(information.getMetaData());
+                } else {
+                    meta = meta.clone();
+                    meta.putAll(information.getMetaData());
+                }
+                SaItem item = new SaItem(specification, ts);
+                item.setName(saItemName);
+                item.setMetaData(meta);
+                if (document == null) {
+                    document = createAbsentMultiDoc(multiDocumentName);
+                }
+                document.getCurrent().replace(old, item);
             }
 
-            ISaSpecification specification = readSpecification(information);
-            if (specification == null) {
-                //TODO Log
-                return;
-            }
+        });
+    }
 
-            SaItem item = new SaItem(specification, ts);
-            item.setName(saItemName);
-            item.setMetaData(new MetaData(information.getMetaData()));
+    private void readExistingWorkspace(Workspace ws) {
+        List<WorkspaceItem<MultiProcessingDocument>> existingDocuments = ws.searchDocuments(MultiProcessingDocument.class);
+        existingDocuments.forEach((existingDocument) -> {
+            String name = existingDocument.getDisplayName();
+            Set<String> saItems = existingDocument.getElement().getCurrent().stream().map(SaItem::getRawName).collect(Collectors.toSet());
+            map.put(name, saItems);
+        });
 
-            MultiProcessingDocument document = createAbsentMultiDoc(multiDocumentName);
-            map.get(multiDocumentName).add(saItemName.toUpperCase(Locale.ENGLISH));
-            document.getCurrent().add(item);
+        List<WorkspaceItem<TsVariables>> existingTsVariables = ws.searchDocuments(TsVariables.class);
+        existingTsVariables.forEach((existingTsVariable) -> {
+            String name = existingTsVariable.getDisplayName();
+            Set<String> variables = new HashSet<>(Arrays.asList(existingTsVariable.getElement().getNames()));
+            variablesMap.put(name, variables);
         });
     }
 
@@ -210,7 +251,7 @@ public class Creator {
         return ts;
     }
 
-    private ISaSpecification readSpecification(SaItemInfo information) {
+    private ISaSpecification readSpecification(SaItemInfo information, SaItem old) {
         String specificationName = information.getSpecificationName();
         Optional<? extends ISpecificationReaderFactory> optionalSpecificationReader = Lookup.getDefault().lookupAll(ISpecificationReaderFactory.class).stream().filter(spec -> spec.getSpecificationName().equalsIgnoreCase(specificationName)).findFirst();
         if (!optionalSpecificationReader.isPresent()) {
@@ -221,7 +262,7 @@ public class Creator {
             specificationReader.putInformation(entry.getKey(), entry.getValue());
         });
 
-        ISaSpecification specification = specificationReader.readSpecification();
+        ISaSpecification specification = specificationReader.readSpecification(old.getDomainSpecification());
         return specification;
     }
 
@@ -274,23 +315,26 @@ public class Creator {
                 regressorInfos.add(info);
             }
 
-            regressorInfos.stream().forEach(information -> {
+            regressorInfos.forEach(information -> {
                 String variablesListName = information.getDocumentName();
                 String itemName = information.getName();
+                boolean alreadyExists = false;
 
                 if (variablesMap.containsKey(variablesListName)
                         && variablesMap.get(variablesListName).contains(itemName.toUpperCase(Locale.ENGLISH))) {
                     //TODO Log
-                    return;
+                    alreadyExists = true;
                 }
                 Ts ts = readTs(information);
                 if (ts == null) {
                     //TODO Log
                     return;
                 }
-
                 TsVariables document = createAbsentVariablesList(variablesListName);
                 variablesMap.get(variablesListName).add(itemName.toUpperCase(Locale.ENGLISH));
+                if (alreadyExists) {
+                    document.remove(itemName);
+                }
                 document.set(itemName, new DynamicTsVariable(ts.getRawName(), ts.getMoniker(), ts.getTsData()));
             });
 

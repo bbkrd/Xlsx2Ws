@@ -39,7 +39,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_RSA0() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.BASE, "RSA0");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(X13Specification.RSA0, specification);
     }
@@ -48,7 +48,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_Start1970() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.SERIES_START, "1970");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         TsPeriodSelector expected = new TsPeriodSelector();
         expected.from(new Day(1970, Month.January, 0));
@@ -60,7 +60,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_StartWrongFormat() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.SERIES_START, "197004"); //instead of 1970.04
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         TsPeriodSelector expected = new TsPeriodSelector();
 
@@ -71,7 +71,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_Start197004() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.SERIES_START, "1970.04");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         TsPeriodSelector expected = new TsPeriodSelector();
         expected.from(new Day(1970, Month.April, 0));
@@ -83,7 +83,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_End1970() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.SERIES_END, "1970");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         TsPeriodSelector expected = new TsPeriodSelector();
         expected.to(new Day(1970, Month.January, 0));
@@ -96,7 +96,7 @@ public class X13SpecificationReaderTest {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.SERIES_START, "1970");
         instance.putInformation(X13SpecificationReader.SERIES_END, "1980");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         TsPeriodSelector expected = new TsPeriodSelector();
         expected.between(new Day(1970, Month.January, 0), new Day(1980, Month.January, 0));
@@ -109,7 +109,7 @@ public class X13SpecificationReaderTest {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.SERIES_START, "1970.11.05");
         instance.putInformation(X13SpecificationReader.SERIES_END, "1980.02.28");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         TsPeriodSelector expected = new TsPeriodSelector();
         expected.between(new Day(1970, Month.November, 4), new Day(1980, Month.February, 27));
@@ -121,7 +121,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_MaxleadMinus2() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.MAXLEAD, "-2");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(-2, specification.getX11Specification().getForecastHorizon());
     }
@@ -130,7 +130,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_Maxlead24() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.MAXLEAD, "24");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(24, specification.getX11Specification().getForecastHorizon());
     }
@@ -140,7 +140,7 @@ public class X13SpecificationReaderTest {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.BASE, "X11");
         instance.putInformation(X13SpecificationReader.MAXLEAD, "-2");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(X13Specification.RSAX11, specification);
         Assert.assertEquals(0, specification.getX11Specification().getForecastHorizon());
@@ -150,7 +150,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_Henderson101() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.HENDERSON, "101");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(101, specification.getX11Specification().getHendersonFilterLength());
     }
@@ -159,7 +159,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_Henderson3() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.HENDERSON, "3");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(3, specification.getX11Specification().getHendersonFilterLength());
     }
@@ -168,7 +168,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_Henderson3Point5() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.HENDERSON, "3.5");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(3, specification.getX11Specification().getHendersonFilterLength());
     }
@@ -177,28 +177,28 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_Henderson28() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.HENDERSON, "28");
-        instance.readSpecification();
+        instance.readSpecification(null);
     }
 
     @Test(expected = X11Exception.class)
     public void testReadSpecification_Henderson103() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.HENDERSON, "103");
-        instance.readSpecification();
+        instance.readSpecification(null);
     }
 
     @Test(expected = NumberFormatException.class)
     public void testReadSpecification_HendersonAbc() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.HENDERSON, "Abc");
-        instance.readSpecification();
+        instance.readSpecification(null);
     }
 
     @Test
     public void testReadSpecification_TransformLog() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.TRANSFORM, "Log");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(DefaultTransformationType.Log, specification.getRegArimaSpecification().getTransform().getFunction());
     }
@@ -207,7 +207,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_TransformAuto() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.TRANSFORM, "Auto");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(DefaultTransformationType.Auto, specification.getRegArimaSpecification().getTransform().getFunction());
     }
@@ -216,7 +216,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_TransformNone() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.TRANSFORM, "None");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(DefaultTransformationType.None, specification.getRegArimaSpecification().getTransform().getFunction());
     }
@@ -225,7 +225,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_TransformWrong() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.TRANSFORM, "Wrong");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(DefaultTransformationType.None, specification.getRegArimaSpecification().getTransform().getFunction());
     }
@@ -234,7 +234,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_CriticalValue5Point4() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.CRITICAL_VALUE, "5.4");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(5.4, specification.getRegArimaSpecification().getOutliers().getDefaultCriticalValue(), 10e-15);
     }
@@ -243,7 +243,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_UpperSigma5Point4() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.UPPER_SIGMA, "5.4");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(5.4, specification.getX11Specification().getUpperSigma(), 10e-15);
     }
@@ -252,7 +252,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_LowerSigma5Point4() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.LOWER_SIGMA, "5.4");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(5.4, specification.getX11Specification().getLowerSigma(), 10e-15);
     }
@@ -261,7 +261,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_LowerSigma0Point4() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.LOWER_SIGMA, "0.4");
-        instance.readSpecification();
+        instance.readSpecification(null);
     }
 
     @Test
@@ -269,7 +269,7 @@ public class X13SpecificationReaderTest {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.LOWER_SIGMA, "5.4");
         instance.putInformation(X13SpecificationReader.UPPER_SIGMA, "5.5");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(5.4, specification.getX11Specification().getLowerSigma(), 10e-15);
         Assert.assertEquals(5.5, specification.getX11Specification().getUpperSigma(), 10e-15);
@@ -280,14 +280,14 @@ public class X13SpecificationReaderTest {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.LOWER_SIGMA, "5.4");
         instance.putInformation(X13SpecificationReader.UPPER_SIGMA, "5.3");
-        instance.readSpecification();
+        instance.readSpecification(null);
     }
 
     @Test
     public void testReadSpecification_Arima312111() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.ARIMA, "(312)(111)");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(3, specification.getRegArimaSpecification().getArima().getP());
         Assert.assertEquals(1, specification.getRegArimaSpecification().getArima().getD());
@@ -307,7 +307,7 @@ public class X13SpecificationReaderTest {
         instance.putInformation(X13SpecificationReader.Q + 2, "0.3");
         instance.putInformation(X13SpecificationReader.BP + 1, "0.4");
         instance.putInformation(X13SpecificationReader.BQ + 1, "0.5");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(3, specification.getRegArimaSpecification().getArima().getP());
         Assert.assertEquals(1, specification.getRegArimaSpecification().getArima().getD());
@@ -329,7 +329,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_ArimaWrongFormat() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.ARIMA, "(32)(111)");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(new ArimaSpec(), specification.getRegArimaSpecification().getArima());
 
@@ -339,7 +339,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_AutoTrue() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.ARIMA_AUTO, "true");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(true, specification.getRegArimaSpecification().isUsingAutoModel());
 
@@ -349,7 +349,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_AutoFalse() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.ARIMA_AUTO, "false");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(false, specification.getRegArimaSpecification().isUsingAutoModel());
 
@@ -359,7 +359,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_MeanTrue() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.MEAN, "true");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(true, specification.getRegArimaSpecification().getArima().isMean());
 
@@ -369,7 +369,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_MeanFalse() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.MEAN, "false");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(false, specification.getRegArimaSpecification().getArima().isMean());
 
@@ -379,7 +379,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_OutlierAO1970() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.OUTLIER + 1, "AO1970");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(1, specification.getRegArimaSpecification().getRegression().getOutliersCount());
         Assert.assertEquals(new OutlierDefinition(new Day(1970, Month.January, 0), AdditiveOutlier.CODE), specification.getRegArimaSpecification().getRegression().getOutliers()[0]);
@@ -389,7 +389,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_OutlierAOWrongDate() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.OUTLIER + 1, "AO197000");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(0, specification.getRegArimaSpecification().getRegression().getOutliersCount());
     }
@@ -398,7 +398,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_OutlierLS1970() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.OUTLIER + 1, "LS1970");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(1, specification.getRegArimaSpecification().getRegression().getOutliersCount());
         Assert.assertEquals(new OutlierDefinition(new Day(1970, Month.January, 0), LevelShift.CODE), specification.getRegArimaSpecification().getRegression().getOutliers()[0]);
@@ -408,7 +408,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_OutlierTC1970() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.OUTLIER + 1, "TC1970");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(1, specification.getRegArimaSpecification().getRegression().getOutliersCount());
         Assert.assertEquals(new OutlierDefinition(new Day(1970, Month.January, 0), TransitoryChange.CODE), specification.getRegArimaSpecification().getRegression().getOutliers()[0]);
@@ -418,7 +418,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_OutlierSO1970() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.OUTLIER + 1, "SO1970");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(1, specification.getRegArimaSpecification().getRegression().getOutliersCount());
         Assert.assertEquals(new OutlierDefinition(new Day(1970, Month.January, 0), SeasonalOutlier.CODE), specification.getRegArimaSpecification().getRegression().getOutliers()[0]);
@@ -431,7 +431,7 @@ public class X13SpecificationReaderTest {
         instance.putInformation(X13SpecificationReader.OUTLIER + 2, "LS1980.04.10");
         instance.putInformation(X13SpecificationReader.OUTLIER + 3, "TC1990.06.15");
         instance.putInformation(X13SpecificationReader.OUTLIER + 4, "SO2000.08.20");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Set<OutlierDefinition> expectedOutliers = new HashSet<>();
         expectedOutliers.add(new OutlierDefinition(new Day(1970, Month.February, 4), AdditiveOutlier.CODE));
@@ -449,7 +449,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_OutlierUnknownOutlier() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.OUTLIER + 1, "OO1970");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(0, specification.getRegArimaSpecification().getRegression().getOutliersCount());
     }
@@ -459,7 +459,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_OutlierWrongFormat() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.OUTLIER + 1, "");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(0, specification.getRegArimaSpecification().getRegression().getOutliersCount());
     }
@@ -468,7 +468,7 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_SeasonalFilterS3X15() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.SEASONALFILTER + 1, "S3X15");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertArrayEquals(new SeasonalFilterOption[]{SeasonalFilterOption.S3X15}, specification.getX11Specification().getSeasonalFilters());
     }
@@ -478,7 +478,7 @@ public class X13SpecificationReaderTest {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.SEASONALFILTER + "a", "S3X9");
         instance.putInformation(X13SpecificationReader.SEASONALFILTER + 1, "S3X15");
-        X13Specification specification = instance.readSpecification();
+        X13Specification specification = instance.readSpecification(null);
 
         Assert.assertArrayEquals(new SeasonalFilterOption[]{SeasonalFilterOption.S3X15}, specification.getX11Specification().getSeasonalFilters());
     }
@@ -488,7 +488,7 @@ public class X13SpecificationReaderTest {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.SEASONALFILTER + 12, "S3X9");
         instance.putInformation(X13SpecificationReader.SEASONALFILTER + 1, "S3X15");
-        instance.readSpecification();
+        instance.readSpecification(null);
     }
 
 }

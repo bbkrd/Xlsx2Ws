@@ -13,7 +13,7 @@ import ec.satoolkit.ISaSpecification;
  */
 public interface ISpecificationReader<T extends ISaSpecification> {
 
-    T readSpecification();
+    T readSpecification(ISaSpecification old);
 
     void putInformation(String key, String value);
 }

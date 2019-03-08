@@ -21,34 +21,37 @@ import org.openide.util.NbBundle.Messages;
 
 @ActionID(
         category = "Tools",
-        id = "de.bundesbank.jdemetra.xlsx2ws.ExcelToWorkspaceAction"
+        id = "de.bundesbank.jdemetra.xlsx2ws.ImportFromXlsx"
 )
 @ActionRegistration(
-        displayName = "#CTL_Excel2Workspace"
+        displayName = "#CTL_ImportFromXlsx"
 )
-@ActionReference(path = "Menu/File", position = 1)
-@Messages("CTL_Excel2Workspace=Create new Workspace from XLSX file")
-public final class ExcelToWorkspaceAction implements ActionListener {
+@ActionReference(path = "Menu/File", position = 2)
+@Messages("CTL_ImportFromXlsx=Import from Xlsx file")
+public final class ImportFromXlsxAction implements ActionListener {
 
-    private final FileChooserBuilder wsFileChooser = new FileChooserBuilder(ExcelToWorkspaceAction.class)
+    private final FileChooserBuilder wsFileChooser = new FileChooserBuilder(ImportFromXlsxAction.class)
             .setFileFilter(new FileNameExtensionFilter("Spreadsheet file", "xlsx"));
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (!WorkspaceFactory.getInstance().closeWorkspace(true)) {
-            return;
+        Workspace ws = WorkspaceFactory.getInstance().getActiveWorkspace();
+        if (ws.isDirty()) {
+            NotifyDescriptor save = new NotifyDescriptor.Confirmation("Do you want to save before importing from Xlsx?");
+            Object response = DialogDisplayer.getDefault().notify(save);
+            if (response.equals(NotifyDescriptor.CANCEL_OPTION) || response.equals(NotifyDescriptor.CLOSED_OPTION)) {
+                return;
+            }
+            if (response.equals(NotifyDescriptor.YES_OPTION)) {
+                ws.save();
+            }
         }
-        WorkspaceFactory.getInstance().newWorkspace();
+
         File selectedFile = wsFileChooser.showOpenDialog();
         if (selectedFile != null) {
-            Workspace ws = WorkspaceFactory.getInstance().getActiveWorkspace();
-            String fileName = selectedFile.getName();
-            ws.setName(fileName.substring(0, fileName.length() - 5));
-            ws.sort();
             new Creator().createWorkspace(selectedFile);
             NotifyDescriptor nd = new NotifyDescriptor.Message("DONE?");
             DialogDisplayer.getDefault().notify(nd);
         }
-
     }
 }

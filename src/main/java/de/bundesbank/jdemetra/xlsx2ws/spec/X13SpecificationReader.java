@@ -6,6 +6,7 @@
 package de.bundesbank.jdemetra.xlsx2ws.spec;
 
 import de.bundesbank.jdemetra.xlsx2ws.DayBuilder;
+import ec.satoolkit.ISaSpecification;
 import ec.satoolkit.x11.SeasonalFilterOption;
 import ec.satoolkit.x11.X11Specification;
 import ec.satoolkit.x13.X13Specification;
@@ -52,8 +53,16 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
     private final Map<String, String> information = new HashMap<>();
 
     @Override
-    public X13Specification readSpecification() {
-        X13Specification specification = X13Specification.fromString(information.containsKey(BASE) ? information.get(BASE) : "").clone();
+    public X13Specification readSpecification(ISaSpecification old) {
+        X13Specification specification;
+        if (information.containsKey(BASE)) {
+            specification = X13Specification.fromString(information.get(BASE)).clone();
+        } else if (old instanceof X13Specification) {
+            specification = (X13Specification) old.clone();
+        } else {
+            specification = new X13Specification();
+        }
+
         readOutliers(specification.getRegArimaSpecification().getRegression());
         readRegressors(specification.getRegArimaSpecification().getRegression());
 
