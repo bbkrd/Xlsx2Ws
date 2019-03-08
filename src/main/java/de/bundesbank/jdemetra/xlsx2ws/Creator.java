@@ -85,6 +85,10 @@ public class Creator {
 
             Ts ts = readTs(information);
             ISaSpecification specification = readSpecification(information, old);
+            if (specification == null) {
+                //TODO LOG
+                return;
+            }
 
             if (old == null) {
                 if (ts == null) {
@@ -100,7 +104,7 @@ public class Creator {
                 map.get(multiDocumentName).add(saItemName.toUpperCase(Locale.ENGLISH));
                 document.getCurrent().add(item);
             } else {
-                if (ts == null && information.getMetaData().isEmpty()) {
+                if (ts == null && information.getMetaData().isEmpty() && old.getDomainSpecification().equals(specification)) {
                     //TODO LOG (No change)
                     return;
                 }
@@ -262,7 +266,11 @@ public class Creator {
             specificationReader.putInformation(entry.getKey(), entry.getValue());
         });
 
-        ISaSpecification specification = specificationReader.readSpecification(old.getDomainSpecification());
+        ISaSpecification oldSpec = null;
+        if (old != null) {
+            oldSpec = old.getDomainSpecification();
+        }
+        ISaSpecification specification = specificationReader.readSpecification(oldSpec);
         return specification;
     }
 
