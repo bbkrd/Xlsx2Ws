@@ -77,7 +77,7 @@ public class Creator {
             if (map.containsKey(multiDocumentName)) {
                 WorkspaceItem<?> doc = ws.searchDocumentByName(MultiProcessingManager.ID, multiDocumentName);
                 document = (MultiProcessingDocument) doc.getElement();
-                if (map.get(multiDocumentName).contains(saItemName.toUpperCase(Locale.ENGLISH))) {
+                if (map.get(multiDocumentName).contains(saItemName)) {
                     old = document.getCurrent().stream().filter(item -> item.getRawName().equals(saItemName)).findFirst().orElse(null);
                     //return;
                 }
@@ -101,7 +101,7 @@ public class Creator {
                 if (document == null) {
                     document = createAbsentMultiDoc(multiDocumentName);
                 }
-                map.get(multiDocumentName).add(saItemName.toUpperCase(Locale.ENGLISH));
+                map.get(multiDocumentName).add(saItemName);
                 document.getCurrent().add(item);
             } else {
                 if (ts == null && information.getMetaData().isEmpty() && old.getDomainSpecification().equals(specification)) {
@@ -165,6 +165,9 @@ public class Creator {
                         switch (cell.getCellTypeEnum()) {
                             case NUMERIC:
                                 information = Double.toString(cell.getNumericCellValue());
+                                if (information.endsWith(".0")) {
+                                    information = information.substring(0, information.length() - 2);
+                                }
                                 break;
                             case STRING:
                                 information = cell.getStringCellValue();
@@ -299,6 +302,9 @@ public class Creator {
                         switch (cell.getCellTypeEnum()) {
                             case NUMERIC:
                                 information = Double.toString(cell.getNumericCellValue());
+                                if (information.endsWith(".0")) {
+                                    information = information.substring(0, information.length() - 2);
+                                }
                                 break;
                             case STRING:
                                 information = cell.getStringCellValue();
