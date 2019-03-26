@@ -260,6 +260,9 @@ public class Creator {
 
     private ISaSpecification readSpecification(SaItemInfo information, SaItem old) {
         String specificationName = information.getSpecificationName();
+        if (specificationName == null) {
+            return old != null ? old.getDomainSpecification() : null;
+        }
         Optional<? extends ISpecificationReaderFactory> optionalSpecificationReader = Lookup.getDefault().lookupAll(ISpecificationReaderFactory.class).stream().filter(spec -> spec.getSpecificationName().equalsIgnoreCase(specificationName)).findFirst();
         if (!optionalSpecificationReader.isPresent()) {
             return null;
