@@ -141,6 +141,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
      * 1989.03.15 -> Day for 1989.03.15<br/>
      *
      * @param dayInfo String in the form YYYY[.MM[.DD]]
+     *
      * @return Day or null if not parsable
      */
     private Day parseDay(String dayInfo) {
@@ -223,11 +224,14 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
     }
 
     private void readSeriesSpan(BasicSpec basic) {
-        TsPeriodSelector tsPeriodSelector = new TsPeriodSelector();
-
         Day seriesStart = parseDay(information.get(SERIES_START));
         Day seriesEnd = parseDay(information.get(SERIES_END));
 
+        if (seriesStart == null && seriesEnd == null) {
+            return;
+        }
+
+        TsPeriodSelector tsPeriodSelector = new TsPeriodSelector();
         if (seriesStart != null && seriesEnd == null) {
             tsPeriodSelector.from(seriesStart);
         }
