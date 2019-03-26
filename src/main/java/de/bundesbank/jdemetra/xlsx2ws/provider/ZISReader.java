@@ -45,7 +45,7 @@ public class ZISReader implements IProviderReader {
         DataSource dataSource = provider.encodeBean(bean);
         try {
             TsMoniker moniker = provider.toMoniker(provider.children(dataSource).get(0));
-            return TsFactory.instance.createTs(timeseriesKey, moniker, TsInformationType.All);
+            return TsFactory.instance.createTs(null, moniker, TsInformationType.All);
         } catch (IllegalArgumentException | IOException ex) {
             log.log(Level.SEVERE, "Error while creating Ts {0}: {1}", new Object[]{timeseriesKey, ex});
             return null;

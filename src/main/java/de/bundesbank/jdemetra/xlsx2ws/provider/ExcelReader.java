@@ -72,7 +72,7 @@ public class ExcelReader implements IProviderReader {
             }
 
             TsMoniker moniker = provider.toMoniker(specifiedSeries.get());
-            return TsFactory.instance.createTs(seriesName, moniker, TsInformationType.All);
+            return TsFactory.instance.createTs(null, moniker, TsInformationType.All);
         } catch (IllegalArgumentException | IOException ex) {
             log.log(Level.SEVERE, null, ex);
             return null;
