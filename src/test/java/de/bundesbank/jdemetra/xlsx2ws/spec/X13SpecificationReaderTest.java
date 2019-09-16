@@ -47,7 +47,7 @@ public class X13SpecificationReaderTest {
     @Test
     public void testReadSpecification_Start1970() {
         X13SpecificationReader instance = new X13SpecificationReader();
-        instance.putInformation(X13SpecificationReader.SERIES_START, "1970");
+        instance.putInformation(X13SpecificationReader.SERIES + X13SpecificationReader.START, "1970");
         X13Specification specification = instance.readSpecification(null);
 
         TsPeriodSelector expected = new TsPeriodSelector();
@@ -59,7 +59,7 @@ public class X13SpecificationReaderTest {
     @Test
     public void testReadSpecification_StartWrongFormat() {
         X13SpecificationReader instance = new X13SpecificationReader();
-        instance.putInformation(X13SpecificationReader.SERIES_START, "197004"); //instead of 1970.04
+        instance.putInformation(X13SpecificationReader.SERIES + X13SpecificationReader.START, "197004"); //instead of 1970.04
         X13Specification specification = instance.readSpecification(null);
 
         TsPeriodSelector expected = new TsPeriodSelector();
@@ -70,7 +70,7 @@ public class X13SpecificationReaderTest {
     @Test
     public void testReadSpecification_Start197004() {
         X13SpecificationReader instance = new X13SpecificationReader();
-        instance.putInformation(X13SpecificationReader.SERIES_START, "1970.04");
+        instance.putInformation(X13SpecificationReader.SERIES + X13SpecificationReader.START, "1970.04");
         X13Specification specification = instance.readSpecification(null);
 
         TsPeriodSelector expected = new TsPeriodSelector();
@@ -82,7 +82,7 @@ public class X13SpecificationReaderTest {
     @Test
     public void testReadSpecification_End1970() {
         X13SpecificationReader instance = new X13SpecificationReader();
-        instance.putInformation(X13SpecificationReader.SERIES_END, "1970");
+        instance.putInformation(X13SpecificationReader.SERIES + X13SpecificationReader.END, "1970");
         X13Specification specification = instance.readSpecification(null);
 
         TsPeriodSelector expected = new TsPeriodSelector();
@@ -94,8 +94,8 @@ public class X13SpecificationReaderTest {
     @Test
     public void testReadSpecification_Between1970_1980() {
         X13SpecificationReader instance = new X13SpecificationReader();
-        instance.putInformation(X13SpecificationReader.SERIES_START, "1970");
-        instance.putInformation(X13SpecificationReader.SERIES_END, "1980");
+        instance.putInformation(X13SpecificationReader.SERIES + X13SpecificationReader.START, "1970");
+        instance.putInformation(X13SpecificationReader.SERIES + X13SpecificationReader.END, "1980");
         X13Specification specification = instance.readSpecification(null);
 
         TsPeriodSelector expected = new TsPeriodSelector();
@@ -107,8 +107,8 @@ public class X13SpecificationReaderTest {
     @Test
     public void testReadSpecification_Between19701105_19800228() {
         X13SpecificationReader instance = new X13SpecificationReader();
-        instance.putInformation(X13SpecificationReader.SERIES_START, "1970.11.05");
-        instance.putInformation(X13SpecificationReader.SERIES_END, "1980.02.28");
+        instance.putInformation(X13SpecificationReader.SERIES + X13SpecificationReader.START, "1970.11.05");
+        instance.putInformation(X13SpecificationReader.SERIES + X13SpecificationReader.END, "1980.02.28");
         X13Specification specification = instance.readSpecification(null);
 
         TsPeriodSelector expected = new TsPeriodSelector();
@@ -338,7 +338,7 @@ public class X13SpecificationReaderTest {
     @Test
     public void testReadSpecification_AutoTrue() {
         X13SpecificationReader instance = new X13SpecificationReader();
-        instance.putInformation(X13SpecificationReader.ARIMA_AUTO, "true");
+        instance.putInformation(X13SpecificationReader.AUTOMODEL, "true");
         X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(true, specification.getRegArimaSpecification().isUsingAutoModel());
@@ -348,7 +348,7 @@ public class X13SpecificationReaderTest {
     @Test
     public void testReadSpecification_AutoFalse() {
         X13SpecificationReader instance = new X13SpecificationReader();
-        instance.putInformation(X13SpecificationReader.ARIMA_AUTO, "false");
+        instance.putInformation(X13SpecificationReader.AUTOMODEL, "false");
         X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(false, specification.getRegArimaSpecification().isUsingAutoModel());
@@ -467,7 +467,7 @@ public class X13SpecificationReaderTest {
     @Test
     public void testReadSpecification_SeasonalFilterS3X15() {
         X13SpecificationReader instance = new X13SpecificationReader();
-        instance.putInformation(X13SpecificationReader.SEASONALFILTER + 1, "S3X15");
+        instance.putInformation(X13SpecificationReader.SEASONALFILTERS + 1, "S3X15");
         X13Specification specification = instance.readSpecification(null);
 
         Assert.assertArrayEquals(new SeasonalFilterOption[]{SeasonalFilterOption.S3X15}, specification.getX11Specification().getSeasonalFilters());
@@ -476,8 +476,8 @@ public class X13SpecificationReaderTest {
     @Test
     public void testReadSpecification_SeasonalFilterA() {
         X13SpecificationReader instance = new X13SpecificationReader();
-        instance.putInformation(X13SpecificationReader.SEASONALFILTER + "a", "S3X9");
-        instance.putInformation(X13SpecificationReader.SEASONALFILTER + 1, "S3X15");
+        instance.putInformation(X13SpecificationReader.SEASONALFILTERS + "a", "S3X9");
+        instance.putInformation(X13SpecificationReader.SEASONALFILTERS + 1, "S3X15");
         X13Specification specification = instance.readSpecification(null);
 
         Assert.assertArrayEquals(new SeasonalFilterOption[]{SeasonalFilterOption.S3X15}, specification.getX11Specification().getSeasonalFilters());
@@ -486,8 +486,8 @@ public class X13SpecificationReaderTest {
     @Test(expected = RuntimeException.class)
     public void testReadSpecification_SeasonalFilterTooFewFilters() {
         X13SpecificationReader instance = new X13SpecificationReader();
-        instance.putInformation(X13SpecificationReader.SEASONALFILTER + 12, "S3X9");
-        instance.putInformation(X13SpecificationReader.SEASONALFILTER + 1, "S3X15");
+        instance.putInformation(X13SpecificationReader.SEASONALFILTERS + 12, "S3X9");
+        instance.putInformation(X13SpecificationReader.SEASONALFILTERS + 1, "S3X15");
         instance.readSpecification(null);
     }
 

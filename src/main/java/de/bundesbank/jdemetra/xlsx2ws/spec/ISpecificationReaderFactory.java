@@ -16,6 +16,8 @@ public interface ISpecificationReaderFactory<T extends ISpecificationReader> {
 
     String getSpecificationName();
 
+    String getSupportedClass();
+
     T getNewInstance();
 
 }

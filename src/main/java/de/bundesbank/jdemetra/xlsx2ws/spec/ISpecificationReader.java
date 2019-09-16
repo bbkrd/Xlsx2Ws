@@ -6,6 +6,7 @@
 package de.bundesbank.jdemetra.xlsx2ws.spec;
 
 import ec.satoolkit.ISaSpecification;
+import java.util.Map;
 
 /**
  *
@@ -14,6 +15,8 @@ import ec.satoolkit.ISaSpecification;
 public interface ISpecificationReader<T extends ISaSpecification> {
 
     T readSpecification(ISaSpecification old);
+
+    Map<String, String> writeSpecification(T spec);
 
     void putInformation(String key, String value);
 }

@@ -5,16 +5,18 @@
  */
 package de.bundesbank.jdemetra.xlsx2ws.provider;
 
+import ec.tss.tsproviders.spreadsheet.SpreadSheetProvider;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
  *
  * @author Thomas Witthohn
  */
-@ServiceProvider(service = IProviderReaderFactory.class)
-public class ExcelReaderFactory implements IProviderReaderFactory<ExcelReader> {
+@ServiceProvider(service = IProviderFactory.class)
+public class ExcelReaderFactory implements IProviderFactory<ExcelReader> {
 
     private static final String PROVIDER_NAME = "EXCEL";
+    private static final String SOURCE_NAME = SpreadSheetProvider.SOURCE;
 
     @Override
     public ExcelReader getNewInstance() {
@@ -24,6 +26,11 @@ public class ExcelReaderFactory implements IProviderReaderFactory<ExcelReader> {
     @Override
     public String getProviderName() {
         return PROVIDER_NAME;
+    }
+
+    @Override
+    public String getSourceName() {
+        return SOURCE_NAME;
     }
 
 }

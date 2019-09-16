@@ -13,19 +13,19 @@ import ec.tss.TsFactory;
 import ec.tss.TsInformationType;
 import ec.tss.TsMoniker;
 import ec.tss.tsproviders.DataSource;
-import ec.tss.tsproviders.TsProviders;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import lombok.extern.java.Log;
+import org.openide.util.Lookup;
 
 /**
  *
  * @author Thomas Witthohn
  */
 @Log
-public class ZISReader implements IProviderReader {
+public class ZISProvider implements IProvider {
 
     public static final String TIMESERIES_KEY = "timeserieskey";
     private final Map<String, String> informations = new HashMap<>();
@@ -41,7 +41,7 @@ public class ZISReader implements IProviderReader {
         bean.setId(timeseriesKey);
         bean.setName(timeseriesKey);
 
-        BubaWebProvider provider = TsProviders.lookup(BubaWebProvider.class, BubaWebProvider.SOURCE).get();
+        BubaWebProvider provider = Lookup.getDefault().lookup(BubaWebProvider.class);
         DataSource dataSource = provider.encodeBean(bean);
         try {
             TsMoniker moniker = provider.toMoniker(provider.children(dataSource).get(0));
@@ -50,6 +50,14 @@ public class ZISReader implements IProviderReader {
             log.log(Level.SEVERE, "Error while creating Ts {0}: {1}", new Object[]{timeseriesKey, ex});
             return null;
         }
+    }
+
+    @Override
+    public Map<String, String> writeTs(TsMoniker moniker) {
+        BubaWebProvider provider = Lookup.getDefault().lookup(BubaWebProvider.class);
+        String timeSeriesId = provider.toDataSet(moniker).getParam("seriesName").get();
+        informations.put(TIMESERIES_KEY, timeSeriesId);
+        return informations;
     }
 
     @Override

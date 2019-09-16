@@ -27,7 +27,7 @@ public final class SaItemInfo implements IProviderInfo {
         providerInfos.put(key, value.trim());
     }
 
-    public void addSpecificationInfos(String key, String value) {
+    public void addSpecificationInfo(String key, String value) {
         specificationInfos.put(key, value.trim());
     }
 

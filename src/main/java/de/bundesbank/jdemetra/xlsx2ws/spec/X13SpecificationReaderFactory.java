@@ -5,6 +5,7 @@
  */
 package de.bundesbank.jdemetra.xlsx2ws.spec;
 
+import ec.satoolkit.x13.X13Specification;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
@@ -16,6 +17,8 @@ public class X13SpecificationReaderFactory implements ISpecificationReaderFactor
 
     private static final String SPECIFICATION_NAME = "X13";
 
+    private static final Class<X13Specification> SUPPORTED_CLASS = X13Specification.class;
+
     @Override
     public X13SpecificationReader getNewInstance() {
         return new X13SpecificationReader();
@@ -24,6 +27,11 @@ public class X13SpecificationReaderFactory implements ISpecificationReaderFactor
     @Override
     public String getSpecificationName() {
         return SPECIFICATION_NAME;
+    }
+
+    @Override
+    public String getSupportedClass() {
+        return SUPPORTED_CLASS.getName();
     }
 
 }

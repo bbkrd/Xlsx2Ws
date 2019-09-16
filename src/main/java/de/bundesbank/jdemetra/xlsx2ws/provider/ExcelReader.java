@@ -28,7 +28,7 @@ import org.openide.util.Lookup;
  * @author Thomas Witthohn
  */
 @Log
-public class ExcelReader implements IProviderReader {
+public class ExcelReader implements IProvider {
 
     public static final String TIMESERIES_KEY = "timeserieskey";
     public static final String PATH = "path";
@@ -82,6 +82,22 @@ public class ExcelReader implements IProviderReader {
     @Override
     public void putInformation(String key, String value) {
         informations.put(key, value);
+    }
+
+    @Override
+    public Map<String, String> writeTs(TsMoniker moniker) {
+        SpreadSheetProvider provider = Lookup.getDefault().lookup(SpreadSheetProvider.class);
+        DataSet dataSet = provider.toDataSet(moniker);
+
+        String timeSeriesId = dataSet.getParam("seriesName").get();
+        informations.put(TIMESERIES_KEY, timeSeriesId);
+
+        String sheet = dataSet.getParam("sheetName").get();
+        informations.put(SHEET, sheet);
+
+        String path = dataSet.getDataSource().getParam("file").get();
+        informations.put(PATH, path);
+        return informations;
     }
 
 }

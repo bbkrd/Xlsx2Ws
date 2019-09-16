@@ -9,8 +9,6 @@ import de.bundesbank.jdemetra.xlsx2ws.dto.IProviderInfo;
 import de.bundesbank.jdemetra.xlsx2ws.dto.InformationDTO;
 import de.bundesbank.jdemetra.xlsx2ws.dto.RegressorInfo;
 import de.bundesbank.jdemetra.xlsx2ws.dto.SaItemInfo;
-import de.bundesbank.jdemetra.xlsx2ws.provider.IProviderReader;
-import de.bundesbank.jdemetra.xlsx2ws.provider.IProviderReaderFactory;
 import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationReader;
 import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationReaderFactory;
 import ec.nbdemetra.sa.MultiProcessingDocument;
@@ -51,6 +49,8 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openide.util.Lookup;
+import de.bundesbank.jdemetra.xlsx2ws.provider.IProvider;
+import de.bundesbank.jdemetra.xlsx2ws.provider.IProviderFactory;
 
 /**
  *
@@ -190,7 +190,7 @@ public class Creator {
                                 saItemInfo.addProviderInfo(informationDTO.getName(), information);
                                 break;
                             case SPECIFICATION_INFO:
-                                saItemInfo.addSpecificationInfos(informationDTO.getName(), information);
+                                saItemInfo.addSpecificationInfo(informationDTO.getName(), information);
                                 break;
                             case METADATA:
                             //TODO: Different view on none Metadata?
@@ -243,13 +243,13 @@ public class Creator {
 
     private Ts readTs(IProviderInfo information) {
         String providerName = information.getProviderName();
-        Optional<? extends IProviderReaderFactory> optionalProvider = Lookup.getDefault().lookupAll(IProviderReaderFactory.class).stream().filter(provider -> provider.getProviderName().equalsIgnoreCase(providerName)).findFirst();
+        Optional<? extends IProviderFactory> optionalProvider = Lookup.getDefault().lookupAll(IProviderFactory.class).stream().filter(provider -> provider.getProviderName().equalsIgnoreCase(providerName)).findFirst();
         if (!optionalProvider.isPresent()) {
             //TODO Log
             return null;
         }
 
-        IProviderReader provider = optionalProvider.get().getNewInstance();
+        IProvider provider = optionalProvider.get().getNewInstance();
         information.getProviderInfos().entrySet().forEach((entry) -> {
             provider.putInformation(entry.getKey(), entry.getValue());
         });

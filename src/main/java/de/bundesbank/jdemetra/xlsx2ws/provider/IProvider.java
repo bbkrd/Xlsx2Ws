@@ -6,14 +6,18 @@
 package de.bundesbank.jdemetra.xlsx2ws.provider;
 
 import ec.tss.Ts;
+import ec.tss.TsMoniker;
+import java.util.Map;
 
 /**
  *
  * @author Thomas Witthohn
  */
-public interface IProviderReader {
+public interface IProvider {
 
     Ts readTs();
+
+    Map<String, String> writeTs(TsMoniker moniker);
 
     void putInformation(String key, String value);
 

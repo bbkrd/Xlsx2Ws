@@ -12,9 +12,11 @@ import ec.tstoolkit.design.ServiceDefinition;
  * @author Thomas Witthohn
  */
 @ServiceDefinition
-public interface IProviderReaderFactory<T extends IProviderReader> {
+public interface IProviderFactory<T extends IProvider> {
 
     String getProviderName();
+
+    String getSourceName();
 
     T getNewInstance();
 
