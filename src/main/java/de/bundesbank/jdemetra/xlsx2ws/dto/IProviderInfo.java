@@ -15,6 +15,10 @@ public interface IProviderInfo {
 
     String getProviderName();
 
+    void addProviderInfo(String key, String value);
+
+    void setProviderName(String name);
+
     Map<String, String> getProviderInfos();
 
 }

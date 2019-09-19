@@ -20,6 +20,7 @@ public class RegressorInfo implements IProviderInfo {
     private String providerName;
     private final Map<String, String> providerInfos = new HashMap<>();
 
+    @Override
     public void addProviderInfo(String key, String value) {
         providerInfos.put(key, value.trim());
     }

@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.bundesbank.jdemetra.xlsx2ws;
+package de.bundesbank.jdemetra.xlsx2ws.actions;
 
+import de.bundesbank.jdemetra.xlsx2ws.Writer;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -33,9 +34,11 @@ public final class ExportToXlsx implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        //File selectedFile = wsFileChooser.showSaveDialog();//TODO Add xlsx if missing
-        File selectedFile = new File("");
+        File selectedFile = wsFileChooser.showSaveDialog();
         if (selectedFile != null) {
+            if (!selectedFile.toString().endsWith(".xlsx")) {
+                selectedFile = new File(selectedFile.toString() + ".xlsx");
+            }
             new Writer().writeWorkspace(selectedFile);
             NotifyDescriptor nd = new NotifyDescriptor.Message("DONE?");
             DialogDisplayer.getDefault().notify(nd);

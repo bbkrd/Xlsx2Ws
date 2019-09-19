@@ -23,6 +23,7 @@ public final class SaItemInfo implements IProviderInfo {
     private final Map<String, String> specificationInfos = new HashMap<>();
     private final Map<String, String> metaData = new HashMap<>();
 
+    @Override
     public void addProviderInfo(String key, String value) {
         providerInfos.put(key, value.trim());
     }
