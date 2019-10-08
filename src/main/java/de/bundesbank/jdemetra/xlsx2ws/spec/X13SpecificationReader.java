@@ -35,6 +35,9 @@ import ec.tstoolkit.timeseries.regression.OutlierDefinition;
 import ec.tstoolkit.timeseries.regression.OutlierType;
 import ec.tstoolkit.timeseries.regression.SeasonalOutlier;
 import ec.tstoolkit.timeseries.regression.TransitoryChange;
+import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,9 +50,10 @@ import java.util.stream.Collectors;
 
 public class X13SpecificationReader implements ISpecificationReader<X13Specification> {
 
-    private static final Pattern DATE_PATTERN = Pattern.compile("\\d{4}(\\.(0[1-9]|1[0-2])(\\.(0[1-9]|[12]\\d|3[01]))?)?");
+    private static final Pattern DATE_PATTERN = Pattern.compile("\\d{4}(.(0[1-9]|1[0-2])(.(0[1-9]|[12]\\d|3[01]))?)?");
     private static final Pattern ARIMA_PATTERN = Pattern.compile("\\(([0-6])\\s*([0-2])\\s*([0-6])\\)\\s*\\(([01])\\s*([01])\\s*([01])\\)");
     private static final Pattern REGRESSOR_PATTERN = Pattern.compile(".*\\..+?(\\*)([cituy]|sa?)", Pattern.CASE_INSENSITIVE);
+    private static final LocalDate START_EXCEL = LocalDate.of(1900, Month.JANUARY, 1);
 
     public static final String BASE = "base", SPAN_NONE_VALUE = "X", START = "start", END = "end", FIRST = "first", LAST = "last",
             //SERIES
@@ -220,11 +224,12 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         if (information.containsKey(EASTER)) {
             regressionSpec.removeMovingHolidays(regressionSpec.getEaster());
             if (Boolean.parseBoolean(information.get(EASTER))) {
-                boolean pretest = Boolean.parseBoolean(information.getOrDefault(PRE_TEST, "true"));
+                RegressionTestSpec pretest = RegressionTestSpec.valueOf(information.getOrDefault(PRE_TEST, "Add"));
                 boolean julian = Boolean.parseBoolean(information.getOrDefault(EASTER_JULIAN, "false"));
-                MovingHolidaySpec easterSpec = MovingHolidaySpec.easterSpec(pretest, julian);
+                MovingHolidaySpec easterSpec = MovingHolidaySpec.easterSpec(true, julian);
                 OptionalInt duration = tryParseInteger(information.get(DURATION));
                 duration.ifPresent(easterSpec::setW);
+                easterSpec.setTest(pretest);
                 regressionSpec.add(easterSpec);
             }
 
@@ -795,7 +800,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         information.put(LS, Boolean.toString(outlierSpec.search(OutlierType.LS) != null));
         information.put(TC, Boolean.toString(outlierSpec.search(OutlierType.TC) != null));
         information.put(SO, Boolean.toString(outlierSpec.search(OutlierType.SO) != null));
-        information.put(CRITICAL_VALUE, Double.toString(outlierSpec.getMonthlyTCRate()));
+        information.put(TC_RATE, Double.toString(outlierSpec.getMonthlyTCRate()));
         information.put(METHOD, outlierSpec.getMethod().toString());
     }
 
@@ -882,7 +887,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         }
         //Excludeforecast
         boolean excludefcst = x11.isExcludefcst();
-        information.put(SEASONAL, Boolean.toString(excludefcst));
+        information.put(EXCLUDEFORECAST, Boolean.toString(excludefcst));
         //Bias correction (only for LogAdditive) with 2.2.2
         //if (mode.equals(DecompositionMode.LogAdditive)) {
         //}
@@ -1003,16 +1008,27 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
      * @return Day or null if not parsable
      */
     private Day parseDay(String dayInfo) {
-        if (dayInfo != null && DATE_PATTERN.matcher(dayInfo).matches()) {
-            DayBuilder builder = new DayBuilder();
-            switch (dayInfo.length()) {
-                case 10:
-                    builder.day(Integer.parseInt(dayInfo.substring(8, 10)));
-                case 7:
-                    builder.month(Integer.parseInt(dayInfo.substring(5, 7)));
-                case 4:
-                    return builder.year(Integer.parseInt(dayInfo.substring(0, 4)))
-                            .build();
+        if (dayInfo != null) {
+            try {
+                return Day.fromString(dayInfo);
+            } catch (ParseException e) {
+            }
+            if (DATE_PATTERN.matcher(dayInfo).matches()) {
+                DayBuilder builder = new DayBuilder();
+                switch (dayInfo.length()) {
+                    case 10:
+                        builder.day(Integer.parseInt(dayInfo.substring(8, 10)));
+                    case 7:
+                        builder.month(Integer.parseInt(dayInfo.substring(5, 7)));
+                    case 4:
+                        return builder.year(Integer.parseInt(dayInfo.substring(0, 4)))
+                                .build();
+                }
+            } else if (dayInfo.matches("\\d+")) {
+                long day = Long.parseLong(dayInfo);
+                day -= day > 59 ? 2 : 1;
+                LocalDate x = START_EXCEL.plusDays(day);
+                return new Day(x.getYear(), ec.tstoolkit.timeseries.Month.valueOf(x.getMonthValue() - 1), x.getDayOfMonth());
             }
         }
         //throw new IllegalArgumentException("");

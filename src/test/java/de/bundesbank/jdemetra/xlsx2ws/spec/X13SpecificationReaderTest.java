@@ -59,7 +59,7 @@ public class X13SpecificationReaderTest {
     @Test
     public void testReadSpecification_StartWrongFormat() {
         X13SpecificationReader instance = new X13SpecificationReader();
-        instance.putInformation(X13SpecificationReader.SERIES + X13SpecificationReader.START, "197004"); //instead of 1970.04
+        instance.putInformation(X13SpecificationReader.SERIES + X13SpecificationReader.START, "1970.04A"); //instead of 1970.04
         X13Specification specification = instance.readSpecification(null);
 
         TsPeriodSelector expected = new TsPeriodSelector();
@@ -388,7 +388,7 @@ public class X13SpecificationReaderTest {
     @Test
     public void testReadSpecification_OutlierAOWrongDate() {
         X13SpecificationReader instance = new X13SpecificationReader();
-        instance.putInformation(X13SpecificationReader.OUTLIER + 1, "AO197000");
+        instance.putInformation(X13SpecificationReader.OUTLIER + 1, "AO1970A00");
         X13Specification specification = instance.readSpecification(null);
 
         Assert.assertEquals(0, specification.getRegArimaSpecification().getRegression().getOutliersCount());

@@ -7,6 +7,7 @@ package de.bundesbank.jdemetra.xlsx2ws;
  */
 import ec.tstoolkit.timeseries.Day;
 import ec.tstoolkit.timeseries.Month;
+import ec.tstoolkit.timeseries.TsException;
 
 /**
  *
@@ -19,7 +20,12 @@ public class DayBuilder {
     private int day = 1;
 
     public Day build() {
-        return new Day(year, Month.valueOf(month - 1), day - 1);
+        try {
+            return new Day(year, Month.valueOf(month - 1), day - 1);
+        } catch (TsException e) {
+            //TODO LOG!!!!!
+            return null;
+        }
     }
 
     public DayBuilder year(int year) {
