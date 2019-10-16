@@ -8,6 +8,8 @@ package de.bundesbank.jdemetra.xlsx2ws;
 import de.bundesbank.jdemetra.xlsx2ws.dto.IProviderInfo;
 import de.bundesbank.jdemetra.xlsx2ws.dto.RegressorInfo;
 import de.bundesbank.jdemetra.xlsx2ws.dto.SaItemInfo;
+import de.bundesbank.jdemetra.xlsx2ws.provider.GenericProvider;
+import de.bundesbank.jdemetra.xlsx2ws.provider.GenericProviderFactory;
 import de.bundesbank.jdemetra.xlsx2ws.provider.IProvider;
 import de.bundesbank.jdemetra.xlsx2ws.provider.IProviderFactory;
 import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationReader;
@@ -155,12 +157,15 @@ public class Writer {
     private void writeProviderInfo(TsMoniker moniker, IProviderInfo iProviderInfo, TreeSet<String> providerInfoHeader) {
         String source = moniker.getSource();
         Optional<? extends IProviderFactory> optionalProvider = Lookup.getDefault().lookupAll(IProviderFactory.class).stream().filter(provider -> provider.getSourceName().equalsIgnoreCase(source)).findFirst();
+        IProvider provider;
         if (!optionalProvider.isPresent()) {
-            //TODO Log
-            return;
+            provider = new GenericProvider();
+            iProviderInfo.setProviderName(GenericProviderFactory.NAME);
+        } else {
+            provider = optionalProvider.get().getNewInstance();
+            iProviderInfo.setProviderName(optionalProvider.get().getProviderName());
         }
-        IProvider provider = optionalProvider.get().getNewInstance();
-        iProviderInfo.setProviderName(optionalProvider.get().getProviderName());
+
         Map<String, String> providerInfo = provider.writeTs(moniker);
         providerInfo.forEach((key, value) -> {
             iProviderInfo.addProviderInfo(key, value);
