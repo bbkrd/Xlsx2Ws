@@ -661,7 +661,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
 
     private void writeSeriesInformation(BasicSpec basicSpec) {
         TsPeriodSelector span = basicSpec.getSpan();
-        if (span.getType() != PeriodSelectorType.All && basicSpec.isPreliminaryCheck()) {
+        if (span.getType() == PeriodSelectorType.All && basicSpec.isPreliminaryCheck()) {
             return;
         }
         information.put(PRELIMINARY_CHECK, Boolean.toString(basicSpec.isPreliminaryCheck()));
@@ -987,11 +987,9 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         TsPeriodSelector tsPeriodSelector = new TsPeriodSelector();
         if (startDay != null && endDay == null) {
             tsPeriodSelector.from(startDay);
-        }
-        if (startDay == null && endDay != null) {
+        } else if (startDay == null && endDay != null) {
             tsPeriodSelector.to(endDay);
-        }
-        if (startDay != null && endDay != null) {
+        } else if (startDay != null && endDay != null) {
             tsPeriodSelector.between(startDay, endDay);
         }
         return tsPeriodSelector;

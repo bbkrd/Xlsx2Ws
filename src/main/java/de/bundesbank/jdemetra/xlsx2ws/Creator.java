@@ -9,6 +9,8 @@ import de.bundesbank.jdemetra.xlsx2ws.dto.IProviderInfo;
 import de.bundesbank.jdemetra.xlsx2ws.dto.InformationDTO;
 import de.bundesbank.jdemetra.xlsx2ws.dto.RegressorInfo;
 import de.bundesbank.jdemetra.xlsx2ws.dto.SaItemInfo;
+import de.bundesbank.jdemetra.xlsx2ws.provider.IProvider;
+import de.bundesbank.jdemetra.xlsx2ws.provider.IProviderFactory;
 import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationReader;
 import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationReaderFactory;
 import ec.nbdemetra.sa.MultiProcessingDocument;
@@ -33,7 +35,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -49,8 +50,6 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openide.util.Lookup;
-import de.bundesbank.jdemetra.xlsx2ws.provider.IProvider;
-import de.bundesbank.jdemetra.xlsx2ws.provider.IProviderFactory;
 
 /**
  *
@@ -338,7 +337,7 @@ public class Creator {
                 boolean alreadyExists = false;
 
                 if (variablesMap.containsKey(variablesListName)
-                        && variablesMap.get(variablesListName).contains(itemName.toUpperCase(Locale.ENGLISH))) {
+                        && variablesMap.get(variablesListName).contains(itemName)) {
                     //TODO Log
                     alreadyExists = true;
                 }
@@ -348,7 +347,7 @@ public class Creator {
                     return;
                 }
                 TsVariables document = createAbsentVariablesList(variablesListName);
-                variablesMap.get(variablesListName).add(itemName.toUpperCase(Locale.ENGLISH));
+                variablesMap.get(variablesListName).add(itemName);
                 if (alreadyExists) {
                     document.remove(itemName);
                 }
