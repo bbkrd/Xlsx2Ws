@@ -514,8 +514,8 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         }
 
         if (information.containsKey(MAXBACK) && !onlyX11) {
-            int forecastHorizon = (int) Double.parseDouble(information.get(MAXBACK));
-            x11Specification.setForecastHorizon(forecastHorizon);
+            int backcastHorizon = (int) Double.parseDouble(information.get(MAXBACK));
+            x11Specification.setBackcastHorizon(backcastHorizon);
         }
 
         if (information.containsKey(HENDERSON)) {
