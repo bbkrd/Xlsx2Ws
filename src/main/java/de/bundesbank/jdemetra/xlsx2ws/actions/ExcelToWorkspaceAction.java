@@ -12,8 +12,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
@@ -47,8 +45,6 @@ public final class ExcelToWorkspaceAction implements ActionListener {
             ws.setName(fileName.substring(0, fileName.length() - 5));
             ws.sort();
             new Creator().createWorkspace(selectedFile);
-            NotifyDescriptor nd = new NotifyDescriptor.Message("DONE?");
-            DialogDisplayer.getDefault().notify(nd);
         }
 
     }

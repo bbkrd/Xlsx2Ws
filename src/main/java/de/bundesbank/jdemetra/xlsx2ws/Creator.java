@@ -7,8 +7,10 @@ package de.bundesbank.jdemetra.xlsx2ws;
 
 import de.bundesbank.jdemetra.xlsx2ws.dto.IProviderInfo;
 import de.bundesbank.jdemetra.xlsx2ws.dto.InformationDTO;
+import de.bundesbank.jdemetra.xlsx2ws.dto.Message;
 import de.bundesbank.jdemetra.xlsx2ws.dto.RegressorInfo;
 import de.bundesbank.jdemetra.xlsx2ws.dto.SaItemInfo;
+import de.bundesbank.jdemetra.xlsx2ws.dto.SpecificationDTO;
 import de.bundesbank.jdemetra.xlsx2ws.provider.IProvider;
 import de.bundesbank.jdemetra.xlsx2ws.provider.IProviderFactory;
 import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationReader;
@@ -29,6 +31,8 @@ import ec.tstoolkit.timeseries.regression.TsVariables;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -42,6 +46,7 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javax.swing.JOptionPane;
 import lombok.extern.java.Log;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -58,6 +63,9 @@ import org.openide.util.Lookup;
 @Log
 public class Creator {
 
+    DateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("dd. MMMM yyyy HH:mm:ss");
+    String NEW_LINE = System.getProperty("line.separator");
+
     private final Map<String, Set<String>> map = new HashMap<>();
     private final Map<String, Set<String>> variablesMap = new HashMap<>();
 
@@ -65,6 +73,12 @@ public class Creator {
         Workspace ws = WorkspaceFactory.getInstance().getActiveWorkspace();
         readExistingWorkspace(ws);
         readRegressorSheet(selectedFile);
+
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("Updateprotokoll vom ").append(TIMESTAMP_FORMAT.format(System.currentTimeMillis()))
+                .append('\t').append(System.getProperty("user.name")).append(NEW_LINE).append(NEW_LINE);
+
         List<SaItemInfo> list = readSaItemSheet(selectedFile);
 
         list.stream().forEach(information -> {
@@ -81,11 +95,17 @@ public class Creator {
                     //return;
                 }
             }
+            sb.append("Messages for ").append(multiDocumentName).append("->").append(saItemName).append(":").append(NEW_LINE);
 
             Ts ts = readTs(information);
-            ISaSpecification specification = readSpecification(information, old);
+            SpecificationDTO specificationDTO = readSpecification(information, old);
+
+            for (Message message : specificationDTO.getMessages()) {
+                sb.append(message.getType()).append(" - ").append(message.getText()).append(NEW_LINE);
+            }
+
+            ISaSpecification specification = specificationDTO.getSpecification();
             if (specification == null) {
-                //TODO LOG
                 return;
             }
 
@@ -125,6 +145,8 @@ public class Creator {
             }
 
         });
+
+        JOptionPane.showMessageDialog(null, sb.toString());
     }
 
     private void readExistingWorkspace(Workspace ws) {
@@ -257,14 +279,18 @@ public class Creator {
         return ts;
     }
 
-    private ISaSpecification readSpecification(SaItemInfo information, SaItem old) {
+    private SpecificationDTO readSpecification(SaItemInfo information, SaItem old) {
         String specificationName = information.getSpecificationName();
         if (specificationName == null) {
-            return old != null ? old.getDomainSpecification() : null;
+            if (old != null) {
+                return new SpecificationDTO<>(old.getDomainSpecification(), new Message[]{new Message(Level.INFO, "No specification name declared, old specficition will be used.")});
+            } else {
+                return new SpecificationDTO<>(null, new Message[]{new Message(Level.SEVERE, "Neither specification name was declared nor an old specification available as fallback.")});
+            }
         }
         Optional<? extends ISpecificationReaderFactory> optionalSpecificationReader = Lookup.getDefault().lookupAll(ISpecificationReaderFactory.class).stream().filter(spec -> spec.getSpecificationName().equalsIgnoreCase(specificationName)).findFirst();
         if (!optionalSpecificationReader.isPresent()) {
-            return null;
+            return new SpecificationDTO<>(null, new Message[]{new Message(Level.SEVERE, specificationName + " isn't a supported specification.")});
         }
         ISpecificationReader specificationReader = optionalSpecificationReader.get().getNewInstance();
         information.getSpecificationInfos().entrySet().forEach((entry) -> {
@@ -275,8 +301,8 @@ public class Creator {
         if (old != null) {
             oldSpec = old.getDomainSpecification();
         }
-        ISaSpecification specification = specificationReader.readSpecification(oldSpec);
-        return specification;
+        SpecificationDTO specificationDTO = specificationReader.readSpecification(oldSpec);
+        return specificationDTO;
     }
 
     private void readRegressorSheet(File selectedFile) {
