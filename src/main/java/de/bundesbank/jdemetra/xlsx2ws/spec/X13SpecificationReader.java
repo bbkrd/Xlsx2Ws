@@ -90,7 +90,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
     private final Map<String, String> information = new HashMap<>();
     private final List<Message> messages = new ArrayList<>();
 
-    private final String BOOLEAN_ERROR = "", ALL_FINE = "Everything is fine!";
+    private final String ALL_FINE = "Everything is fine!";
 
     @Override
     public void putInformation(String key, String value) {
@@ -137,20 +137,12 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
     }
 
     private void readSeries(BasicSpec basicSpec) {
-        TsPeriodSelector span = readSpan(SERIES);
-        if (span != null) {
-            basicSpec.setSpan(span);
-        }
-        if (information.containsKey(PRELIMINARY_CHECK)) {
-            basicSpec.setPreliminaryCheck(Boolean.parseBoolean(information.get(PRELIMINARY_CHECK)));
-        }
+        consumeSpan(SERIES, basicSpec::setSpan);
+        consumeBoolean(PRELIMINARY_CHECK, basicSpec::setPreliminaryCheck);
     }
 
     private void readEstimate(EstimateSpec estimateSpec) {
-        TsPeriodSelector span = readSpan(ESTIMATE);
-        if (span != null) {
-            estimateSpec.setSpan(span);
-        }
+        consumeSpan(ESTIMATE, estimateSpec::setSpan);
         consumeDouble(TOLERANCE, estimateSpec::setTol);
     }
 
@@ -179,9 +171,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         consumeEnum(TRADINGDAYSTYPE, TradingDaysType::valueOf, tradingDaysSpec::setTradingDaysType);
         consumeEnum(LEAP_YEAR, LengthOfPeriodType::valueOf, tradingDaysSpec::setLengthOfPeriod);
 
-        if (information.containsKey(AUTOADJUST)) {
-            tradingDaysSpec.setAutoAdjust(Boolean.parseBoolean(information.get(AUTOADJUST)));
-        }
+        consumeBoolean(AUTOADJUST, tradingDaysSpec::setAutoAdjust);
 
         //EASTER
         if (information.containsKey(EASTER)) {
@@ -292,10 +282,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
     }
 
     private void readOutliers(OutlierSpec outlierSpec) {
-        TsPeriodSelector span = readSpan(OUTLIER);
-        if (span != null) {
-            outlierSpec.setSpan(span);
-        }
+        consumeSpan(OUTLIER, outlierSpec::setSpan);
         consumeDouble(CRITICAL_VALUE, outlierSpec::setDefaultCriticalValue);
 
         if (information.containsKey(AO)) {
@@ -816,16 +803,17 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         }
     }
 
-    private TsPeriodSelector readSpan(String part) {
+    private void consumeSpan(String part, Consumer<TsPeriodSelector> consumer) {
         if (!information.containsKey(part + START) && !information.containsKey(part + END) && !information.containsKey(part + FIRST) && !information.containsKey(part + LAST)) {
-            return null;
+            return;
         }
         String start = information.get(part + START);
         String end = information.get(part + END);
-        if (SPAN_NONE_VALUE.equalsIgnoreCase(start) || SPAN_NONE_VALUE.equalsIgnoreCase(start)) {
+        if (SPAN_NONE_VALUE.equalsIgnoreCase(start) || SPAN_NONE_VALUE.equalsIgnoreCase(end)) {
             TsPeriodSelector tsPeriodSelector = new TsPeriodSelector();
             tsPeriodSelector.none();
-            return tsPeriodSelector;
+            consumer.accept(tsPeriodSelector);
+            return;
         }
         Day startDay = parseDay(start, part + START);
         Day endDay = parseDay(end, part + END);
@@ -836,14 +824,13 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
             TsPeriodSelector tsPeriodSelector = new TsPeriodSelector();
             if (firstOpt.isPresent() && !lastOpt.isPresent()) {
                 tsPeriodSelector.first(firstOpt.getAsInt());
-            }
-            if (!firstOpt.isPresent() && lastOpt.isPresent()) {
+            } else if (!firstOpt.isPresent() && lastOpt.isPresent()) {
                 tsPeriodSelector.last(lastOpt.getAsInt());
-            }
-            if (firstOpt.isPresent() && lastOpt.isPresent()) {
+            } else if (firstOpt.isPresent() && lastOpt.isPresent()) {
                 tsPeriodSelector.excluding(firstOpt.getAsInt(), lastOpt.getAsInt());
             }
-            return tsPeriodSelector;
+            consumer.accept(tsPeriodSelector);
+            return;
         }
 
         TsPeriodSelector tsPeriodSelector = new TsPeriodSelector();
@@ -854,7 +841,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         } else if (startDay != null && endDay != null) {
             tsPeriodSelector.between(startDay, endDay);
         }
-        return tsPeriodSelector;
+        consumer.accept(tsPeriodSelector);
     }
 
     /**
@@ -888,7 +875,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
                 long day = Long.parseLong(dayInfo);
                 day -= day > 59 ? 2 : 1;
                 LocalDate x = START_EXCEL.plusDays(day);
-                return new Day(x.getYear(), ec.tstoolkit.timeseries.Month.valueOf(x.getMonthValue() - 1), x.getDayOfMonth());
+                return new Day(x.getYear(), ec.tstoolkit.timeseries.Month.valueOf(x.getMonthValue() - 1), x.getDayOfMonth() - 1);
             }
             messages.add(new Message(Level.SEVERE, "Unparseable Date format in " + key + "."));
         }
@@ -954,7 +941,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
                 if (get.contains("*")) {
                     String[] split = get.split("\\*", 2);
                     value = Double.parseDouble(split[0]);
-                    switch (split[1]) {
+                    switch (split[1].toLowerCase()) {
                         case "i":
                             type = ParameterType.Initial;
                             break;
@@ -972,11 +959,9 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
                     value = Double.parseDouble(get);
                     type = ParameterType.Fixed;
                 }
-
                 parameter.get()[i - 1] = new Parameter(value, type);
             }
         }
-
     }
 
 }

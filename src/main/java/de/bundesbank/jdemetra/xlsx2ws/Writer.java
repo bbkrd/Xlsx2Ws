@@ -236,7 +236,7 @@ public class Writer {
     }
 
     @lombok.Value
-    private class Header {
+    private static class Header {
 
         private final String name;
         private final int position;
@@ -244,7 +244,7 @@ public class Writer {
     }
 
     @lombok.Value
-    private class Temp {
+    private static class Temp {
 
         private final String prefix;
         private final TreeSet<String> set;

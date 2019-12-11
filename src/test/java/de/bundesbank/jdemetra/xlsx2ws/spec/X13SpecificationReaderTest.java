@@ -34,6 +34,8 @@ import org.junit.Test;
  */
 public class X13SpecificationReaderTest {
 
+    private static final Message ALL_FINE = new Message(Level.FINE, "Everything is fine!");
+
     public X13SpecificationReaderTest() {
     }
 
@@ -111,6 +113,32 @@ public class X13SpecificationReaderTest {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.SERIES + X13SpecificationReader.START, "1970.11.05");
         instance.putInformation(X13SpecificationReader.SERIES + X13SpecificationReader.END, "1980.02.28");
+        X13Specification specification = instance.readSpecification(null).getSpecification();
+
+        TsPeriodSelector expected = new TsPeriodSelector();
+        expected.between(new Day(1970, Month.November, 4), new Day(1980, Month.February, 27));
+
+        Assert.assertEquals(expected, specification.getRegArimaSpecification().getBasic().getSpan());
+    }
+
+    @Test
+    public void testReadSpecification_Between19000228_19000301ExcelDate() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.SERIES + X13SpecificationReader.START, "59");
+        instance.putInformation(X13SpecificationReader.SERIES + X13SpecificationReader.END, "61");
+        X13Specification specification = instance.readSpecification(null).getSpecification();
+
+        TsPeriodSelector expected = new TsPeriodSelector();
+        expected.between(new Day(1900, Month.February, 27), new Day(1900, Month.March, 0));
+
+        Assert.assertEquals(expected, specification.getRegArimaSpecification().getBasic().getSpan());
+    }
+
+    @Test
+    public void testReadSpecification_Between19701105_19800228ExcelDate() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.SERIES + X13SpecificationReader.START, "25877");
+        instance.putInformation(X13SpecificationReader.SERIES + X13SpecificationReader.END, "29279");
         X13Specification specification = instance.readSpecification(null).getSpecification();
 
         TsPeriodSelector expected = new TsPeriodSelector();
@@ -508,4 +536,224 @@ public class X13SpecificationReaderTest {
         Assert.assertEquals(0.1, specification.getRegArimaSpecification().getEstimate().getTol(), 0);
     }
 
+    @Test
+    public void testReadSpecification_ToleranceNonDoubleInput() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.TOLERANCE, "abc");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertEquals(1.0E-7, specification.getRegArimaSpecification().getEstimate().getTol(), 0);
+        Assert.assertEquals(new Message(Level.SEVERE, "The information tolerance doesn't contain a parseble floating point value."), messages[0]);
+    }
+
+    @Test
+    public void testReadSpecification_OldSpec() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification old = X13Specification.RSA4.clone();
+        X13Specification specification = instance.readSpecification(old).getSpecification();
+
+        Assert.assertEquals(X13Specification.RSA4, specification);
+    }
+
+    @Test
+    public void testReadSpecification_PreCheckTrue() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.PRELIMINARY_CHECK, "true");
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertEquals(true, specification.getRegArimaSpecification().getBasic().isPreliminaryCheck());
+        Assert.assertEquals(ALL_FINE, messages[0]);
+    }
+
+    @Test
+    public void testReadSpecification_PreCheckFalse() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.PRELIMINARY_CHECK, "false");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertEquals(false, specification.getRegArimaSpecification().getBasic().isPreliminaryCheck());
+        Assert.assertEquals(ALL_FINE, messages[0]);
+    }
+
+    @Test
+    public void testReadSpecification_PreCheckNonBooleanInput() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.PRELIMINARY_CHECK, "0.1");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertEquals(false, specification.getRegArimaSpecification().getBasic().isPreliminaryCheck());
+        Assert.assertEquals(new Message(Level.INFO, "The information preliminary_check doesn't contain \"true\" or \"false\". It will be set to false."), messages[0]);
+    }
+
+    @Test
+    public void testReadSpecification_PreCheckNullInput() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.PRELIMINARY_CHECK, null);
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertEquals(false, specification.getRegArimaSpecification().getBasic().isPreliminaryCheck());
+        Assert.assertEquals(new Message(Level.INFO, "The information preliminary_check doesn't contain \"true\" or \"false\". It will be set to false."), messages[0]);
+    }
+
+    @Test
+    public void testReadSpecification_Seasonalfilter() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.SEASONALFILTER, "S3X5");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertEquals(1, specification.getX11Specification().getSeasonalFilters().length);
+        Assert.assertEquals(SeasonalFilterOption.S3X5, specification.getX11Specification().getSeasonalFilters()[0]);
+        Assert.assertEquals(ALL_FINE, messages[0]);
+    }
+
+    @Test
+    public void testReadSpecification_SeasonalFalse() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.SEASONAL, "false");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertArrayEquals(null, specification.getX11Specification().getSeasonalFilters());
+        Assert.assertEquals(false, specification.getX11Specification().isSeasonal());
+        Assert.assertEquals(ALL_FINE, messages[0]);
+    }
+
+    @Test
+    public void testReadSpecification_ARIMA100000_PStarFixed() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.ARIMA, "(100)(000)");
+        instance.putInformation(X13SpecificationReader.P + 1, "0.1*f");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertArrayEquals(new Parameter[]{new Parameter(0.1, ParameterType.Fixed)}, specification.getRegArimaSpecification().getArima().getPhi());
+        Assert.assertEquals(1, specification.getRegArimaSpecification().getArima().getP());
+        Assert.assertEquals(ALL_FINE, messages[0]);
+    }
+
+    @Test
+    public void testReadSpecification_ARIMA100000_PDefault() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.ARIMA, "(100)(000)");
+        instance.putInformation(X13SpecificationReader.P + 1, "0.1");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertArrayEquals(new Parameter[]{new Parameter(0.1, ParameterType.Fixed)}, specification.getRegArimaSpecification().getArima().getPhi());
+        Assert.assertEquals(1, specification.getRegArimaSpecification().getArima().getP());
+        Assert.assertEquals(ALL_FINE, messages[0]);
+    }
+
+    @Test
+    public void testReadSpecification_ARIMA000100_BPStarFixed() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.ARIMA, "(000)(100)");
+        instance.putInformation(X13SpecificationReader.BP + 1, "0.1*f");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertArrayEquals(new Parameter[]{new Parameter(0.1, ParameterType.Fixed)}, specification.getRegArimaSpecification().getArima().getBPhi());
+        Assert.assertEquals(1, specification.getRegArimaSpecification().getArima().getBP());
+        Assert.assertEquals(ALL_FINE, messages[0]);
+    }
+
+    @Test
+    public void testReadSpecification_ARIMA100000_QStarFixed() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.ARIMA, "(001)(000)");
+        instance.putInformation(X13SpecificationReader.Q + 1, "0.1*f");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertArrayEquals(new Parameter[]{new Parameter(0.1, ParameterType.Fixed)}, specification.getRegArimaSpecification().getArima().getTheta());
+        Assert.assertEquals(1, specification.getRegArimaSpecification().getArima().getQ());
+        Assert.assertEquals(ALL_FINE, messages[0]);
+    }
+
+    @Test
+    public void testReadSpecification_ARIMA100000_BQStarFixed() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.ARIMA, "(000)(001)");
+        instance.putInformation(X13SpecificationReader.BQ + 1, "0.1*f");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertArrayEquals(new Parameter[]{new Parameter(0.1, ParameterType.Fixed)}, specification.getRegArimaSpecification().getArima().getBTheta());
+        Assert.assertEquals(1, specification.getRegArimaSpecification().getArima().getBQ());
+        Assert.assertEquals(ALL_FINE, messages[0]);
+    }
+
+    @Test
+    public void testReadSpecification_ARIMA100000_BQStarUndefined() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.ARIMA, "(000)(001)");
+        instance.putInformation(X13SpecificationReader.BQ + 1, "0.1*u");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertArrayEquals(new Parameter[]{new Parameter(0.1, ParameterType.Undefined)}, specification.getRegArimaSpecification().getArima().getBTheta());
+        Assert.assertEquals(1, specification.getRegArimaSpecification().getArima().getBQ());
+        Assert.assertEquals(ALL_FINE, messages[0]);
+    }
+
+    @Test
+    public void testReadSpecification_ARIMA100000_BQStarInitial() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.ARIMA, "(000)(001)");
+        instance.putInformation(X13SpecificationReader.BQ + 1, "0.1*i");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertArrayEquals(new Parameter[]{new Parameter(0.1, ParameterType.Initial)}, specification.getRegArimaSpecification().getArima().getBTheta());
+        Assert.assertEquals(1, specification.getRegArimaSpecification().getArima().getBQ());
+        Assert.assertEquals(ALL_FINE, messages[0]);
+    }
+
+    @Test
+    public void testReadSpecification_ARIMA100000_BQStarFixedDefault() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.ARIMA, "(000)(001)");
+        instance.putInformation(X13SpecificationReader.BQ + 1, "0.1*a");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertArrayEquals(new Parameter[]{new Parameter(0.1, ParameterType.Fixed)}, specification.getRegArimaSpecification().getArima().getBTheta());
+        Assert.assertEquals(1, specification.getRegArimaSpecification().getArima().getBQ());
+        Assert.assertEquals(new Message(Level.INFO, "Parameter bq_1 has no known type declared. It will be assumed to be fixed."), messages[0]);
+    }
 }
