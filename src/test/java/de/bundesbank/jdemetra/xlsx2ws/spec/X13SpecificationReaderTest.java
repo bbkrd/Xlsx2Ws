@@ -14,12 +14,14 @@ import ec.tstoolkit.Parameter;
 import ec.tstoolkit.ParameterType;
 import ec.tstoolkit.modelling.DefaultTransformationType;
 import ec.tstoolkit.modelling.arima.x13.ArimaSpec;
+import ec.tstoolkit.modelling.arima.x13.SingleOutlierSpec;
 import ec.tstoolkit.timeseries.Day;
 import ec.tstoolkit.timeseries.Month;
 import ec.tstoolkit.timeseries.TsPeriodSelector;
 import ec.tstoolkit.timeseries.regression.AdditiveOutlier;
 import ec.tstoolkit.timeseries.regression.LevelShift;
 import ec.tstoolkit.timeseries.regression.OutlierDefinition;
+import ec.tstoolkit.timeseries.regression.OutlierType;
 import ec.tstoolkit.timeseries.regression.SeasonalOutlier;
 import ec.tstoolkit.timeseries.regression.TransitoryChange;
 import java.util.HashSet;
@@ -64,10 +66,89 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_StartWrongFormat() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.SERIES + X13SpecificationReader.START, "1970.04A"); //instead of 1970.04
-        X13Specification specification = instance.readSpecification(null).getSpecification();
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
 
         TsPeriodSelector expected = new TsPeriodSelector();
 
+        Assert.assertEquals(new Message(Level.SEVERE, "Unparseable Date format in series_start."), messages[0]);
+        Assert.assertEquals(expected, specification.getRegArimaSpecification().getBasic().getSpan());
+    }
+
+    @Test
+    public void testReadSpecification_StartNone() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.SERIES + X13SpecificationReader.START, "X");
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        TsPeriodSelector expected = new TsPeriodSelector();
+        expected.none();
+
+        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertEquals(expected, specification.getRegArimaSpecification().getBasic().getSpan());
+    }
+
+    @Test
+    public void testReadSpecification_EndNone() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.SERIES + X13SpecificationReader.END, "X");
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        TsPeriodSelector expected = new TsPeriodSelector();
+        expected.none();
+
+        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertEquals(expected, specification.getRegArimaSpecification().getBasic().getSpan());
+    }
+
+    @Test
+    public void testReadSpecification_First10() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.SERIES + X13SpecificationReader.FIRST, "10");
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        TsPeriodSelector expected = new TsPeriodSelector();
+        expected.first(10);
+
+        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertEquals(expected, specification.getRegArimaSpecification().getBasic().getSpan());
+    }
+
+    @Test
+    public void testReadSpecification_Last10() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.SERIES + X13SpecificationReader.LAST, "10");
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        TsPeriodSelector expected = new TsPeriodSelector();
+        expected.last(10);
+
+        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertEquals(expected, specification.getRegArimaSpecification().getBasic().getSpan());
+    }
+
+    @Test
+    public void testReadSpecification_ExcludingFirst5Last10() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.SERIES + X13SpecificationReader.FIRST, "5");
+        instance.putInformation(X13SpecificationReader.SERIES + X13SpecificationReader.LAST, "10");
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        TsPeriodSelector expected = new TsPeriodSelector();
+        expected.excluding(5, 10);
+
+        Assert.assertEquals(ALL_FINE, messages[0]);
         Assert.assertEquals(expected, specification.getRegArimaSpecification().getBasic().getSpan());
     }
 
@@ -420,8 +501,11 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_OutlierAOWrongDate() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.OUTLIER + 1, "AO1970A00");
-        X13Specification specification = instance.readSpecification(null).getSpecification();
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
 
+        Assert.assertEquals(new Message(Level.SEVERE, "Unparseable Date format in outlier_1."), messages[0]);
         Assert.assertEquals(0, specification.getRegArimaSpecification().getRegression().getOutliersCount());
     }
 
@@ -755,5 +839,165 @@ public class X13SpecificationReaderTest {
         Assert.assertArrayEquals(new Parameter[]{new Parameter(0.1, ParameterType.Fixed)}, specification.getRegArimaSpecification().getArima().getBTheta());
         Assert.assertEquals(1, specification.getRegArimaSpecification().getArima().getBQ());
         Assert.assertEquals(new Message(Level.INFO, "Parameter bq_1 has no known type declared. It will be assumed to be fixed."), messages[0]);
+    }
+
+    @Test
+    public void testReadSpecification_AutomaticOutlierAO_True() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.AO, "true");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertEquals(ALL_FINE, messages[0]);
+        boolean exists = false;
+        for (SingleOutlierSpec type : specification.getRegArimaSpecification().getOutliers().getTypes()) {
+            if (type.getType().equals(OutlierType.AO)) {
+                exists = true;
+                break;
+            }
+        }
+        Assert.assertTrue(exists);
+    }
+
+    @Test
+    public void testReadSpecification_AutomaticOutlierAO_False() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.AO, "false");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertEquals(ALL_FINE, messages[0]);
+        boolean exists = false;
+        for (SingleOutlierSpec type : specification.getRegArimaSpecification().getOutliers().getTypes()) {
+            if (type.getType().equals(OutlierType.AO)) {
+                exists = true;
+                break;
+            }
+        }
+        Assert.assertTrue(!exists);
+    }
+
+    @Test
+    public void testReadSpecification_AutomaticOutlierLS_True() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.LS, "true");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertEquals(ALL_FINE, messages[0]);
+        boolean exists = false;
+        for (SingleOutlierSpec type : specification.getRegArimaSpecification().getOutliers().getTypes()) {
+            if (type.getType().equals(OutlierType.LS)) {
+                exists = true;
+                break;
+            }
+        }
+        Assert.assertTrue(exists);
+    }
+
+    @Test
+    public void testReadSpecification_AutomaticOutlierLS_False() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.LS, "false");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertEquals(ALL_FINE, messages[0]);
+        boolean exists = false;
+        for (SingleOutlierSpec type : specification.getRegArimaSpecification().getOutliers().getTypes()) {
+            if (type.getType().equals(OutlierType.LS)) {
+                exists = true;
+                break;
+            }
+        }
+        Assert.assertTrue(!exists);
+    }
+
+    @Test
+    public void testReadSpecification_AutomaticOutlierTC_True() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.TC, "true");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertEquals(ALL_FINE, messages[0]);
+        boolean exists = false;
+        for (SingleOutlierSpec type : specification.getRegArimaSpecification().getOutliers().getTypes()) {
+            if (type.getType().equals(OutlierType.TC)) {
+                exists = true;
+                break;
+            }
+        }
+        Assert.assertTrue(exists);
+    }
+
+    @Test
+    public void testReadSpecification_AutomaticOutlierTC_False() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.TC, "false");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertEquals(ALL_FINE, messages[0]);
+        boolean exists = false;
+        for (SingleOutlierSpec type : specification.getRegArimaSpecification().getOutliers().getTypes()) {
+            if (type.getType().equals(OutlierType.TC)) {
+                exists = true;
+                break;
+            }
+        }
+        Assert.assertTrue(!exists);
+    }
+
+    @Test
+    public void testReadSpecification_AutomaticOutlierSO_True() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.SO, "true");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertEquals(ALL_FINE, messages[0]);
+        boolean exists = false;
+        for (SingleOutlierSpec type : specification.getRegArimaSpecification().getOutliers().getTypes()) {
+            if (type.getType().equals(OutlierType.SO)) {
+                exists = true;
+                break;
+            }
+        }
+        Assert.assertTrue(exists);
+    }
+
+    @Test
+    public void testReadSpecification_AutomaticOutlierSO_False() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.SO, "false");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertEquals(ALL_FINE, messages[0]);
+        boolean exists = false;
+        for (SingleOutlierSpec type : specification.getRegArimaSpecification().getOutliers().getTypes()) {
+            if (type.getType().equals(OutlierType.SO)) {
+                exists = true;
+                break;
+            }
+        }
+        Assert.assertTrue(!exists);
     }
 }

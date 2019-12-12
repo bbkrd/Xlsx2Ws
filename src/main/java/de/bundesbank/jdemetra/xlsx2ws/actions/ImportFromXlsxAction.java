@@ -51,8 +51,6 @@ public final class ImportFromXlsxAction implements ActionListener {
         File selectedFile = wsFileChooser.showOpenDialog();
         if (selectedFile != null) {
             new Creator().createWorkspace(selectedFile);
-            NotifyDescriptor nd = new NotifyDescriptor.Message("DONE?");
-            DialogDisplayer.getDefault().notify(nd);
         }
     }
 }

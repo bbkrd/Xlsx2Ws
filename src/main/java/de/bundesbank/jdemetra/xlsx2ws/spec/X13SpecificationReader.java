@@ -817,28 +817,25 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         }
         Day startDay = parseDay(start, part + START);
         Day endDay = parseDay(end, part + END);
+        TsPeriodSelector tsPeriodSelector = new TsPeriodSelector();
         if (startDay == null && endDay == null) {
             String first = information.get(part + FIRST);
             String last = information.get(part + LAST);
             OptionalInt firstOpt = tryParseInteger(first), lastOpt = tryParseInteger(last);
-            TsPeriodSelector tsPeriodSelector = new TsPeriodSelector();
-            if (firstOpt.isPresent() && !lastOpt.isPresent()) {
-                tsPeriodSelector.first(firstOpt.getAsInt());
+            if (firstOpt.isPresent() && lastOpt.isPresent()) {
+                tsPeriodSelector.excluding(firstOpt.getAsInt(), lastOpt.getAsInt());
             } else if (!firstOpt.isPresent() && lastOpt.isPresent()) {
                 tsPeriodSelector.last(lastOpt.getAsInt());
-            } else if (firstOpt.isPresent() && lastOpt.isPresent()) {
-                tsPeriodSelector.excluding(firstOpt.getAsInt(), lastOpt.getAsInt());
+            } else if (firstOpt.isPresent()) {//Implied !lastOpt.isPresent()
+                tsPeriodSelector.first(firstOpt.getAsInt());
             }
             consumer.accept(tsPeriodSelector);
             return;
-        }
-
-        TsPeriodSelector tsPeriodSelector = new TsPeriodSelector();
-        if (startDay != null && endDay == null) {
+        } else if (startDay != null && endDay == null) {
             tsPeriodSelector.from(startDay);
-        } else if (startDay == null && endDay != null) {
+        } else if (startDay == null) { //Implied endDay !=null
             tsPeriodSelector.to(endDay);
-        } else if (startDay != null && endDay != null) {
+        } else { //Implied startDay == null && endDay == null
             tsPeriodSelector.between(startDay, endDay);
         }
         consumer.accept(tsPeriodSelector);
@@ -875,7 +872,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
                 long day = Long.parseLong(dayInfo);
                 day -= day > 59 ? 2 : 1;
                 LocalDate x = START_EXCEL.plusDays(day);
-                return new Day(x.getYear(), ec.tstoolkit.timeseries.Month.valueOf(x.getMonthValue() - 1), x.getDayOfMonth() - 1);
+                return new DayBuilder().year(x.getYear()).month(x.getMonthValue()).day(x.getDayOfMonth()).build();
             }
             messages.add(new Message(Level.SEVERE, "Unparseable Date format in " + key + "."));
         }
