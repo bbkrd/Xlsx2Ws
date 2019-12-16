@@ -7,13 +7,19 @@ package de.bundesbank.jdemetra.xlsx2ws.spec;
 
 import de.bundesbank.jdemetra.xlsx2ws.dto.Message;
 import de.bundesbank.jdemetra.xlsx2ws.dto.SpecificationDTO;
+import ec.satoolkit.x11.CalendarSigma;
 import ec.satoolkit.x11.SeasonalFilterOption;
+import ec.satoolkit.x11.SigmavecOption;
 import ec.satoolkit.x11.X11Exception;
+import ec.satoolkit.x11.X11Specification;
 import ec.satoolkit.x13.X13Specification;
 import ec.tstoolkit.Parameter;
 import ec.tstoolkit.ParameterType;
 import ec.tstoolkit.modelling.DefaultTransformationType;
+import ec.tstoolkit.modelling.RegressionTestSpec;
+import ec.tstoolkit.modelling.TsVariableDescriptor;
 import ec.tstoolkit.modelling.arima.x13.ArimaSpec;
+import ec.tstoolkit.modelling.arima.x13.MovingHolidaySpec;
 import ec.tstoolkit.modelling.arima.x13.SingleOutlierSpec;
 import ec.tstoolkit.timeseries.Day;
 import ec.tstoolkit.timeseries.Month;
@@ -279,23 +285,31 @@ public class X13SpecificationReaderTest {
     public void testReadSpecification_Henderson3Point5() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.HENDERSON, "3.5");
-        X13Specification specification = instance.readSpecification(null).getSpecification();
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
 
-        Assert.assertEquals(3, specification.getX11Specification().getHendersonFilterLength());
+        Assert.assertEquals(new Message(Level.SEVERE, "The information henderson doesn't contain a parseble integer value."), readSpecification.getMessages()[0]);
+        Assert.assertEquals(0, specification.getX11Specification().getHendersonFilterLength());
     }
 
-    @Test(expected = X11Exception.class)
+    @Test
     public void testReadSpecification_Henderson28() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.HENDERSON, "28");
-        instance.readSpecification(null).getSpecification();
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+
+        Assert.assertEquals(new Message(Level.SEVERE, "The value 28 is no valid input for henderson. (Invalid henderson length)"), readSpecification.getMessages()[0]);
+        Assert.assertEquals(X13Specification.RSA0, readSpecification.getSpecification());
     }
 
-    @Test(expected = X11Exception.class)
+    @Test
     public void testReadSpecification_Henderson103() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.HENDERSON, "103");
-        instance.readSpecification(null).getSpecification();
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+
+        Assert.assertEquals(new Message(Level.SEVERE, "The value 103 is no valid input for henderson. (Invalid henderson length)"), readSpecification.getMessages()[0]);
+        Assert.assertEquals(X13Specification.RSA0, readSpecification.getSpecification());
     }
 
     @Test
@@ -303,7 +317,7 @@ public class X13SpecificationReaderTest {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.HENDERSON, "Abc");
         SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
-        Assert.assertEquals(new Message(Level.SEVERE, "The information henderson doesn't contain a parseble floating point value."), readSpecification.getMessages()[0]);
+        Assert.assertEquals(new Message(Level.SEVERE, "The information henderson doesn't contain a parseble integer value."), readSpecification.getMessages()[0]);
     }
 
     @Test
@@ -607,7 +621,7 @@ public class X13SpecificationReaderTest {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.SEASONALFILTERS + 12, "S3X9");
         instance.putInformation(X13SpecificationReader.SEASONALFILTERS + 1, "S3X15");
-        String expected = "The maximal seasonal filter(12) isn't the same as the number of seasonal filters specified(2).";
+        String expected = "The maximal seasonalfilters_(12) isn't the same as the number of seasonalfilters_(2) specified.";
         Assert.assertEquals(new Message(Level.SEVERE, expected), instance.readSpecification(null).getMessages()[0]);
     }
 
@@ -677,7 +691,7 @@ public class X13SpecificationReaderTest {
         Message[] messages = readSpecification.getMessages();
 
         Assert.assertEquals(false, specification.getRegArimaSpecification().getBasic().isPreliminaryCheck());
-        Assert.assertEquals(new Message(Level.INFO, "The information preliminary_check doesn't contain \"true\" or \"false\". It will be set to false."), messages[0]);
+        Assert.assertEquals(new Message(Level.WARNING, "The information preliminary_check doesn't contain \"true\" or \"false\". It will be set to false."), messages[0]);
     }
 
     @Test
@@ -690,7 +704,7 @@ public class X13SpecificationReaderTest {
         Message[] messages = readSpecification.getMessages();
 
         Assert.assertEquals(false, specification.getRegArimaSpecification().getBasic().isPreliminaryCheck());
-        Assert.assertEquals(new Message(Level.INFO, "The information preliminary_check doesn't contain \"true\" or \"false\". It will be set to false."), messages[0]);
+        Assert.assertEquals(new Message(Level.WARNING, "The information preliminary_check doesn't contain \"true\" or \"false\". It will be set to false."), messages[0]);
     }
 
     @Test
@@ -999,5 +1013,343 @@ public class X13SpecificationReaderTest {
             }
         }
         Assert.assertTrue(!exists);
+    }
+
+    @Test
+    public void testReadSpecification_EasterFalse() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.EASTER, "false");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertEquals(null, specification.getRegArimaSpecification().getRegression().getEaster());
+    }
+
+    @Test
+    public void testReadSpecification_EasterABC() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.EASTER, "ABC");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertEquals(new Message(Level.WARNING, "The information easter doesn't contain \"true\" or \"false\". It will be set to false."), messages[0]);
+        Assert.assertEquals(null, specification.getRegArimaSpecification().getRegression().getEaster());
+    }
+
+    @Test
+    public void testReadSpecification_EasterTrue() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.EASTER, "true");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertEquals(MovingHolidaySpec.easterSpec(true), specification.getRegArimaSpecification().getRegression().getEaster());
+    }
+
+    @Test
+    public void testReadSpecification_EasterJulianTrue() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.EASTER, "true");
+        instance.putInformation(X13SpecificationReader.EASTER_JULIAN, "true");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertEquals(MovingHolidaySpec.easterSpec(true, true), specification.getRegArimaSpecification().getRegression().getEaster());
+    }
+
+    @Test
+    public void testReadSpecification_EasterJulianFalse() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.EASTER, "true");
+        instance.putInformation(X13SpecificationReader.EASTER_JULIAN, "false");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertEquals(MovingHolidaySpec.easterSpec(true, false), specification.getRegArimaSpecification().getRegression().getEaster());
+    }
+
+    @Test
+    public void testReadSpecification_EasterJulianABC() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.EASTER, "true");
+        instance.putInformation(X13SpecificationReader.EASTER_JULIAN, "ABC");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertEquals(new Message(Level.WARNING, "The information easter_julian doesn't contain \"true\" or \"false\". It will be set to false."), messages[0]);
+        Assert.assertEquals(MovingHolidaySpec.easterSpec(true, false), specification.getRegArimaSpecification().getRegression().getEaster());
+    }
+
+    @Test
+    public void testReadSpecification_EasterRegressionTestNone() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.EASTER, "true");
+        instance.putInformation(X13SpecificationReader.PRE_TEST, "None");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        MovingHolidaySpec expected = MovingHolidaySpec.easterSpec(true, false);
+        expected.setTest(RegressionTestSpec.None);
+
+        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertEquals(expected, specification.getRegArimaSpecification().getRegression().getEaster());
+    }
+
+    @Test
+    public void testReadSpecification_UserDefinedVariable_Irregular() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.REGRESSOR + 1, "O.O*i");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        TsVariableDescriptor expected = new TsVariableDescriptor("O.O");
+        expected.setEffect(TsVariableDescriptor.UserComponentType.Irregular);
+
+        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertEquals(expected, specification.getRegArimaSpecification().getRegression().getUserDefinedVariables()[0]);
+    }
+
+    @Test
+    public void testReadSpecification_UserDefinedVariable_Trend() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.REGRESSOR + 1, "O.O*t");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        TsVariableDescriptor expected = new TsVariableDescriptor("O.O");
+        expected.setEffect(TsVariableDescriptor.UserComponentType.Trend);
+
+        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertEquals(expected, specification.getRegArimaSpecification().getRegression().getUserDefinedVariables()[0]);
+    }
+
+    @Test
+    public void testReadSpecification_UserDefinedVariable_Series() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.REGRESSOR + 1, "O.O*y");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        TsVariableDescriptor expected = new TsVariableDescriptor("O.O");
+        expected.setEffect(TsVariableDescriptor.UserComponentType.Series);
+
+        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertEquals(expected, specification.getRegArimaSpecification().getRegression().getUserDefinedVariables()[0]);
+    }
+
+    @Test
+    public void testReadSpecification_UserDefinedVariable_Seasonal() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.REGRESSOR + 1, "O.O*s");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        TsVariableDescriptor expected = new TsVariableDescriptor("O.O");
+        expected.setEffect(TsVariableDescriptor.UserComponentType.Seasonal);
+
+        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertEquals(expected, specification.getRegArimaSpecification().getRegression().getUserDefinedVariables()[0]);
+    }
+
+    @Test
+    public void testReadSpecification_UserDefinedVariable_SeasonallyAdjusted() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.REGRESSOR + 1, "O.O*sa");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        TsVariableDescriptor expected = new TsVariableDescriptor("O.O");
+        expected.setEffect(TsVariableDescriptor.UserComponentType.SeasonallyAdjusted);
+
+        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertEquals(expected, specification.getRegArimaSpecification().getRegression().getUserDefinedVariables()[0]);
+    }
+
+    @Test
+    public void testReadSpecification_UserDefinedVariable_Undefined() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.REGRESSOR + 1, "O.O*u");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        TsVariableDescriptor expected = new TsVariableDescriptor("O.O");
+        expected.setEffect(TsVariableDescriptor.UserComponentType.Undefined);
+
+        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertEquals(expected, specification.getRegArimaSpecification().getRegression().getUserDefinedVariables()[0]);
+    }
+
+    @Test
+    public void testReadSpecification_UserDefinedVariable_UndefinedDefault() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.REGRESSOR + 1, "O.O*a");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        TsVariableDescriptor expected = new TsVariableDescriptor("O.O");
+        expected.setEffect(TsVariableDescriptor.UserComponentType.Undefined);
+
+        Assert.assertEquals(new Message(Level.WARNING, "regressor_1 has no typ and will be marked as Undefined."), messages[0]);
+        Assert.assertEquals(expected, specification.getRegArimaSpecification().getRegression().getUserDefinedVariables()[0]);
+    }
+
+    @Test
+    public void testReadSpecification_UserDefinedVariable_UndefinedNoStar() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.REGRESSOR + 1, "O.O");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        TsVariableDescriptor expected = new TsVariableDescriptor("O.O");
+        expected.setEffect(TsVariableDescriptor.UserComponentType.Undefined);
+
+        Assert.assertEquals(new Message(Level.WARNING, "regressor_1 has no typ and will be marked as Undefined."), messages[0]);
+        Assert.assertEquals(expected, specification.getRegArimaSpecification().getRegression().getUserDefinedVariables()[0]);
+    }
+
+    @Test
+    public void testReadSpecification_UserDefinedVariable_Calendar() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.REGRESSOR + 1, "O.O*c");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        String expected = "O.O";
+
+        Assert.assertEquals(new Message(Level.INFO, "Userdefined trading day variables were defined. All other trading day setting were overridden."), messages[0]);
+        Assert.assertEquals(expected, specification.getRegArimaSpecification().getRegression().getTradingDays().getUserVariables()[0]);
+    }
+
+    @Test
+    public void testReadSpecification_UserDefinedVariable_Calendar2() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.REGRESSOR + 1, "O.O1*c");
+        instance.putInformation(X13SpecificationReader.REGRESSOR + 2, "O.O2*c");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        String expected1 = "O.O1";
+        String expected2 = "O.O2";
+
+        Assert.assertEquals(new Message(Level.INFO, "Userdefined trading day variables were defined. All other trading day setting were overridden."), messages[0]);
+        String[] result = specification.getRegArimaSpecification().getRegression().getTradingDays().getUserVariables();
+
+        //Regressor read in hash order soooooooo it should be "O.O2" in result[0] and "O.O1" in result[1]
+        //but as long as both are in the array it is fine with me
+        Assert.assertEquals(2, result.length);
+        Assert.assertTrue(result[0].equals(expected1) || result[1].equals(expected1));
+        Assert.assertTrue(result[0].equals(expected2) || result[1].equals(expected2));
+
+    }
+
+    @Test
+    public void testReadSpecification_UserDefinedVariable_FalseInput() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.REGRESSOR + 1, "OO1*c");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertEquals(new Message(Level.SEVERE, "regressor_1 has an invalid syntax."), messages[0]);
+
+        String[] result = specification.getRegArimaSpecification().getRegression().getTradingDays().getUserVariables();
+        Assert.assertTrue(result == null);
+    }
+
+    @Test
+    public void testReadSpecification_CalendarSigmaSelect_SigmaVecGroups() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.CALENDARSIGMA, "Select");
+        instance.putInformation(X13SpecificationReader.SIGMA_VECTOR + 1, "Group1");
+        instance.putInformation(X13SpecificationReader.SIGMA_VECTOR + 2, "Group2");
+        instance.putInformation(X13SpecificationReader.SIGMA_VECTOR + 3, "Group1");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertEquals(ALL_FINE, messages[0]);
+
+        X11Specification result = specification.getX11Specification();
+
+        Assert.assertEquals(CalendarSigma.Select, result.getCalendarSigma());
+        Assert.assertArrayEquals(new SigmavecOption[]{SigmavecOption.Group1, SigmavecOption.Group2, SigmavecOption.Group1}, result.getSigmavec());
+    }
+
+    @Test
+    public void testReadSpecification_CalendarSigmaSelect_NoSigmaVec() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.CALENDARSIGMA, "Select");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertEquals(ALL_FINE, messages[0]);
+
+        X11Specification result = specification.getX11Specification();
+
+        Assert.assertEquals(CalendarSigma.Select, result.getCalendarSigma());
+        Assert.assertArrayEquals(null, result.getSigmavec());
+    }
+
+    @Test
+    public void testReadSpecification_CalendarSigmaSelect_SigmaVecGroupsError() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.CALENDARSIGMA, "Select");
+        instance.putInformation(X13SpecificationReader.SIGMA_VECTOR + 1, "Group4");
+        instance.putInformation(X13SpecificationReader.SIGMA_VECTOR + 2, "Group2");
+        instance.putInformation(X13SpecificationReader.SIGMA_VECTOR + 3, "Group3");
+
+        SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
+        X13Specification specification = readSpecification.getSpecification();
+        Message[] messages = readSpecification.getMessages();
+
+        Assert.assertEquals(new Message(Level.SEVERE, "The information sigma_vector_1 doesn't contain a valid argument."), messages[0]);
+        Assert.assertEquals(new Message(Level.SEVERE, "The information sigma_vector_3 doesn't contain a valid argument."), messages[1]);
+
+        X11Specification result = specification.getX11Specification();
+
+        Assert.assertEquals(CalendarSigma.Select, result.getCalendarSigma());
+        Assert.assertArrayEquals(null, result.getSigmavec());
     }
 }

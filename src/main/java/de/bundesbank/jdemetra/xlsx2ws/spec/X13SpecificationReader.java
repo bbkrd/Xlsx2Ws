@@ -8,6 +8,7 @@ import ec.satoolkit.ISaSpecification;
 import ec.satoolkit.x11.CalendarSigma;
 import ec.satoolkit.x11.SeasonalFilterOption;
 import ec.satoolkit.x11.SigmavecOption;
+import ec.satoolkit.x11.X11Exception;
 import ec.satoolkit.x11.X11Specification;
 import ec.satoolkit.x13.X13Specification;
 import ec.tstoolkit.Parameter;
@@ -37,6 +38,7 @@ import ec.tstoolkit.timeseries.regression.OutlierDefinition;
 import ec.tstoolkit.timeseries.regression.OutlierType;
 import ec.tstoolkit.timeseries.regression.SeasonalOutlier;
 import ec.tstoolkit.timeseries.regression.TransitoryChange;
+import java.text.Collator;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.Month;
@@ -47,7 +49,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.OptionalInt;
 import java.util.function.Consumer;
+import java.util.function.DoubleConsumer;
 import java.util.function.Function;
+import java.util.function.IntConsumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
@@ -58,7 +62,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
 
     private static final Pattern DATE_PATTERN = Pattern.compile("\\d{4}(.(0[1-9]|1[0-2])(.(0[1-9]|[12]\\d|3[01]))?)?");
     private static final Pattern ARIMA_PATTERN = Pattern.compile("\\(([0-6])\\s*([0-2])\\s*([0-6])\\)\\s*\\(([01])\\s*([01])\\s*([01])\\)");
-    private static final Pattern REGRESSOR_PATTERN = Pattern.compile(".*\\..+?(\\*)([cituy]|sa?)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern REGRESSOR_PATTERN = Pattern.compile(".*\\..+?((\\*).*)?", Pattern.CASE_INSENSITIVE);
     private static final LocalDate START_EXCEL = LocalDate.of(1900, Month.JANUARY, 1);
 
     public static final String BASE = "base", SPAN_NONE_VALUE = "X", START = "start", END = "end", FIRST = "first", LAST = "last",
@@ -175,15 +179,14 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
 
         //EASTER
         if (information.containsKey(EASTER)) {
+            Easter easter = new Easter();
             regressionSpec.removeMovingHolidays(regressionSpec.getEaster());
-            if (Boolean.parseBoolean(information.get(EASTER))) {
-                boolean julian = Boolean.parseBoolean(information.getOrDefault(EASTER_JULIAN, "false"));
-                MovingHolidaySpec easterSpec = MovingHolidaySpec.easterSpec(true, julian);
-                OptionalInt duration = tryParseInteger(information.get(DURATION));
-                duration.ifPresent(easterSpec::setW);
-                consumeEnum(PRE_TEST, RegressionTestSpec::valueOf, easterSpec::setTest);
-                regressionSpec.add(easterSpec);
-            }
+
+            consumeBoolean(EASTER, easter::setEaster);
+            consumeBoolean(EASTER_JULIAN, easter::setJulian);
+            consumeInt(DURATION, easter::setW);
+            consumeEnum(PRE_TEST, RegressionTestSpec::valueOf, easter::setRegressionTestSpec);
+            easter.fill(regressionSpec);
 
         }
     }
@@ -226,51 +229,56 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         List<TsVariableDescriptor> variableDescriptors = new ArrayList<>();
         List<String> userDefinedCalendarEffects = new ArrayList<>();
         information.entrySet().stream()
-                .filter(x -> x.getKey().startsWith(REGRESSOR) && REGRESSOR_PATTERN.matcher(x.getValue()).matches())
+                .filter(x -> x.getKey().startsWith(REGRESSOR))
                 .forEach(x -> {
-                    String regressorInfo = x.getValue();
-                    int lastStar = regressorInfo.lastIndexOf('*');
-                    String variable, typ;
-                    if (lastStar == -1) {
-                        variable = regressorInfo;
-                        typ = "m";
+                    if (REGRESSOR_PATTERN.matcher(x.getValue()).matches()) {
+
+                        String regressorInfo = x.getValue();
+                        int lastStar = regressorInfo.lastIndexOf('*');
+                        String variable, typ;
+                        if (lastStar == -1) {
+                            variable = regressorInfo;
+                            typ = "m";
+                        } else {
+                            variable = regressorInfo.substring(0, lastStar);
+                            typ = regressorInfo.substring(lastStar + 1).toLowerCase(Locale.ENGLISH);
+                        }
+
+                        if (typ.equals("c")) {
+                            userDefinedCalendarEffects.add(variable);
+                            return;
+                        }
+
+                        TsVariableDescriptor regressor = new TsVariableDescriptor(variable);
+
+                        switch (typ) {
+                            case "i":
+                                regressor.setEffect(TsVariableDescriptor.UserComponentType.Irregular);
+                                break;
+                            case "t":
+                                regressor.setEffect(TsVariableDescriptor.UserComponentType.Trend);
+                                break;
+                            case "y":
+                                regressor.setEffect(TsVariableDescriptor.UserComponentType.Series);
+                                break;
+                            case "s":
+                                regressor.setEffect(TsVariableDescriptor.UserComponentType.Seasonal);
+                                break;
+                            case "sa":
+                                regressor.setEffect(TsVariableDescriptor.UserComponentType.SeasonallyAdjusted);
+                                break;
+                            case "u":
+                                regressor.setEffect(TsVariableDescriptor.UserComponentType.Undefined);
+                                break;
+                            default:
+                                messages.add(new Message(Level.WARNING, x.getKey() + " has no typ and will be marked as Undefined."));
+                                regressor.setEffect(TsVariableDescriptor.UserComponentType.Undefined);
+                                break;
+                        }
+                        variableDescriptors.add(regressor);
                     } else {
-                        variable = regressorInfo.substring(0, lastStar);
-                        typ = regressorInfo.substring(lastStar + 1).toLowerCase(Locale.ENGLISH);
+                        messages.add(new Message(Level.SEVERE, x.getKey() + " has an invalid syntax."));
                     }
-
-                    if (typ.equals("c")) {
-                        userDefinedCalendarEffects.add(variable);
-                        return;
-                    }
-
-                    TsVariableDescriptor regressor = new TsVariableDescriptor(variable);
-
-                    switch (typ) {
-                        case "i":
-                            regressor.setEffect(TsVariableDescriptor.UserComponentType.Irregular);
-                            break;
-                        case "t":
-                            regressor.setEffect(TsVariableDescriptor.UserComponentType.Trend);
-                            break;
-                        case "y":
-                            regressor.setEffect(TsVariableDescriptor.UserComponentType.Series);
-                            break;
-                        case "s":
-                            regressor.setEffect(TsVariableDescriptor.UserComponentType.Seasonal);
-                            break;
-                        case "sa":
-                            regressor.setEffect(TsVariableDescriptor.UserComponentType.SeasonallyAdjusted);
-                            break;
-                        case "u":
-                            regressor.setEffect(TsVariableDescriptor.UserComponentType.Undefined);
-                            break;
-                        default:
-                            messages.add(new Message(Level.INFO, "The regressor " + x.getKey() + " has no typ and will be marked as Undefined."));
-                            regressor.setEffect(TsVariableDescriptor.UserComponentType.Undefined);
-                            break;
-                    }
-                    variableDescriptors.add(regressor);
                 });
         if (!variableDescriptors.isEmpty()) {
             regressionSpec.setUserDefinedVariables(variableDescriptors.toArray(new TsVariableDescriptor[variableDescriptors.size()]));
@@ -372,11 +380,11 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         consumeBoolean(SEASONAL, x11Specification::setSeasonal);
 
         if (!onlyX11) {
-            consumeInteger(MAXLEAD, x11Specification::setForecastHorizon);
-            consumeInteger(MAXBACK, x11Specification::setBackcastHorizon);
+            consumeInt(MAXLEAD, x11Specification::setForecastHorizon);
+            consumeInt(MAXBACK, x11Specification::setBackcastHorizon);
         }
 
-        consumeInteger(HENDERSON, x11Specification::setHendersonFilterLength);
+        consumeInt(HENDERSON, x11Specification::setHendersonFilterLength, X11Exception.class);
 
         readSigmaLimit(x11Specification);
         if (x11Specification.isSeasonal()) {
@@ -399,52 +407,18 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
             x11Specification.setSeasonalFilter(SeasonalFilterOption.valueOf(seasonalfilter));
             return;
         }
-
-        List<Map.Entry<String, String>> list = information.entrySet().stream()
-                .filter(x -> x.getKey().startsWith(SEASONALFILTERS) && x.getKey().matches(SEASONALFILTERS + "\\d+"))
-                .collect(Collectors.toList());
-
-        if (list.isEmpty()) {
-            return;
+        List<SeasonalFilterOption> options = prepareEnumList(SEASONALFILTERS, SeasonalFilterOption::valueOf);
+        if (options != null) {
+            x11Specification.setSeasonalFilters(options.toArray(new SeasonalFilterOption[options.size()]));
         }
-        int max = list.stream().mapToInt(x -> Integer.parseInt(x.getKey().substring(SEASONALFILTERS.length()))).max().getAsInt();
-        if (max != list.size()) {
-            messages.add(new Message(Level.SEVERE, "The maximal seasonal filter(" + max + ") isn't the same as the number of seasonal filters specified(" + list.size() + ")."));
-            return;
-        }
-
-        SeasonalFilterOption[] options = new SeasonalFilterOption[max];
-
-        list.forEach((entry) -> {
-            int position = Integer.parseInt(entry.getKey().substring(SEASONALFILTERS.length()));
-            SeasonalFilterOption option = SeasonalFilterOption.valueOf(entry.getValue());
-            options[position - 1] = option;
-        });
-        x11Specification.setSeasonalFilters(options);
     }
 
     private void readSigmaVec(X11Specification x11Specification) {
-        List<Map.Entry<String, String>> list = information.entrySet().stream()
-                .filter(x -> x.getKey().startsWith(SIGMA_VECTOR) && x.getKey().matches(SIGMA_VECTOR + "\\d+"))
-                .collect(Collectors.toList());
 
-        if (list.isEmpty()) {
-            return;
+        List<SigmavecOption> options = prepareEnumList(SIGMA_VECTOR, SigmavecOption::valueOf);
+        if (options != null) {
+            x11Specification.setSigmavec(options.toArray(new SigmavecOption[options.size()]));
         }
-        int max = list.stream().mapToInt(x -> Integer.parseInt(x.getKey().substring(SIGMA_VECTOR.length()))).max().getAsInt();
-        if (max != list.size()) {
-            messages.add(new Message(Level.SEVERE, "The maximal SigmavecOption(" + max + ") isn't the same as the number of SigmavecOptions specified(" + list.size() + ")."));
-            return;
-        }
-
-        SigmavecOption[] options = new SigmavecOption[max];
-
-        list.forEach((entry) -> {
-            int position = Integer.parseInt(entry.getKey().substring(SIGMA_VECTOR.length()));
-            SigmavecOption option = SigmavecOption.valueOf(entry.getValue());
-            options[position - 1] = option;
-        });
-        x11Specification.setSigmavec(options);
     }
 
     private void readSigmaLimit(X11Specification x11Specification) {
@@ -879,25 +853,43 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         return null;
     }
 
-    private void consumeDouble(String key, Consumer<Double> consumer) {
-        if (!information.containsKey(key)) {
-            return;
-        }
-        try {
-            Double parsedDouble = Double.parseDouble(information.get(key));
-            consumer.accept(parsedDouble);
-        } catch (NumberFormatException e) {
-            messages.add(new Message(Level.SEVERE, "The information " + key + " doesn't contain a parseble floating point value."));
-        }
+    private void consumeInt(String key, IntConsumer consumer) {
+        consumeInt(key, consumer, (Class<RuntimeException>[]) null);
     }
 
-    private void consumeInteger(String key, Consumer<Integer> consumer) {
+    private <T extends RuntimeException> void consumeInt(String key, IntConsumer consumer, Class<T>... possibleExceptions) {
+
+        if (!information.containsKey(key)) {
+            return;
+        }
+        OptionalInt optionalInt = tryParseInteger(information.get(key));
+        if (optionalInt.isPresent()) {
+            try {
+                consumer.accept(optionalInt.getAsInt());
+            } catch (RuntimeException e) {
+                if (possibleExceptions == null || possibleExceptions.length == 0) {
+                    throw e;
+                }
+                for (Class<T> possibleException : possibleExceptions) {
+                    if (possibleException.isInstance(e)) {
+                        messages.add(new Message(Level.SEVERE, "The value " + optionalInt.getAsInt() + " is no valid input for " + key + ". (" + e.getMessage() + ")"));
+                        return;
+                    }
+                }
+            }
+        } else {
+            messages.add(new Message(Level.SEVERE, "The information " + key + " doesn't contain a parseble integer value."));
+        }
+
+    }
+
+    private void consumeDouble(String key, DoubleConsumer consumer) {
         if (!information.containsKey(key)) {
             return;
         }
         try {
-            int parsedInt = (int) Double.parseDouble(information.get(key));
-            consumer.accept(parsedInt);
+            double parsedDouble = Double.parseDouble(information.get(key));
+            consumer.accept(parsedDouble);
         } catch (NumberFormatException e) {
             messages.add(new Message(Level.SEVERE, "The information " + key + " doesn't contain a parseble floating point value."));
         }
@@ -915,6 +907,29 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         }
     }
 
+    private <R extends Enum> List<R> prepareEnumList(String key, Function<String, R> function) {
+        List<String> list = information.keySet().stream()
+                .filter(x -> x.startsWith(key) && x.matches(key + "\\d+"))
+                .collect(Collectors.toList());
+        if (list.isEmpty()) {
+            return null;
+        }
+        int max = list.stream().mapToInt(x -> Integer.parseInt(x.substring(key.length()))).max().getAsInt();
+        if (max != list.size()) {
+            messages.add(new Message(Level.SEVERE, "The maximal " + key + "(" + max + ") isn't the same as the number of " + key + "(" + list.size() + ") specified."));
+            return null;
+        }
+        List<R> options = new ArrayList<>(max);
+        Collator instance = Collator.getInstance();
+        instance.setStrength(Collator.PRIMARY);
+        list.sort(instance);
+        list.forEach((entry) -> {
+            consumeEnum(entry, function, options::add);
+        });
+
+        return options.size() != max ? null : options;
+    }
+
     private void consumeBoolean(String key, Consumer<Boolean> consumer) {
         if (!information.containsKey(key)) {
             return;
@@ -922,7 +937,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
 
         String value = information.get(key);
         if (value == null || !(value.equalsIgnoreCase(Boolean.TRUE.toString()) || value.equalsIgnoreCase(Boolean.FALSE.toString()))) {
-            messages.add(new Message(Level.INFO, "The information " + key + " doesn't contain \"true\" or \"false\". It will be set to false."));
+            messages.add(new Message(Level.WARNING, "The information " + key + " doesn't contain \"true\" or \"false\". It will be set to false."));
         }
         boolean parsedBoolean = Boolean.parseBoolean(information.get(key));
         consumer.accept(parsedBoolean);
@@ -961,4 +976,23 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         }
     }
 
+    @lombok.Setter
+    private static final class Easter {
+
+        private boolean easter = false;
+        private boolean julian = false;
+        private int w = MovingHolidaySpec.DEF_EASTERDUR;
+        private RegressionTestSpec regressionTestSpec = null;
+
+        public void fill(RegressionSpec regressionSpec) {
+            if (easter) {
+                MovingHolidaySpec easterSpec = MovingHolidaySpec.easterSpec(true, julian);
+                easterSpec.setW(w);
+                if (regressionTestSpec != null) {
+                    easterSpec.setTest(regressionTestSpec);
+                }
+                regressionSpec.add(easterSpec);
+            }
+        }
+    }
 }
