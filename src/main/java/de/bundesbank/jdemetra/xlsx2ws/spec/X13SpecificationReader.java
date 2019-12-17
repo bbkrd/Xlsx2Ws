@@ -809,7 +809,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
             tsPeriodSelector.from(startDay);
         } else if (startDay == null) { //Implied endDay !=null
             tsPeriodSelector.to(endDay);
-        } else { //Implied startDay == null && endDay == null
+        } else { //Implied startDay != null && endDay != null
             tsPeriodSelector.between(startDay, endDay);
         }
         consumer.accept(tsPeriodSelector);
