@@ -20,6 +20,7 @@ import ec.tstoolkit.modelling.RegressionTestSpec;
 import ec.tstoolkit.modelling.TsVariableDescriptor;
 import ec.tstoolkit.modelling.arima.x13.ArimaSpec;
 import ec.tstoolkit.modelling.arima.x13.MovingHolidaySpec;
+import ec.tstoolkit.modelling.arima.x13.OutlierSpec;
 import ec.tstoolkit.modelling.arima.x13.SingleOutlierSpec;
 import ec.tstoolkit.timeseries.Day;
 import ec.tstoolkit.timeseries.Month;
@@ -31,6 +32,7 @@ import ec.tstoolkit.timeseries.regression.OutlierType;
 import ec.tstoolkit.timeseries.regression.SeasonalOutlier;
 import ec.tstoolkit.timeseries.regression.TransitoryChange;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import org.junit.Assert;
@@ -1351,5 +1353,449 @@ public class X13SpecificationReaderTest {
 
         Assert.assertEquals(CalendarSigma.Select, result.getCalendarSigma());
         Assert.assertArrayEquals(null, result.getSigmavec());
+    }
+
+    @Test
+    public void testWriteSpecification_Rsa5c() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        Map<String, String> result = instance.writeSpecification(X13Specification.RSA5);
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.BASE));
+        Assert.assertEquals(X13Specification.RSA5.toString(), result.get(X13SpecificationReader.BASE));
+    }
+
+    @Test
+    public void testWriteSpecification_Rsa5cNoPreCheck() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSA5.clone();
+        spec.getRegArimaSpecification().getBasic().setPreliminaryCheck(false);
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.TC_RATE));
+        Assert.assertEquals("0.7", result.get(X13SpecificationReader.TC_RATE));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.CANCELATION_LIMIT));
+        Assert.assertEquals("0.1", result.get(X13SpecificationReader.CANCELATION_LIMIT));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.EXCLUDEFORECAST));
+        Assert.assertEquals("false", result.get(X13SpecificationReader.EXCLUDEFORECAST));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.DURATION));
+        Assert.assertEquals("8", result.get(X13SpecificationReader.DURATION));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.SEASONAL));
+        Assert.assertEquals("true", result.get(X13SpecificationReader.SEASONAL));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.LS));
+        Assert.assertEquals("true", result.get(X13SpecificationReader.LS));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.HENDERSON));
+        Assert.assertEquals("0", result.get(X13SpecificationReader.HENDERSON));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.MIXED));
+        Assert.assertEquals("true", result.get(X13SpecificationReader.MIXED));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.AIC_DIFFERENCE));
+        Assert.assertEquals("-2.0", result.get(X13SpecificationReader.AIC_DIFFERENCE));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.EASTER));
+        Assert.assertEquals("true", result.get(X13SpecificationReader.EASTER));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.BALANCED));
+        Assert.assertEquals("false", result.get(X13SpecificationReader.BALANCED));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.MODE));
+        Assert.assertEquals("Undefined", result.get(X13SpecificationReader.MODE));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.TRANSFORM));
+        Assert.assertEquals("Auto", result.get(X13SpecificationReader.TRANSFORM));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.INITIAL_UR));
+        Assert.assertEquals("1.0416666666666667", result.get(X13SpecificationReader.INITIAL_UR));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.PRELIMINARY_CHECK));
+        Assert.assertEquals("false", result.get(X13SpecificationReader.PRELIMINARY_CHECK));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.EASTER_JULIAN));
+        Assert.assertEquals("false", result.get(X13SpecificationReader.EASTER_JULIAN));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.AUTOADJUST));
+        Assert.assertEquals("true", result.get(X13SpecificationReader.AUTOADJUST));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.MAXLEAD));
+        Assert.assertEquals("-1", result.get(X13SpecificationReader.MAXLEAD));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.SO));
+        Assert.assertEquals("false", result.get(X13SpecificationReader.SO));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.AUTOMODEL));
+        Assert.assertEquals("true", result.get(X13SpecificationReader.AUTOMODEL));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.SEASONALFILTER));
+        Assert.assertEquals("Msr", result.get(X13SpecificationReader.SEASONALFILTER));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.MAXBACK));
+        Assert.assertEquals("0", result.get(X13SpecificationReader.MAXBACK));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.LJUNGBOX_LIMIT));
+        Assert.assertEquals("0.95", result.get(X13SpecificationReader.LJUNGBOX_LIMIT));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.FINAL_UR));
+        Assert.assertEquals("0.88", result.get(X13SpecificationReader.FINAL_UR));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.ACCEPT_DEFAULT));
+        Assert.assertEquals("false", result.get(X13SpecificationReader.ACCEPT_DEFAULT));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.METHOD));
+        Assert.assertEquals("AddOne", result.get(X13SpecificationReader.METHOD));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.REDUCE_CV));
+        Assert.assertEquals("0.14286", result.get(X13SpecificationReader.REDUCE_CV));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.LOWER_SIGMA));
+        Assert.assertEquals("1.5", result.get(X13SpecificationReader.LOWER_SIGMA));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.TEST));
+        Assert.assertEquals("Remove", result.get(X13SpecificationReader.TEST));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.URFINAL));
+        Assert.assertEquals("1.05", result.get(X13SpecificationReader.URFINAL));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.AO));
+        Assert.assertEquals("true", result.get(X13SpecificationReader.AO));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.TC));
+        Assert.assertEquals("true", result.get(X13SpecificationReader.TC));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.TRADINGDAYSTYPE));
+        Assert.assertEquals("TradingDays", result.get(X13SpecificationReader.TRADINGDAYSTYPE));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.ARMALIMIT));
+        Assert.assertEquals("1.0", result.get(X13SpecificationReader.ARMALIMIT));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.CRITICAL_VALUE));
+        Assert.assertEquals("0.0", result.get(X13SpecificationReader.CRITICAL_VALUE));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.UPPER_SIGMA));
+        Assert.assertEquals("2.5", result.get(X13SpecificationReader.UPPER_SIGMA));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.PRE_TEST));
+        Assert.assertEquals("Add", result.get(X13SpecificationReader.PRE_TEST));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.CALENDARSIGMA));
+        Assert.assertEquals("None", result.get(X13SpecificationReader.CALENDARSIGMA));
+    }
+
+    @Test
+    public void testWriteSpecification_Rsa5cTolerance0Point5() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSA5.clone();
+        spec.getRegArimaSpecification().getEstimate().setTol(0.5);
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.TC_RATE));
+        Assert.assertEquals("0.7", result.get(X13SpecificationReader.TC_RATE));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.TOLERANCE));
+        Assert.assertEquals("0.5", result.get(X13SpecificationReader.TOLERANCE));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.CANCELATION_LIMIT));
+        Assert.assertEquals("0.1", result.get(X13SpecificationReader.CANCELATION_LIMIT));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.EXCLUDEFORECAST));
+        Assert.assertEquals("false", result.get(X13SpecificationReader.EXCLUDEFORECAST));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.DURATION));
+        Assert.assertEquals("8", result.get(X13SpecificationReader.DURATION));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.SEASONAL));
+        Assert.assertEquals("true", result.get(X13SpecificationReader.SEASONAL));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.LS));
+        Assert.assertEquals("true", result.get(X13SpecificationReader.LS));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.HENDERSON));
+        Assert.assertEquals("0", result.get(X13SpecificationReader.HENDERSON));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.MIXED));
+        Assert.assertEquals("true", result.get(X13SpecificationReader.MIXED));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.AIC_DIFFERENCE));
+        Assert.assertEquals("-2.0", result.get(X13SpecificationReader.AIC_DIFFERENCE));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.EASTER));
+        Assert.assertEquals("true", result.get(X13SpecificationReader.EASTER));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.BALANCED));
+        Assert.assertEquals("false", result.get(X13SpecificationReader.BALANCED));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.MODE));
+        Assert.assertEquals("Undefined", result.get(X13SpecificationReader.MODE));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.TRANSFORM));
+        Assert.assertEquals("Auto", result.get(X13SpecificationReader.TRANSFORM));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.INITIAL_UR));
+        Assert.assertEquals("1.0416666666666667", result.get(X13SpecificationReader.INITIAL_UR));
+
+        Assert.assertTrue(!result.containsKey(X13SpecificationReader.PRELIMINARY_CHECK));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.EASTER_JULIAN));
+        Assert.assertEquals("false", result.get(X13SpecificationReader.EASTER_JULIAN));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.AUTOADJUST));
+        Assert.assertEquals("true", result.get(X13SpecificationReader.AUTOADJUST));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.MAXLEAD));
+        Assert.assertEquals("-1", result.get(X13SpecificationReader.MAXLEAD));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.SO));
+        Assert.assertEquals("false", result.get(X13SpecificationReader.SO));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.AUTOMODEL));
+        Assert.assertEquals("true", result.get(X13SpecificationReader.AUTOMODEL));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.SEASONALFILTER));
+        Assert.assertEquals("Msr", result.get(X13SpecificationReader.SEASONALFILTER));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.MAXBACK));
+        Assert.assertEquals("0", result.get(X13SpecificationReader.MAXBACK));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.LJUNGBOX_LIMIT));
+        Assert.assertEquals("0.95", result.get(X13SpecificationReader.LJUNGBOX_LIMIT));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.FINAL_UR));
+        Assert.assertEquals("0.88", result.get(X13SpecificationReader.FINAL_UR));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.ACCEPT_DEFAULT));
+        Assert.assertEquals("false", result.get(X13SpecificationReader.ACCEPT_DEFAULT));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.METHOD));
+        Assert.assertEquals("AddOne", result.get(X13SpecificationReader.METHOD));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.REDUCE_CV));
+        Assert.assertEquals("0.14286", result.get(X13SpecificationReader.REDUCE_CV));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.LOWER_SIGMA));
+        Assert.assertEquals("1.5", result.get(X13SpecificationReader.LOWER_SIGMA));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.TEST));
+        Assert.assertEquals("Remove", result.get(X13SpecificationReader.TEST));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.URFINAL));
+        Assert.assertEquals("1.05", result.get(X13SpecificationReader.URFINAL));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.AO));
+        Assert.assertEquals("true", result.get(X13SpecificationReader.AO));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.TC));
+        Assert.assertEquals("true", result.get(X13SpecificationReader.TC));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.TRADINGDAYSTYPE));
+        Assert.assertEquals("TradingDays", result.get(X13SpecificationReader.TRADINGDAYSTYPE));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.ARMALIMIT));
+        Assert.assertEquals("1.0", result.get(X13SpecificationReader.ARMALIMIT));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.CRITICAL_VALUE));
+        Assert.assertEquals("0.0", result.get(X13SpecificationReader.CRITICAL_VALUE));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.UPPER_SIGMA));
+        Assert.assertEquals("2.5", result.get(X13SpecificationReader.UPPER_SIGMA));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.PRE_TEST));
+        Assert.assertEquals("Add", result.get(X13SpecificationReader.PRE_TEST));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.CALENDARSIGMA));
+        Assert.assertEquals("None", result.get(X13SpecificationReader.CALENDARSIGMA));
+    }
+
+    @Test
+    public void testWriteSpecification_ARIMA111111() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSA5.clone();
+        spec.getRegArimaSpecification().setUsingAutoModel(false);
+        ArimaSpec arima = spec.getRegArimaSpecification().getArima();
+        arima.setP(1);
+        arima.setD(1);
+        arima.setQ(1);
+        arima.setBP(1);
+        arima.setBD(1);
+        arima.setBQ(1);
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.ARIMA));
+        Assert.assertEquals("(1 1 1)(1 1 1)", result.get(X13SpecificationReader.ARIMA));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.P + 1));
+        Assert.assertEquals("0.0*u", result.get(X13SpecificationReader.P + 1));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.Q + 1));
+        Assert.assertEquals("0.0*u", result.get(X13SpecificationReader.P + 1));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.BP + 1));
+        Assert.assertEquals("0.0*u", result.get(X13SpecificationReader.BP + 1));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.BQ + 1));
+        Assert.assertEquals("0.0*u", result.get(X13SpecificationReader.BQ + 1));
+    }
+
+    @Test
+    public void testWriteSpecification_ARIMA300001() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSA5.clone();
+        spec.getRegArimaSpecification().setUsingAutoModel(false);
+        ArimaSpec arima = spec.getRegArimaSpecification().getArima();
+        arima.setP(3);
+        arima.setD(0);
+        arima.setQ(0);
+        arima.setBP(0);
+        arima.setBD(0);
+        arima.setBQ(1);
+
+        arima.setPhi(new Parameter[]{new Parameter(1, ParameterType.Fixed), new Parameter(0, ParameterType.Undefined), new Parameter(0.5, ParameterType.Initial)});
+        arima.setBTheta(new Parameter[]{new Parameter(2, ParameterType.Fixed)});
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.ARIMA));
+        Assert.assertEquals("(3 0 0)(0 0 1)", result.get(X13SpecificationReader.ARIMA));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.P + 1));
+        Assert.assertEquals("1.0*f", result.get(X13SpecificationReader.P + 1));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.P + 2));
+        Assert.assertEquals("0.0*u", result.get(X13SpecificationReader.P + 2));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.P + 3));
+        Assert.assertEquals("0.5*i", result.get(X13SpecificationReader.P + 3));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.BQ + 1));
+        Assert.assertEquals("2.0*f", result.get(X13SpecificationReader.BQ + 1));
+    }
+
+    @Test
+    public void testWriteSpecification_OutliersSwitched() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSA5.clone();
+        spec.getRegArimaSpecification().setUsingAutoModel(false);
+        OutlierSpec outlierSpec = spec.getRegArimaSpecification().getOutliers();
+        outlierSpec.clearTypes();
+        outlierSpec.add(OutlierType.SO);
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.AO));
+        Assert.assertEquals("false", result.get(X13SpecificationReader.AO));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.LS));
+        Assert.assertEquals("false", result.get(X13SpecificationReader.LS));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.TC));
+        Assert.assertEquals("false", result.get(X13SpecificationReader.TC));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.SO));
+        Assert.assertEquals("true", result.get(X13SpecificationReader.SO));
+    }
+
+    @Test
+    public void testWriteSpecification_OutliersNotUsed() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSA5.clone();
+        spec.getRegArimaSpecification().setUsingAutoModel(false);
+        OutlierSpec outlierSpec = spec.getRegArimaSpecification().getOutliers();
+        outlierSpec.clearTypes();
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(!result.containsKey(X13SpecificationReader.AO));
+        Assert.assertTrue(!result.containsKey(X13SpecificationReader.LS));
+        Assert.assertTrue(!result.containsKey(X13SpecificationReader.TC));
+        Assert.assertTrue(!result.containsKey(X13SpecificationReader.SO));
+    }
+
+    @Test
+    public void testWriteSpecification_X11Only() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSAX11.clone();
+        spec.getX11Specification().setSeasonalFilter(SeasonalFilterOption.S3X15);
+
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.BASE));
+        Assert.assertEquals("X11", result.get(X13SpecificationReader.BASE));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.SEASONALFILTER));
+        Assert.assertEquals("S3X15", result.get(X13SpecificationReader.SEASONALFILTER));
+
+        Assert.assertTrue(!result.containsKey(X13SpecificationReader.MAXLEAD));
+        Assert.assertTrue(!result.containsKey(X13SpecificationReader.MAXBACK));
+    }
+
+    @Test
+    public void testWriteSpecification_X11OnlyMultipleFilters() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSAX11.clone();
+        spec.getX11Specification().setSeasonalFilters(new SeasonalFilterOption[]{SeasonalFilterOption.S3X15, SeasonalFilterOption.S3X3, SeasonalFilterOption.S3X5, SeasonalFilterOption.S3X9});
+
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.BASE));
+        Assert.assertEquals("X11", result.get(X13SpecificationReader.BASE));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.SEASONALFILTERS + 1));
+        Assert.assertEquals("S3X15", result.get(X13SpecificationReader.SEASONALFILTERS + 1));
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.SEASONALFILTERS + 2));
+        Assert.assertEquals("S3X3", result.get(X13SpecificationReader.SEASONALFILTERS + 2));
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.SEASONALFILTERS + 3));
+        Assert.assertEquals("S3X5", result.get(X13SpecificationReader.SEASONALFILTERS + 3));
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.SEASONALFILTERS + 4));
+        Assert.assertEquals("S3X9", result.get(X13SpecificationReader.SEASONALFILTERS + 4));
+
+        Assert.assertTrue(!result.containsKey(X13SpecificationReader.MAXLEAD));
+        Assert.assertTrue(!result.containsKey(X13SpecificationReader.MAXBACK));
+    }
+
+    @Test
+    public void testWriteSpecification_X11OnlyCalendarSigmaSelect() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSAX11.clone();
+        spec.getX11Specification().setCalendarSigma(CalendarSigma.Select);
+
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.BASE));
+        Assert.assertEquals("X11", result.get(X13SpecificationReader.BASE));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.CALENDARSIGMA));
+        Assert.assertEquals("Select", result.get(X13SpecificationReader.CALENDARSIGMA));
+
+        Assert.assertTrue(!result.containsKey(X13SpecificationReader.MAXLEAD));
+        Assert.assertTrue(!result.containsKey(X13SpecificationReader.MAXBACK));
+    }
+
+    @Test
+    public void testWriteSpecification_X11OnlyCalendarSigmaSelectSigmaVecGroups() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSAX11.clone();
+        spec.getX11Specification().setCalendarSigma(CalendarSigma.Select);
+        spec.getX11Specification().setSigmavec(new SigmavecOption[]{SigmavecOption.Group1, SigmavecOption.Group2, SigmavecOption.Group2, SigmavecOption.Group1});
+
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.BASE));
+        Assert.assertEquals("X11", result.get(X13SpecificationReader.BASE));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.CALENDARSIGMA));
+        Assert.assertEquals("Select", result.get(X13SpecificationReader.CALENDARSIGMA));
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.SIGMA_VECTOR + 1));
+        Assert.assertEquals("Group1", result.get(X13SpecificationReader.SIGMA_VECTOR + 1));
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.SIGMA_VECTOR + 2));
+        Assert.assertEquals("Group2", result.get(X13SpecificationReader.SIGMA_VECTOR + 2));
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.SIGMA_VECTOR + 3));
+        Assert.assertEquals("Group2", result.get(X13SpecificationReader.SIGMA_VECTOR + 3));
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.SIGMA_VECTOR + 4));
+        Assert.assertEquals("Group1", result.get(X13SpecificationReader.SIGMA_VECTOR + 4));
+
+        Assert.assertTrue(!result.containsKey(X13SpecificationReader.MAXLEAD));
+        Assert.assertTrue(!result.containsKey(X13SpecificationReader.MAXBACK));
     }
 }

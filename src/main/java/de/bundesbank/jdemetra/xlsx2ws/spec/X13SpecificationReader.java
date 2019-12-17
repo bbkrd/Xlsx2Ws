@@ -167,8 +167,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
     private void readCalendar(RegressionSpec regressionSpec) {
         //TD
         TradingDaysSpec tradingDaysSpec = regressionSpec.getTradingDays();
-        OptionalInt stockTradingDays = tryParseInteger(information.get(W));
-        stockTradingDays.ifPresent(tradingDaysSpec::setStockTradingDays);
+        consumeInt(W, tradingDaysSpec::setStockTradingDays);
         tradingDaysSpec.setHolidays(information.get(HOLIDAYS));
 
         consumeEnum(TEST, RegressionTestSpec::valueOf, tradingDaysSpec::setTest);
@@ -384,7 +383,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
             consumeInt(MAXBACK, x11Specification::setBackcastHorizon);
         }
 
-        consumeInt(HENDERSON, x11Specification::setHendersonFilterLength, X11Exception.class);
+        consumeInt(HENDERSON, x11Specification::setHendersonFilterLength);
 
         readSigmaLimit(x11Specification);
         if (x11Specification.isSeasonal()) {
@@ -499,7 +498,6 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         TsPeriodSelector span = estimateSpec.getSpan();
         information.put(TOLERANCE, Double.toString(estimateSpec.getTol()));
         writeSpan(span, ESTIMATE);
-
     }
 
     private void writeTransformationInformation(TransformSpec transformSpec) {
@@ -573,7 +571,6 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
                 information.put(OUTLIER + (i + 1), outliers[i].getCode() + outliers[i].getPosition().toString());
             }
         }
-
         //INTERVENTION (TODO)
         //RAMP (TODO)
         //USER-DEFINED VARIABLES
@@ -610,7 +607,6 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
             }
         }
         //FIXED REGRESSOION COEFFICIENTS (TODO)
-
     }
 
     private void writeOutlierInformation(OutlierSpec outlierSpec) {
@@ -672,7 +668,6 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
             String info = Double.toString(parameter.getValue()) + translateType(parameter);
             information.put(BQ + (i + 1), info);
         }
-
     }
 
     private void writeX11Information(X11Specification x11, boolean onlyX11) {
@@ -680,8 +675,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         DecompositionMode mode = x11.getMode();
         information.put(MODE, mode.toString());
         //Seasonal Component
-        boolean seasonal = x11.isSeasonal();
-        information.put(SEASONAL, Boolean.toString(seasonal));
+        information.put(SEASONAL, Boolean.toString(x11.isSeasonal()));
         //LSigma
         information.put(LOWER_SIGMA, Double.toString(x11.getLowerSigma()));
         //USigma
@@ -704,8 +698,10 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         information.put(CALENDARSIGMA, calendarSigma.toString());
         if (calendarSigma.equals(CalendarSigma.Select)) {
             SigmavecOption[] sigmavec = x11.getSigmavec();
-            for (int i = 0; i < sigmavec.length; i++) {
-                information.put(SIGMA_VECTOR + (i + 1), sigmavec[i].toString());
+            if (sigmavec != null) {
+                for (int i = 0; i < sigmavec.length; i++) {
+                    information.put(SIGMA_VECTOR + (i + 1), sigmavec[i].toString());
+                }
             }
         }
         //Excludeforecast
@@ -854,11 +850,6 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
     }
 
     private void consumeInt(String key, IntConsumer consumer) {
-        consumeInt(key, consumer, (Class<RuntimeException>[]) null);
-    }
-
-    private <T extends RuntimeException> void consumeInt(String key, IntConsumer consumer, Class<T>... possibleExceptions) {
-
         if (!information.containsKey(key)) {
             return;
         }
@@ -866,21 +857,12 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         if (optionalInt.isPresent()) {
             try {
                 consumer.accept(optionalInt.getAsInt());
-            } catch (RuntimeException e) {
-                if (possibleExceptions == null || possibleExceptions.length == 0) {
-                    throw e;
-                }
-                for (Class<T> possibleException : possibleExceptions) {
-                    if (possibleException.isInstance(e)) {
-                        messages.add(new Message(Level.SEVERE, "The value " + optionalInt.getAsInt() + " is no valid input for " + key + ". (" + e.getMessage() + ")"));
-                        return;
-                    }
-                }
+            } catch (X11Exception e) {
+                messages.add(new Message(Level.SEVERE, "The value " + optionalInt.getAsInt() + " is no valid input for " + key + ". (" + e.getMessage() + ")"));
             }
         } else {
             messages.add(new Message(Level.SEVERE, "The information " + key + " doesn't contain a parseble integer value."));
         }
-
     }
 
     private void consumeDouble(String key, DoubleConsumer consumer) {
@@ -945,34 +927,35 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
 
     private void consumeParameters(String key, int lastPosition, Supplier<Parameter[]> parameter) {
         for (int i = 1; i <= lastPosition; i++) {
-            if (information.containsKey(key + i)) {
-                final String get = information.get(key + i);
-                double value;
-                ParameterType type;
-
-                if (get.contains("*")) {
-                    String[] split = get.split("\\*", 2);
-                    value = Double.parseDouble(split[0]);
-                    switch (split[1].toLowerCase()) {
-                        case "i":
-                            type = ParameterType.Initial;
-                            break;
-                        case "u":
-                            type = ParameterType.Undefined;
-                            break;
-                        case "f":
-                            type = ParameterType.Fixed;
-                            break;
-                        default:
-                            messages.add(new Message(Level.INFO, "Parameter " + key + i + " has no known type declared. It will be assumed to be fixed."));
-                            type = ParameterType.Fixed;
-                    }
-                } else {
-                    value = Double.parseDouble(get);
-                    type = ParameterType.Fixed;
-                }
-                parameter.get()[i - 1] = new Parameter(value, type);
+            if (!information.containsKey(key + i)) {
+                continue;
             }
+            final String get = information.get(key + i);
+            double value;
+            ParameterType type;
+
+            if (get.contains("*")) {
+                String[] split = get.split("\\*", 2);
+                value = Double.parseDouble(split[0]);
+                switch (split[1].toLowerCase()) {
+                    case "i":
+                        type = ParameterType.Initial;
+                        break;
+                    case "u":
+                        type = ParameterType.Undefined;
+                        break;
+                    case "f":
+                        type = ParameterType.Fixed;
+                        break;
+                    default:
+                        messages.add(new Message(Level.INFO, "Parameter " + key + i + " has no known type declared. It will be assumed to be fixed."));
+                        type = ParameterType.Fixed;
+                }
+            } else {
+                value = Double.parseDouble(get);
+                type = ParameterType.Fixed;
+            }
+            parameter.get()[i - 1] = new Parameter(value, type);
         }
     }
 
