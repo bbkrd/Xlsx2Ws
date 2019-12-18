@@ -519,7 +519,16 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
 
     private void writeRegressionInformation(RegressionSpec regressionSpec) {
         int regressionCounter = 0;
-        //TRADINGDAYS
+        regressionCounter = writeTradingDays(regressionSpec, regressionCounter);
+        writeEaster(regressionSpec);
+        writePreSpecifiedOutliers(regressionSpec);
+        //INTERVENTION (TODO)
+        //RAMP (TODO)
+        writeUserDefinedVariables(regressionSpec, regressionCounter);
+        //FIXED REGRESSION COEFFICIENTS (TODO)
+    }
+
+    private int writeTradingDays(RegressionSpec regressionSpec, int regressionCounter) {
         TradingDaysSpec tradingDays = regressionSpec.getTradingDays();
         if (tradingDays != null) {
             String holidays = tradingDays.getHolidays();
@@ -554,6 +563,10 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
             RegressionTestSpec test = tradingDays.getTest();
             information.put(TEST, test.toString());
         }
+        return regressionCounter;
+    }
+
+    private void writeEaster(RegressionSpec regressionSpec) {
         //EASTER
         MovingHolidaySpec easter = regressionSpec.getEaster();
         if (easter == null) {
@@ -564,16 +577,18 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
             information.put(PRE_TEST, easter.getTest().toString());
             information.put(DURATION, Integer.toString(easter.getW()));
         }
-        //PRE-SPECIFIED OUTLIERS
+    }
+
+    private void writePreSpecifiedOutliers(RegressionSpec regressionSpec) {
         if (regressionSpec.getOutliersCount() > 0) {
             OutlierDefinition[] outliers = regressionSpec.getOutliers();
             for (int i = 0; i < outliers.length; i++) {
                 information.put(OUTLIER + (i + 1), outliers[i].getCode() + outliers[i].getPosition().toString());
             }
         }
-        //INTERVENTION (TODO)
-        //RAMP (TODO)
-        //USER-DEFINED VARIABLES
+    }
+
+    private void writeUserDefinedVariables(RegressionSpec regressionSpec, int regressionCounter) throws AssertionError {
         if (regressionSpec.getUserDefinedVariablesCount() > 0) {
             TsVariableDescriptor[] userDefinedVariables = regressionSpec.getUserDefinedVariables();
             for (int i = 0; i < userDefinedVariables.length; i++) {
@@ -606,7 +621,6 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
                 regressionCounter++;
             }
         }
-        //FIXED REGRESSOION COEFFICIENTS (TODO)
     }
 
     private void writeOutlierInformation(OutlierSpec outlierSpec) {

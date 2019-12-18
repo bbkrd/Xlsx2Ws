@@ -22,15 +22,19 @@ import ec.tstoolkit.modelling.arima.x13.ArimaSpec;
 import ec.tstoolkit.modelling.arima.x13.MovingHolidaySpec;
 import ec.tstoolkit.modelling.arima.x13.OutlierSpec;
 import ec.tstoolkit.modelling.arima.x13.SingleOutlierSpec;
+import ec.tstoolkit.modelling.arima.x13.TradingDaysSpec;
 import ec.tstoolkit.timeseries.Day;
 import ec.tstoolkit.timeseries.Month;
 import ec.tstoolkit.timeseries.TsPeriodSelector;
+import ec.tstoolkit.timeseries.calendars.LengthOfPeriodType;
 import ec.tstoolkit.timeseries.regression.AdditiveOutlier;
 import ec.tstoolkit.timeseries.regression.LevelShift;
 import ec.tstoolkit.timeseries.regression.OutlierDefinition;
 import ec.tstoolkit.timeseries.regression.OutlierType;
 import ec.tstoolkit.timeseries.regression.SeasonalOutlier;
 import ec.tstoolkit.timeseries.regression.TransitoryChange;
+import ec.tstoolkit.timeseries.simplets.TsFrequency;
+import ec.tstoolkit.timeseries.simplets.TsPeriod;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -1798,4 +1802,377 @@ public class X13SpecificationReaderTest {
         Assert.assertTrue(!result.containsKey(X13SpecificationReader.MAXLEAD));
         Assert.assertTrue(!result.containsKey(X13SpecificationReader.MAXBACK));
     }
+
+    @Test
+    public void testWriteSpecification_SeriesFrom1970() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSA5.clone();
+
+        TsPeriodSelector selector = new TsPeriodSelector();
+        selector.from(new Day(1970, Month.January, 0));
+
+        spec.getRegArimaSpecification().getBasic().setSpan(selector);
+
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.SERIES + X13SpecificationReader.START));
+        Assert.assertEquals("1970-01-01", result.get(X13SpecificationReader.SERIES + X13SpecificationReader.START));
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.PRELIMINARY_CHECK));
+        Assert.assertEquals("true", result.get(X13SpecificationReader.PRELIMINARY_CHECK));
+    }
+
+    @Test
+    public void testWriteSpecification_SeriesTo1970() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSA5.clone();
+
+        TsPeriodSelector selector = new TsPeriodSelector();
+        selector.to(new Day(1970, Month.January, 0));
+
+        spec.getRegArimaSpecification().getBasic().setSpan(selector);
+
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.SERIES + X13SpecificationReader.END));
+        Assert.assertEquals("1970-01-01", result.get(X13SpecificationReader.SERIES + X13SpecificationReader.END));
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.PRELIMINARY_CHECK));
+        Assert.assertEquals("true", result.get(X13SpecificationReader.PRELIMINARY_CHECK));
+    }
+
+    @Test
+    public void testWriteSpecification_SeriesBetween1960_1970() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSA5.clone();
+
+        TsPeriodSelector selector = new TsPeriodSelector();
+        selector.between(new Day(1960, Month.January, 0), new Day(1970, Month.January, 0));
+
+        spec.getRegArimaSpecification().getBasic().setSpan(selector);
+
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.SERIES + X13SpecificationReader.START));
+        Assert.assertEquals("1960-01-01", result.get(X13SpecificationReader.SERIES + X13SpecificationReader.START));
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.SERIES + X13SpecificationReader.END));
+        Assert.assertEquals("1970-01-01", result.get(X13SpecificationReader.SERIES + X13SpecificationReader.END));
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.PRELIMINARY_CHECK));
+        Assert.assertEquals("true", result.get(X13SpecificationReader.PRELIMINARY_CHECK));
+    }
+
+    @Test
+    public void testWriteSpecification_SeriesFirst10() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSA5.clone();
+
+        TsPeriodSelector selector = new TsPeriodSelector();
+        selector.first(10);
+
+        spec.getRegArimaSpecification().getBasic().setSpan(selector);
+
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.SERIES + X13SpecificationReader.FIRST));
+        Assert.assertEquals("10", result.get(X13SpecificationReader.SERIES + X13SpecificationReader.FIRST));
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.PRELIMINARY_CHECK));
+        Assert.assertEquals("true", result.get(X13SpecificationReader.PRELIMINARY_CHECK));
+    }
+
+    @Test
+    public void testWriteSpecification_SeriesLast10() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSA5.clone();
+
+        TsPeriodSelector selector = new TsPeriodSelector();
+        selector.last(10);
+
+        spec.getRegArimaSpecification().getBasic().setSpan(selector);
+
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.SERIES + X13SpecificationReader.LAST));
+        Assert.assertEquals("10", result.get(X13SpecificationReader.SERIES + X13SpecificationReader.LAST));
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.PRELIMINARY_CHECK));
+        Assert.assertEquals("true", result.get(X13SpecificationReader.PRELIMINARY_CHECK));
+    }
+
+    @Test
+    public void testWriteSpecification_SeriesExcluding1020() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSA5.clone();
+
+        TsPeriodSelector selector = new TsPeriodSelector();
+        selector.excluding(10, 20);
+
+        spec.getRegArimaSpecification().getBasic().setSpan(selector);
+
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.SERIES + X13SpecificationReader.FIRST));
+        Assert.assertEquals("10", result.get(X13SpecificationReader.SERIES + X13SpecificationReader.FIRST));
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.SERIES + X13SpecificationReader.LAST));
+        Assert.assertEquals("20", result.get(X13SpecificationReader.SERIES + X13SpecificationReader.LAST));
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.PRELIMINARY_CHECK));
+        Assert.assertEquals("true", result.get(X13SpecificationReader.PRELIMINARY_CHECK));
+    }
+
+    @Test
+    public void testWriteSpecification_SeriesNone() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSA5.clone();
+
+        TsPeriodSelector selector = new TsPeriodSelector();
+        selector.none();
+
+        spec.getRegArimaSpecification().getBasic().setSpan(selector);
+
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.SERIES + X13SpecificationReader.START));
+        Assert.assertEquals("X", result.get(X13SpecificationReader.SERIES + X13SpecificationReader.START));
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.SERIES + X13SpecificationReader.END));
+        Assert.assertEquals("X", result.get(X13SpecificationReader.SERIES + X13SpecificationReader.END));
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.PRELIMINARY_CHECK));
+        Assert.assertEquals("true", result.get(X13SpecificationReader.PRELIMINARY_CHECK));
+    }
+
+    @Test
+    public void testWriteSpecification_TransformNone() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSA5.clone();
+
+        spec.getRegArimaSpecification().getTransform().setFunction(DefaultTransformationType.None);
+
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.TRANSFORM));
+        Assert.assertEquals("None", result.get(X13SpecificationReader.TRANSFORM));
+        Assert.assertTrue(!result.containsKey(X13SpecificationReader.AIC_DIFFERENCE));
+        Assert.assertTrue(!result.containsKey(X13SpecificationReader.ADJUST));
+    }
+
+    @Test
+    public void testWriteSpecification_TransformLog() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSA5.clone();
+
+        spec.getRegArimaSpecification().getTransform().setFunction(DefaultTransformationType.Log);
+
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.TRANSFORM));
+        Assert.assertEquals("Log", result.get(X13SpecificationReader.TRANSFORM));
+        Assert.assertTrue(!result.containsKey(X13SpecificationReader.AIC_DIFFERENCE));
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.ADJUST));
+        Assert.assertEquals("None", result.get(X13SpecificationReader.ADJUST));
+    }
+
+    @Test
+    public void testWriteSpecification_RegressionTradingDaysAndHolidays() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSA5.clone();
+        TradingDaysSpec tradingDays = spec.getRegArimaSpecification().getRegression().getTradingDays();
+
+        tradingDays.setHolidays("X.X");
+        tradingDays.setAutoAdjust(false);
+        tradingDays.setLengthOfPeriod(LengthOfPeriodType.LengthOfPeriod);
+
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.HOLIDAYS));
+        Assert.assertEquals("X.X", result.get(X13SpecificationReader.HOLIDAYS));
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.TRADINGDAYSTYPE));
+        Assert.assertEquals("TradingDays", result.get(X13SpecificationReader.TRADINGDAYSTYPE));
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.AUTOADJUST));
+        Assert.assertEquals("false", result.get(X13SpecificationReader.AUTOADJUST));
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.LEAP_YEAR));
+        Assert.assertEquals("LengthOfPeriod", result.get(X13SpecificationReader.LEAP_YEAR));
+    }
+
+    @Test
+    public void testWriteSpecification_RegressionStockTradingDays() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSA5.clone();
+        TradingDaysSpec tradingDays = spec.getRegArimaSpecification().getRegression().getTradingDays();
+
+        tradingDays.setStockTradingDays(30);
+        tradingDays.setAutoAdjust(false);
+        tradingDays.setLengthOfPeriod(LengthOfPeriodType.LengthOfPeriod);
+
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(!result.containsKey(X13SpecificationReader.HOLIDAYS));
+        Assert.assertEquals("30", result.get(X13SpecificationReader.W));
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.TRADINGDAYSTYPE));
+        Assert.assertEquals("None", result.get(X13SpecificationReader.TRADINGDAYSTYPE));
+        Assert.assertTrue(!result.containsKey(X13SpecificationReader.AUTOADJUST));
+        Assert.assertTrue(!result.containsKey(X13SpecificationReader.LEAP_YEAR));
+    }
+
+    @Test
+    public void testWriteSpecification_RegressionUserDefinedCalendar() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSA5.clone();
+
+        spec.getRegArimaSpecification().getRegression().getTradingDays().setUserVariables(new String[]{"X.X"});
+
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(!result.containsKey(X13SpecificationReader.HOLIDAYS));
+        Assert.assertTrue(!result.containsKey(X13SpecificationReader.W));
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.TRADINGDAYSTYPE));
+        Assert.assertEquals("None", result.get(X13SpecificationReader.TRADINGDAYSTYPE));
+        Assert.assertTrue(!result.containsKey(X13SpecificationReader.AUTOADJUST));
+        Assert.assertTrue(!result.containsKey(X13SpecificationReader.LEAP_YEAR));
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.REGRESSOR + 1));
+        Assert.assertEquals("X.X*c", result.get(X13SpecificationReader.REGRESSOR + 1));
+    }
+
+    @Test
+    public void testWriteSpecification_RegressionNoTradingDaysNoEaster() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSA0.clone();
+        spec.getRegArimaSpecification().getBasic().setPreliminaryCheck(false);
+
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(!result.containsKey(X13SpecificationReader.HOLIDAYS));
+        Assert.assertTrue(!result.containsKey(X13SpecificationReader.W));
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.TRADINGDAYSTYPE));
+        Assert.assertEquals("None", result.get(X13SpecificationReader.TRADINGDAYSTYPE));
+        Assert.assertTrue(!result.containsKey(X13SpecificationReader.AUTOADJUST));
+        Assert.assertTrue(!result.containsKey(X13SpecificationReader.LEAP_YEAR));
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.EASTER));
+        Assert.assertEquals("false", result.get(X13SpecificationReader.EASTER));
+    }
+
+    @Test
+    public void testWriteSpecification_RegressionJulianEaster() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSA0.clone();
+
+        MovingHolidaySpec easter = MovingHolidaySpec.easterSpec(true, true);
+        spec.getRegArimaSpecification().getRegression().add(easter);
+
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.EASTER));
+        Assert.assertEquals("true", result.get(X13SpecificationReader.EASTER));
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.EASTER_JULIAN));
+        Assert.assertEquals("true", result.get(X13SpecificationReader.EASTER_JULIAN));
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.PRE_TEST));
+        Assert.assertEquals("Add", result.get(X13SpecificationReader.PRE_TEST));
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.DURATION));
+        Assert.assertEquals("8", result.get(X13SpecificationReader.DURATION));
+    }
+
+    @Test
+    public void testWriteSpecification_RegressionPreSpecifiedOutlierAO19700601() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSA5.clone();
+
+        spec.getRegArimaSpecification().getRegression().setOutliers(new OutlierDefinition[]{new OutlierDefinition(new TsPeriod(TsFrequency.Monthly, 1970, 5), OutlierType.AO)});
+
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.OUTLIER + 1));
+        Assert.assertEquals("AO1970-06-01", result.get(X13SpecificationReader.OUTLIER + 1));
+
+    }
+
+    @Test
+    public void testWriteSpecification_RegressionUserDefinedVariablesUndefined() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSA5.clone();
+
+        TsVariableDescriptor tsVariableDescriptor = new TsVariableDescriptor("X.X");
+        tsVariableDescriptor.setEffect(TsVariableDescriptor.UserComponentType.Undefined);
+        spec.getRegArimaSpecification().getRegression().setUserDefinedVariables(new TsVariableDescriptor[]{tsVariableDescriptor});
+
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.REGRESSOR + 1));
+        Assert.assertEquals("X.X*u", result.get(X13SpecificationReader.REGRESSOR + 1));
+
+    }
+
+    @Test
+    public void testWriteSpecification_RegressionUserDefinedVariablesSeries() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSA5.clone();
+
+        TsVariableDescriptor tsVariableDescriptor = new TsVariableDescriptor("X.X");
+        tsVariableDescriptor.setEffect(TsVariableDescriptor.UserComponentType.Series);
+        spec.getRegArimaSpecification().getRegression().setUserDefinedVariables(new TsVariableDescriptor[]{tsVariableDescriptor});
+
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.REGRESSOR + 1));
+        Assert.assertEquals("X.X*y", result.get(X13SpecificationReader.REGRESSOR + 1));
+
+    }
+
+    @Test
+    public void testWriteSpecification_RegressionUserDefinedVariablesTrend() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSA5.clone();
+
+        TsVariableDescriptor tsVariableDescriptor = new TsVariableDescriptor("X.X");
+        tsVariableDescriptor.setEffect(TsVariableDescriptor.UserComponentType.Trend);
+        spec.getRegArimaSpecification().getRegression().setUserDefinedVariables(new TsVariableDescriptor[]{tsVariableDescriptor});
+
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.REGRESSOR + 1));
+        Assert.assertEquals("X.X*t", result.get(X13SpecificationReader.REGRESSOR + 1));
+
+    }
+
+    @Test
+    public void testWriteSpecification_RegressionUserDefinedVariablesSeasonal() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSA5.clone();
+
+        TsVariableDescriptor tsVariableDescriptor = new TsVariableDescriptor("X.X");
+        tsVariableDescriptor.setEffect(TsVariableDescriptor.UserComponentType.Seasonal);
+        spec.getRegArimaSpecification().getRegression().setUserDefinedVariables(new TsVariableDescriptor[]{tsVariableDescriptor});
+
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.REGRESSOR + 1));
+        Assert.assertEquals("X.X*s", result.get(X13SpecificationReader.REGRESSOR + 1));
+
+    }
+
+    @Test
+    public void testWriteSpecification_RegressionUserDefinedVariablesSeasonallyAdjusted() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSA5.clone();
+
+        TsVariableDescriptor tsVariableDescriptor = new TsVariableDescriptor("X.X");
+        tsVariableDescriptor.setEffect(TsVariableDescriptor.UserComponentType.SeasonallyAdjusted);
+        spec.getRegArimaSpecification().getRegression().setUserDefinedVariables(new TsVariableDescriptor[]{tsVariableDescriptor});
+
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.REGRESSOR + 1));
+        Assert.assertEquals("X.X*sa", result.get(X13SpecificationReader.REGRESSOR + 1));
+
+    }
+
+    @Test
+    public void testWriteSpecification_RegressionUserDefinedVariablesIrregular() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        X13Specification spec = X13Specification.RSA5.clone();
+
+        TsVariableDescriptor tsVariableDescriptor = new TsVariableDescriptor("X.X");
+        tsVariableDescriptor.setEffect(TsVariableDescriptor.UserComponentType.Irregular);
+        spec.getRegArimaSpecification().getRegression().setUserDefinedVariables(new TsVariableDescriptor[]{tsVariableDescriptor});
+
+        Map<String, String> result = instance.writeSpecification(spec);
+
+        Assert.assertTrue(result.containsKey(X13SpecificationReader.REGRESSOR + 1));
+        Assert.assertEquals("X.X*i", result.get(X13SpecificationReader.REGRESSOR + 1));
+
+    }
+
 }
