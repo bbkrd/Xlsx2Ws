@@ -27,7 +27,7 @@ import org.openide.util.NbBundle.Messages;
 @ActionRegistration(
         displayName = "#CTL_ImportFromXlsx"
 )
-@ActionReference(path = "Menu/File", position = 2)
+@ActionReference(path = "Menu/File", position = 401)
 @Messages("CTL_ImportFromXlsx=Import from Xlsx file")
 public final class ImportFromXlsxAction implements ActionListener {
 
@@ -50,6 +50,7 @@ public final class ImportFromXlsxAction implements ActionListener {
 
         File selectedFile = wsFileChooser.showOpenDialog();
         if (selectedFile != null) {
+            ws.closeOpenDocuments();
             new Creator().createWorkspace(selectedFile);
         }
     }

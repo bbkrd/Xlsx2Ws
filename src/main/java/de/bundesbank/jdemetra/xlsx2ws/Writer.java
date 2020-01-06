@@ -15,6 +15,7 @@ import de.bundesbank.jdemetra.xlsx2ws.provider.IProviderFactory;
 import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationReader;
 import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationReaderFactory;
 import ec.nbdemetra.sa.MultiProcessingDocument;
+import ec.nbdemetra.ui.calendars.CalendarDocumentManager;
 import ec.nbdemetra.ws.Workspace;
 import ec.nbdemetra.ws.WorkspaceFactory;
 import ec.nbdemetra.ws.WorkspaceItem;
@@ -38,12 +39,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeSet;
 import javax.annotation.Nonnull;
+import javax.swing.JOptionPane;
 import lombok.extern.java.Log;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 
 @Log
@@ -148,8 +149,12 @@ public class Writer {
 
                 workbook.write(fileOut);
             }
+            if (ws.searchCompatibleDocuments(CalendarDocumentManager.ID).size() > 1) {
+                JOptionPane.showMessageDialog(null, "User defined calendars will not be saved!", "Warning", JOptionPane.WARNING_MESSAGE);
+
+            }
         } catch (IOException ex) {
-            Exceptions.printStackTrace(ex);
+            JOptionPane.showMessageDialog(null, ex.toString(), "Error", JOptionPane.ERROR_MESSAGE);
         }
 
     }

@@ -5,6 +5,7 @@ import de.bundesbank.jdemetra.xlsx2ws.dto.Message;
 import de.bundesbank.jdemetra.xlsx2ws.dto.SpecificationDTO;
 import ec.satoolkit.DecompositionMode;
 import ec.satoolkit.ISaSpecification;
+import ec.satoolkit.x11.BiasCorrection;
 import ec.satoolkit.x11.CalendarSigma;
 import ec.satoolkit.x11.SeasonalFilterOption;
 import ec.satoolkit.x11.SigmavecOption;
@@ -397,6 +398,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
             readSigmaVec(x11Specification);
         }
 
+        consumeEnum(BIAS_CORRECTION, BiasCorrection::valueOf, x11Specification::setBiasCorrection);
     }
 
     private void readSeasonalFilter(X11Specification x11Specification) {
@@ -721,9 +723,10 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         //Excludeforecast
         boolean excludefcst = x11.isExcludefcst();
         information.put(EXCLUDEFORECAST, Boolean.toString(excludefcst));
-        //Bias correction (only for LogAdditive) with 2.2.2
-        //if (mode.equals(DecompositionMode.LogAdditive)) {
-        //}
+        //Bias correction (only for LogAdditive)
+        if (mode.equals(DecompositionMode.LogAdditive)) {
+            information.put(BIAS_CORRECTION, x11.getBiasCorrection().toString());
+        }
         if (!onlyX11) {
             information.put(MAXLEAD, Integer.toString(x11.getForecastHorizon()));
             information.put(MAXBACK, Integer.toString(x11.getBackcastHorizon()));

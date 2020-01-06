@@ -10,8 +10,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
@@ -25,7 +23,7 @@ import org.openide.util.NbBundle.Messages;
 @ActionRegistration(
         displayName = "#CTL_ExportToXlsx"
 )
-@ActionReference(path = "Menu/File", position = 2)
+@ActionReference(path = "Menu/File", position = 402, separatorAfter = 403)
 @Messages("CTL_ExportToXlsx=Export to Xlsx file")
 public final class ExportToXlsx implements ActionListener {
 
@@ -40,8 +38,6 @@ public final class ExportToXlsx implements ActionListener {
                 selectedFile = new File(selectedFile.toString() + ".xlsx");
             }
             new Writer().writeWorkspace(selectedFile);
-            NotifyDescriptor nd = new NotifyDescriptor.Message("DONE?");
-            DialogDisplayer.getDefault().notify(nd);
         }
     }
 }

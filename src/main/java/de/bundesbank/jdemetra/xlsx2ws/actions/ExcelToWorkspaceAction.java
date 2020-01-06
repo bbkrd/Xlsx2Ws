@@ -25,7 +25,7 @@ import org.openide.util.NbBundle.Messages;
 @ActionRegistration(
         displayName = "#CTL_Excel2Workspace"
 )
-@ActionReference(path = "Menu/File", position = 1)
+@ActionReference(path = "Menu/File", position = 400, separatorBefore = 399)
 @Messages("CTL_Excel2Workspace=Create new Workspace from XLSX file")
 public final class ExcelToWorkspaceAction implements ActionListener {
 

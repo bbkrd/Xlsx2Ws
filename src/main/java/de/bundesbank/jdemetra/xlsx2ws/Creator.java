@@ -68,16 +68,17 @@ public class Creator {
 
     private final Map<String, Set<String>> map = new HashMap<>();
     private final Map<String, Set<String>> variablesMap = new HashMap<>();
+    StringBuilder sb;
 
     public void createWorkspace(File selectedFile) {
         Workspace ws = WorkspaceFactory.getInstance().getActiveWorkspace();
         readExistingWorkspace(ws);
-        readRegressorSheet(selectedFile);
-
-        StringBuilder sb = new StringBuilder();
-
-        sb.append("Updateprotokoll vom ").append(TIMESTAMP_FORMAT.format(System.currentTimeMillis()))
+        sb = new StringBuilder();
+        sb.append("Please copy this protocol if you want to keep it!").append(NEW_LINE)
+                .append("Protocol ").append(TIMESTAMP_FORMAT.format(System.currentTimeMillis()))
                 .append('\t').append(System.getProperty("user.name")).append(NEW_LINE).append(NEW_LINE);
+
+        readRegressorSheet(selectedFile);
 
         List<SaItemInfo> list = readSaItemSheet(selectedFile);
 
@@ -356,21 +357,24 @@ public class Creator {
                 }
                 regressorInfos.add(info);
             }
+            if (!regressorInfos.isEmpty()) {
+                sb.append("Messages for regressors:").append(NEW_LINE);
+            }
 
             regressorInfos.forEach(information -> {
                 String variablesListName = information.getDocumentName();
                 String itemName = information.getName();
                 boolean alreadyExists = false;
 
-                if (variablesMap.containsKey(variablesListName)
-                        && variablesMap.get(variablesListName).contains(itemName)) {
-                    //TODO Log
-                    alreadyExists = true;
-                }
                 Ts ts = readTs(information);
                 if (ts == null) {
                     //TODO Log
                     return;
+                }
+                if (variablesMap.containsKey(variablesListName)
+                        && variablesMap.get(variablesListName).contains(itemName)) {
+                    sb.append(itemName).append(" in ").append(variablesListName).append(" was replaced.").append(NEW_LINE);
+                    alreadyExists = true;
                 }
                 TsVariables document = createAbsentVariablesList(variablesListName);
                 variablesMap.get(variablesListName).add(itemName);
