@@ -8,7 +8,6 @@
     <properties>
         <netbeans.version>RELEASE82</netbeans.version>
         <jdemetra.version>2.2.2</jdemetra.version>
-        <webservice.version>2.2.0.22</webservice.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <build>
@@ -20,6 +19,12 @@
                 <extensions>true</extensions>
                 <configuration>
                     <useOSGiDependencies>false</useOSGiDependencies>
+                    <publicPackages>
+                        <publicPackage>de.bundesbank.jdemetra.xlsx2ws</publicPackage>
+                        <publicPackage>de.bundesbank.jdemetra.xlsx2ws.dto</publicPackage>
+                        <publicPackage>de.bundesbank.jdemetra.xlsx2ws.provider</publicPackage>
+                        <publicPackage>de.bundesbank.jdemetra.xlsx2ws.spec</publicPackage>
+                    </publicPackages>
                 </configuration>
             </plugin>
             <plugin>
@@ -82,6 +87,11 @@
             <artifactId>org-netbeans-api-annotations-common</artifactId>
             <version>${netbeans.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-util-lookup</artifactId>
+            <version>${netbeans.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>eu.europa.ec.joinup.sat</groupId>
@@ -105,17 +115,6 @@
         </dependency>
 
         <dependency>
-            <groupId>de.bundesbank.webservice</groupId>
-            <artifactId>WebServiceSAIntegration</artifactId>
-            <version>${webservice.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>de.bundesbank.webservice</groupId>
-            <artifactId>WebServiceClient</artifactId>
-            <version>${webservice.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.16.18</version>
@@ -132,11 +131,6 @@
             <artifactId>hamcrest-core</artifactId>
             <version>1.3</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.netbeans.api</groupId>
-            <artifactId>org-openide-util-lookup</artifactId>
-            <version>RELEASE82</version>
         </dependency>
     </dependencies>
 </project>
