@@ -48,8 +48,6 @@ import org.junit.Test;
  */
 public class X13SpecificationReaderTest {
 
-    private static final Message ALL_FINE = new Message(Level.FINE, "Everything is fine!");
-
     public X13SpecificationReaderTest() {
     }
 
@@ -99,7 +97,7 @@ public class X13SpecificationReaderTest {
         TsPeriodSelector expected = new TsPeriodSelector();
         expected.none();
 
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
         Assert.assertEquals(expected, specification.getRegArimaSpecification().getBasic().getSpan());
     }
 
@@ -114,7 +112,7 @@ public class X13SpecificationReaderTest {
         TsPeriodSelector expected = new TsPeriodSelector();
         expected.none();
 
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
         Assert.assertEquals(expected, specification.getRegArimaSpecification().getBasic().getSpan());
     }
 
@@ -129,7 +127,7 @@ public class X13SpecificationReaderTest {
         TsPeriodSelector expected = new TsPeriodSelector();
         expected.first(10);
 
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
         Assert.assertEquals(expected, specification.getRegArimaSpecification().getBasic().getSpan());
     }
 
@@ -144,7 +142,7 @@ public class X13SpecificationReaderTest {
         TsPeriodSelector expected = new TsPeriodSelector();
         expected.last(10);
 
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
         Assert.assertEquals(expected, specification.getRegArimaSpecification().getBasic().getSpan());
     }
 
@@ -160,7 +158,7 @@ public class X13SpecificationReaderTest {
         TsPeriodSelector expected = new TsPeriodSelector();
         expected.excluding(5, 10);
 
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
         Assert.assertEquals(expected, specification.getRegArimaSpecification().getBasic().getSpan());
     }
 
@@ -671,7 +669,7 @@ public class X13SpecificationReaderTest {
         Message[] messages = readSpecification.getMessages();
 
         Assert.assertEquals(true, specification.getRegArimaSpecification().getBasic().isPreliminaryCheck());
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
     }
 
     @Test
@@ -684,7 +682,7 @@ public class X13SpecificationReaderTest {
         Message[] messages = readSpecification.getMessages();
 
         Assert.assertEquals(false, specification.getRegArimaSpecification().getBasic().isPreliminaryCheck());
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
     }
 
     @Test
@@ -724,7 +722,7 @@ public class X13SpecificationReaderTest {
 
         Assert.assertEquals(1, specification.getX11Specification().getSeasonalFilters().length);
         Assert.assertEquals(SeasonalFilterOption.S3X5, specification.getX11Specification().getSeasonalFilters()[0]);
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
     }
 
     @Test
@@ -738,7 +736,7 @@ public class X13SpecificationReaderTest {
 
         Assert.assertArrayEquals(null, specification.getX11Specification().getSeasonalFilters());
         Assert.assertEquals(false, specification.getX11Specification().isSeasonal());
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
     }
 
     @Test
@@ -753,7 +751,7 @@ public class X13SpecificationReaderTest {
 
         Assert.assertArrayEquals(new Parameter[]{new Parameter(0.1, ParameterType.Fixed)}, specification.getRegArimaSpecification().getArima().getPhi());
         Assert.assertEquals(1, specification.getRegArimaSpecification().getArima().getP());
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
     }
 
     @Test
@@ -768,7 +766,7 @@ public class X13SpecificationReaderTest {
 
         Assert.assertArrayEquals(new Parameter[]{new Parameter(0.1, ParameterType.Fixed)}, specification.getRegArimaSpecification().getArima().getPhi());
         Assert.assertEquals(1, specification.getRegArimaSpecification().getArima().getP());
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
     }
 
     @Test
@@ -783,7 +781,7 @@ public class X13SpecificationReaderTest {
 
         Assert.assertArrayEquals(new Parameter[]{new Parameter(0.1, ParameterType.Fixed)}, specification.getRegArimaSpecification().getArima().getBPhi());
         Assert.assertEquals(1, specification.getRegArimaSpecification().getArima().getBP());
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
     }
 
     @Test
@@ -798,7 +796,7 @@ public class X13SpecificationReaderTest {
 
         Assert.assertArrayEquals(new Parameter[]{new Parameter(0.1, ParameterType.Fixed)}, specification.getRegArimaSpecification().getArima().getTheta());
         Assert.assertEquals(1, specification.getRegArimaSpecification().getArima().getQ());
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
     }
 
     @Test
@@ -813,7 +811,7 @@ public class X13SpecificationReaderTest {
 
         Assert.assertArrayEquals(new Parameter[]{new Parameter(0.1, ParameterType.Fixed)}, specification.getRegArimaSpecification().getArima().getBTheta());
         Assert.assertEquals(1, specification.getRegArimaSpecification().getArima().getBQ());
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
     }
 
     @Test
@@ -828,7 +826,7 @@ public class X13SpecificationReaderTest {
 
         Assert.assertArrayEquals(new Parameter[]{new Parameter(0.1, ParameterType.Undefined)}, specification.getRegArimaSpecification().getArima().getBTheta());
         Assert.assertEquals(1, specification.getRegArimaSpecification().getArima().getBQ());
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
     }
 
     @Test
@@ -843,7 +841,7 @@ public class X13SpecificationReaderTest {
 
         Assert.assertArrayEquals(new Parameter[]{new Parameter(0.1, ParameterType.Initial)}, specification.getRegArimaSpecification().getArima().getBTheta());
         Assert.assertEquals(1, specification.getRegArimaSpecification().getArima().getBQ());
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
     }
 
     @Test
@@ -870,7 +868,7 @@ public class X13SpecificationReaderTest {
         X13Specification specification = readSpecification.getSpecification();
         Message[] messages = readSpecification.getMessages();
 
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
         boolean exists = false;
         for (SingleOutlierSpec type : specification.getRegArimaSpecification().getOutliers().getTypes()) {
             if (type.getType().equals(OutlierType.AO)) {
@@ -890,7 +888,7 @@ public class X13SpecificationReaderTest {
         X13Specification specification = readSpecification.getSpecification();
         Message[] messages = readSpecification.getMessages();
 
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
         boolean exists = false;
         for (SingleOutlierSpec type : specification.getRegArimaSpecification().getOutliers().getTypes()) {
             if (type.getType().equals(OutlierType.AO)) {
@@ -910,7 +908,7 @@ public class X13SpecificationReaderTest {
         X13Specification specification = readSpecification.getSpecification();
         Message[] messages = readSpecification.getMessages();
 
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
         boolean exists = false;
         for (SingleOutlierSpec type : specification.getRegArimaSpecification().getOutliers().getTypes()) {
             if (type.getType().equals(OutlierType.LS)) {
@@ -930,7 +928,7 @@ public class X13SpecificationReaderTest {
         X13Specification specification = readSpecification.getSpecification();
         Message[] messages = readSpecification.getMessages();
 
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
         boolean exists = false;
         for (SingleOutlierSpec type : specification.getRegArimaSpecification().getOutliers().getTypes()) {
             if (type.getType().equals(OutlierType.LS)) {
@@ -950,7 +948,7 @@ public class X13SpecificationReaderTest {
         X13Specification specification = readSpecification.getSpecification();
         Message[] messages = readSpecification.getMessages();
 
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
         boolean exists = false;
         for (SingleOutlierSpec type : specification.getRegArimaSpecification().getOutliers().getTypes()) {
             if (type.getType().equals(OutlierType.TC)) {
@@ -970,7 +968,7 @@ public class X13SpecificationReaderTest {
         X13Specification specification = readSpecification.getSpecification();
         Message[] messages = readSpecification.getMessages();
 
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
         boolean exists = false;
         for (SingleOutlierSpec type : specification.getRegArimaSpecification().getOutliers().getTypes()) {
             if (type.getType().equals(OutlierType.TC)) {
@@ -990,7 +988,7 @@ public class X13SpecificationReaderTest {
         X13Specification specification = readSpecification.getSpecification();
         Message[] messages = readSpecification.getMessages();
 
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
         boolean exists = false;
         for (SingleOutlierSpec type : specification.getRegArimaSpecification().getOutliers().getTypes()) {
             if (type.getType().equals(OutlierType.SO)) {
@@ -1010,7 +1008,7 @@ public class X13SpecificationReaderTest {
         X13Specification specification = readSpecification.getSpecification();
         Message[] messages = readSpecification.getMessages();
 
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
         boolean exists = false;
         for (SingleOutlierSpec type : specification.getRegArimaSpecification().getOutliers().getTypes()) {
             if (type.getType().equals(OutlierType.SO)) {
@@ -1030,7 +1028,7 @@ public class X13SpecificationReaderTest {
         X13Specification specification = readSpecification.getSpecification();
         Message[] messages = readSpecification.getMessages();
 
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
         Assert.assertEquals(null, specification.getRegArimaSpecification().getRegression().getEaster());
     }
 
@@ -1056,7 +1054,7 @@ public class X13SpecificationReaderTest {
         X13Specification specification = readSpecification.getSpecification();
         Message[] messages = readSpecification.getMessages();
 
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
         Assert.assertEquals(MovingHolidaySpec.easterSpec(true), specification.getRegArimaSpecification().getRegression().getEaster());
     }
 
@@ -1070,7 +1068,7 @@ public class X13SpecificationReaderTest {
         X13Specification specification = readSpecification.getSpecification();
         Message[] messages = readSpecification.getMessages();
 
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
         Assert.assertEquals(MovingHolidaySpec.easterSpec(true, true), specification.getRegArimaSpecification().getRegression().getEaster());
     }
 
@@ -1084,7 +1082,7 @@ public class X13SpecificationReaderTest {
         X13Specification specification = readSpecification.getSpecification();
         Message[] messages = readSpecification.getMessages();
 
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
         Assert.assertEquals(MovingHolidaySpec.easterSpec(true, false), specification.getRegArimaSpecification().getRegression().getEaster());
     }
 
@@ -1115,7 +1113,7 @@ public class X13SpecificationReaderTest {
         MovingHolidaySpec expected = MovingHolidaySpec.easterSpec(true, false);
         expected.setTest(RegressionTestSpec.None);
 
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
         Assert.assertEquals(expected, specification.getRegArimaSpecification().getRegression().getEaster());
     }
 
@@ -1131,7 +1129,7 @@ public class X13SpecificationReaderTest {
         TsVariableDescriptor expected = new TsVariableDescriptor("O.O");
         expected.setEffect(TsVariableDescriptor.UserComponentType.Irregular);
 
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
         Assert.assertEquals(expected, specification.getRegArimaSpecification().getRegression().getUserDefinedVariables()[0]);
     }
 
@@ -1147,7 +1145,7 @@ public class X13SpecificationReaderTest {
         TsVariableDescriptor expected = new TsVariableDescriptor("O.O");
         expected.setEffect(TsVariableDescriptor.UserComponentType.Trend);
 
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
         Assert.assertEquals(expected, specification.getRegArimaSpecification().getRegression().getUserDefinedVariables()[0]);
     }
 
@@ -1163,7 +1161,7 @@ public class X13SpecificationReaderTest {
         TsVariableDescriptor expected = new TsVariableDescriptor("O.O");
         expected.setEffect(TsVariableDescriptor.UserComponentType.Series);
 
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
         Assert.assertEquals(expected, specification.getRegArimaSpecification().getRegression().getUserDefinedVariables()[0]);
     }
 
@@ -1179,7 +1177,7 @@ public class X13SpecificationReaderTest {
         TsVariableDescriptor expected = new TsVariableDescriptor("O.O");
         expected.setEffect(TsVariableDescriptor.UserComponentType.Seasonal);
 
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
         Assert.assertEquals(expected, specification.getRegArimaSpecification().getRegression().getUserDefinedVariables()[0]);
     }
 
@@ -1195,7 +1193,7 @@ public class X13SpecificationReaderTest {
         TsVariableDescriptor expected = new TsVariableDescriptor("O.O");
         expected.setEffect(TsVariableDescriptor.UserComponentType.SeasonallyAdjusted);
 
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
         Assert.assertEquals(expected, specification.getRegArimaSpecification().getRegression().getUserDefinedVariables()[0]);
     }
 
@@ -1211,7 +1209,7 @@ public class X13SpecificationReaderTest {
         TsVariableDescriptor expected = new TsVariableDescriptor("O.O");
         expected.setEffect(TsVariableDescriptor.UserComponentType.Undefined);
 
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
         Assert.assertEquals(expected, specification.getRegArimaSpecification().getRegression().getUserDefinedVariables()[0]);
     }
 
@@ -1258,7 +1256,7 @@ public class X13SpecificationReaderTest {
 
         String expected = "O.O";
 
-        Assert.assertEquals(new Message(Level.INFO, "Userdefined trading day variables were defined. All other trading day setting were overridden."), messages[0]);
+        Assert.assertEquals(new Message(Level.INFO, "Userdefined trading day variables were defined. All other trading day settings were overridden."), messages[0]);
         Assert.assertEquals(expected, specification.getRegArimaSpecification().getRegression().getTradingDays().getUserVariables()[0]);
     }
 
@@ -1275,7 +1273,7 @@ public class X13SpecificationReaderTest {
         String expected1 = "O.O1";
         String expected2 = "O.O2";
 
-        Assert.assertEquals(new Message(Level.INFO, "Userdefined trading day variables were defined. All other trading day setting were overridden."), messages[0]);
+        Assert.assertEquals(new Message(Level.INFO, "Userdefined trading day variables were defined. All other trading day settings were overridden."), messages[0]);
         String[] result = specification.getRegArimaSpecification().getRegression().getTradingDays().getUserVariables();
 
         //Regressor read in hash order soooooooo it should be "O.O2" in result[0] and "O.O1" in result[1]
@@ -1313,7 +1311,7 @@ public class X13SpecificationReaderTest {
         X13Specification specification = readSpecification.getSpecification();
         Message[] messages = readSpecification.getMessages();
 
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
 
         X11Specification result = specification.getX11Specification();
 
@@ -1330,7 +1328,7 @@ public class X13SpecificationReaderTest {
         X13Specification specification = readSpecification.getSpecification();
         Message[] messages = readSpecification.getMessages();
 
-        Assert.assertEquals(ALL_FINE, messages[0]);
+        Assert.assertTrue(messages.length == 0);
 
         X11Specification result = specification.getX11Specification();
 

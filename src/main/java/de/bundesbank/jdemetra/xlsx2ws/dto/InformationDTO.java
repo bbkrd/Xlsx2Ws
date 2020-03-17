@@ -28,16 +28,16 @@ public class InformationDTO {
         } else if (lowercaseInput.equals("providername")) {
             name = lowercaseInput;
             type = InformationType.PROVIDER_NAME;
-        } else if (lowercaseInput.startsWith("p_")) {
+        } else if (lowercaseInput.startsWith("p_") || lowercaseInput.startsWith("prov_")) {
             name = lowercaseInput.substring(2);
             type = InformationType.PROVIDER_INFO;
         } else if (lowercaseInput.equals("specificationname")) {
             name = lowercaseInput;
             type = InformationType.SPECIFICATION_NAME;
-        } else if (lowercaseInput.startsWith("s_")) {
+        } else if (lowercaseInput.startsWith("s_") || lowercaseInput.startsWith("spec_")) {
             name = lowercaseInput.substring(2);
             type = InformationType.SPECIFICATION_INFO;
-        } else if (lowercaseInput.startsWith("m_")) {
+        } else if (lowercaseInput.startsWith("m_") || lowercaseInput.startsWith("meta_")) {
             name = lowercaseInput.substring(2);
             type = InformationType.METADATA;
         } else {

@@ -95,8 +95,6 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
     private final Map<String, String> information = new HashMap<>();
     private final List<Message> messages = new ArrayList<>();
 
-    private final String ALL_FINE = "Everything is fine!";
-
     @Override
     public void putInformation(String key, String value) {
         information.put(key, value);
@@ -135,9 +133,6 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
 
         readX11(specification.getX11Specification(), onlyX11);
 
-        if (messages.isEmpty()) {
-            messages.add(new Message(Level.FINE, ALL_FINE));
-        }
         return new SpecificationDTO<>(specification, messages.toArray(new Message[messages.size()]));
     }
 
@@ -284,7 +279,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
             regressionSpec.setUserDefinedVariables(variableDescriptors.toArray(new TsVariableDescriptor[variableDescriptors.size()]));
         }
         if (!userDefinedCalendarEffects.isEmpty()) {
-            messages.add(new Message(Level.INFO, "Userdefined trading day variables were defined. All other trading day setting were overridden."));
+            messages.add(new Message(Level.INFO, "Userdefined trading day variables were defined. All other trading day settings were overridden."));
             regressionSpec.getTradingDays().setUserVariables(userDefinedCalendarEffects.toArray(new String[userDefinedCalendarEffects.size()]));
         }
     }

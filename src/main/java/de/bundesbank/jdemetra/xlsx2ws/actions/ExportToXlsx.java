@@ -9,11 +9,12 @@ import de.bundesbank.jdemetra.xlsx2ws.Writer;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import javax.swing.filechooser.FileNameExtensionFilter;
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.stage.FileChooser;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
-import org.openide.filesystems.FileChooserBuilder;
 import org.openide.util.NbBundle.Messages;
 
 @ActionID(
@@ -27,17 +28,21 @@ import org.openide.util.NbBundle.Messages;
 @Messages("CTL_ExportToXlsx=Export to Xlsx file")
 public final class ExportToXlsx implements ActionListener {
 
-    private final FileChooserBuilder wsFileChooser = new FileChooserBuilder(ExportToXlsx.class)
-            .setFileFilter(new FileNameExtensionFilter("Spreadsheet file", "xlsx"));
+    private final FileChooser fileChooser;
+
+    public ExportToXlsx() {
+        this.fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Spreadsheet file", "*.xlsx"));
+        new JFXPanel();
+    }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        File selectedFile = wsFileChooser.showSaveDialog();
-        if (selectedFile != null) {
-            if (!selectedFile.toString().endsWith(".xlsx")) {
-                selectedFile = new File(selectedFile.toString() + ".xlsx");
+        Platform.runLater(() -> {
+            File selectedFile = fileChooser.showSaveDialog(null);
+            if (selectedFile != null) {
+                new Writer().writeWorkspace(selectedFile);
             }
-            new Writer().writeWorkspace(selectedFile);
-        }
+        });
     }
 }

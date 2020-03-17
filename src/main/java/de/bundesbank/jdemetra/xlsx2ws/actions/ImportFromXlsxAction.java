@@ -11,13 +11,14 @@ import ec.nbdemetra.ws.WorkspaceFactory;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import javax.swing.filechooser.FileNameExtensionFilter;
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.stage.FileChooser;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
-import org.openide.filesystems.FileChooserBuilder;
 import org.openide.util.NbBundle.Messages;
 
 @ActionID(
@@ -31,12 +32,17 @@ import org.openide.util.NbBundle.Messages;
 @Messages("CTL_ImportFromXlsx=Import from Xlsx file")
 public final class ImportFromXlsxAction implements ActionListener {
 
-    private final FileChooserBuilder wsFileChooser = new FileChooserBuilder(ImportFromXlsxAction.class)
-            .setFileFilter(new FileNameExtensionFilter("Spreadsheet file", "xlsx"));
+    private final FileChooser fileChooser;
+
+    public ImportFromXlsxAction() {
+        this.fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Spreadsheet file", "*.xlsx"));
+        new JFXPanel();
+    }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        Workspace ws = WorkspaceFactory.getInstance().getActiveWorkspace();
+        final Workspace ws = WorkspaceFactory.getInstance().getActiveWorkspace();
         if (ws.isDirty()) {
             NotifyDescriptor save = new NotifyDescriptor.Confirmation("Do you want to save before importing from Xlsx?");
             Object response = DialogDisplayer.getDefault().notify(save);
@@ -48,10 +54,12 @@ public final class ImportFromXlsxAction implements ActionListener {
             }
         }
 
-        File selectedFile = wsFileChooser.showOpenDialog();
-        if (selectedFile != null) {
-            ws.closeOpenDocuments();
-            new Creator().createWorkspace(selectedFile);
-        }
+        Platform.runLater(() -> {
+            File file = fileChooser.showOpenDialog(null);
+            if (file != null) {
+                ws.closeOpenDocuments();
+                new Creator().createWorkspace(file);
+            }
+        });
     }
 }

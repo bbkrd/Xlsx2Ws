@@ -77,6 +77,7 @@ public class Creator {
         sb.append("Please copy this protocol if you want to keep it!").append(NEW_LINE)
                 .append("Protocol ").append(TIMESTAMP_FORMAT.format(System.currentTimeMillis()))
                 .append('\t').append(System.getProperty("user.name")).append(NEW_LINE).append(NEW_LINE);
+        String startingString = sb.toString();
 
         readRegressorSheet(selectedFile);
 
@@ -96,13 +97,16 @@ public class Creator {
                     //return;
                 }
             }
-            sb.append("Messages for ").append(multiDocumentName).append("->").append(saItemName).append(":").append(NEW_LINE);
 
             Ts ts = readTs(information);
             SpecificationDTO specificationDTO = readSpecification(information, old);
 
-            for (Message message : specificationDTO.getMessages()) {
-                sb.append(message.getType()).append(" - ").append(message.getText()).append(NEW_LINE);
+            Message[] messages = specificationDTO.getMessages();
+            if (messages.length != 0) {
+                sb.append("Messages for ").append(multiDocumentName).append("->").append(saItemName).append(":").append(NEW_LINE);
+                for (Message message : messages) {
+                    sb.append(message.getType()).append(" - ").append(message.getText()).append(NEW_LINE);
+                }
             }
 
             ISaSpecification specification = specificationDTO.getSpecification();
@@ -147,6 +151,9 @@ public class Creator {
 
         });
 
+        if (startingString.equals(sb.toString())) {
+            sb.append("Everything is fine!");
+        }
         JOptionPane.showMessageDialog(null, sb.toString());
     }
 

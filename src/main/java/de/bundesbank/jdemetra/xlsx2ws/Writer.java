@@ -82,7 +82,10 @@ public class Writer {
                 });
             });
 
-            HashMap<String, Header> headersSaItems = createHeaders(4, new Temp("p_", providerInfoHeaderSaItems), new Temp("s_", specificationInfoHeader), new Temp("m_", metaInfoHeader));
+            HashMap<String, Header> headersSaItems = createHeaders(4,
+                    new PrefixSet("p_", providerInfoHeaderSaItems),
+                    new PrefixSet("s_", specificationInfoHeader),
+                    new PrefixSet("m_", metaInfoHeader));
 
             List<RegressorInfo> regressorInfos = new ArrayList<>();
             TreeSet<String> providerInfoHeaderRegressors = new TreeSet<>();
@@ -101,7 +104,7 @@ public class Writer {
                     regressorInfos.add(regressorInfo);
                 }
             });
-            HashMap<String, Header> headersRegressors = createHeaders(3, new Temp("p_", providerInfoHeaderRegressors));
+            HashMap<String, Header> headersRegressors = createHeaders(3, new PrefixSet("prov_", providerInfoHeaderRegressors));
 
             try (XSSFWorkbook workbook = new XSSFWorkbook()) {
                 //SAItems sheet
@@ -197,7 +200,7 @@ public class Writer {
     }
 
     private TsMoniker getOriginalMoniker(TsMoniker moniker) {
-        if (!moniker.isAnonymous()) {
+        if (moniker.getId() != null) {
             return moniker;
         }
         Ts ts = TsFactory.instance.getTs(moniker);
@@ -216,7 +219,7 @@ public class Writer {
         if (id == null) {
             return null;
         }
-        return new TsMoniker(source, id);
+        return TsMoniker.createProvidedMoniker(source, id);
     }
 
     private String getSource(@Nonnull MetaData md) {
@@ -229,12 +232,12 @@ public class Writer {
         return result != null ? result : md.get(Ts.ID_OLD);
     }
 
-    private HashMap<String, Header> createHeaders(int offset, Temp... temps) {
+    private HashMap<String, Header> createHeaders(int offset, PrefixSet... prefixSets) {
         int counter = offset;
         HashMap<String, Header> headers = new HashMap<>();
-        for (Temp temp : temps) {
-            for (String string : temp.getSet()) {
-                headers.put(string, new Header(temp.getPrefix() + string, counter++));
+        for (PrefixSet prefixSet : prefixSets) {
+            for (String string : prefixSet.getSet()) {
+                headers.put(string, new Header(prefixSet.getPrefix() + string, counter++));
             }
         }
         return headers;
@@ -249,7 +252,7 @@ public class Writer {
     }
 
     @lombok.Value
-    private static class Temp {
+    private static class PrefixSet {
 
         private final String prefix;
         private final TreeSet<String> set;
