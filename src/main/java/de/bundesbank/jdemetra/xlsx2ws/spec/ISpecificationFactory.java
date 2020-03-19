@@ -12,12 +12,14 @@ import ec.tstoolkit.design.ServiceDefinition;
  * @author Thomas Witthohn
  */
 @ServiceDefinition
-public interface ISpecificationReaderFactory<T extends ISpecificationReader> {
+public interface ISpecificationFactory<R extends ISpecificationReader, W extends ISpecificationWriter> {
 
     String getSpecificationName();
 
     String getSupportedClass();
 
-    T getNewInstance();
+    R getNewReaderInstance();
+
+    W getNewWriterInstance();
 
 }

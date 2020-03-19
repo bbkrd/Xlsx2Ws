@@ -14,7 +14,6 @@ import de.bundesbank.jdemetra.xlsx2ws.dto.SpecificationDTO;
 import de.bundesbank.jdemetra.xlsx2ws.provider.IProvider;
 import de.bundesbank.jdemetra.xlsx2ws.provider.IProviderFactory;
 import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationReader;
-import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationReaderFactory;
 import ec.nbdemetra.sa.MultiProcessingDocument;
 import ec.nbdemetra.sa.MultiProcessingManager;
 import ec.nbdemetra.ui.variables.VariablesDocumentManager;
@@ -55,6 +54,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openide.util.Lookup;
+import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationFactory;
 
 /**
  *
@@ -296,11 +296,11 @@ public class Creator {
                 return new SpecificationDTO<>(null, new Message[]{new Message(Level.SEVERE, "Neither specification name was declared nor an old specification available as fallback.")});
             }
         }
-        Optional<? extends ISpecificationReaderFactory> optionalSpecificationReader = Lookup.getDefault().lookupAll(ISpecificationReaderFactory.class).stream().filter(spec -> spec.getSpecificationName().equalsIgnoreCase(specificationName)).findFirst();
+        Optional<? extends ISpecificationFactory> optionalSpecificationReader = Lookup.getDefault().lookupAll(ISpecificationFactory.class).stream().filter(spec -> spec.getSpecificationName().equalsIgnoreCase(specificationName)).findFirst();
         if (!optionalSpecificationReader.isPresent()) {
             return new SpecificationDTO<>(null, new Message[]{new Message(Level.SEVERE, specificationName + " isn't a supported specification.")});
         }
-        ISpecificationReader specificationReader = optionalSpecificationReader.get().getNewInstance();
+        ISpecificationReader specificationReader = optionalSpecificationReader.get().getNewReaderInstance();
         information.getSpecificationInfos().entrySet().forEach((entry) -> {
             specificationReader.putInformation(entry.getKey(), entry.getValue());
         });

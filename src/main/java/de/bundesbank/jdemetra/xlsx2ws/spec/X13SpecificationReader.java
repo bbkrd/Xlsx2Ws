@@ -28,14 +28,12 @@ import ec.tstoolkit.modelling.arima.x13.RegressionSpec;
 import ec.tstoolkit.modelling.arima.x13.TradingDaysSpec;
 import ec.tstoolkit.modelling.arima.x13.TransformSpec;
 import ec.tstoolkit.timeseries.Day;
-import ec.tstoolkit.timeseries.PeriodSelectorType;
 import ec.tstoolkit.timeseries.TsPeriodSelector;
 import ec.tstoolkit.timeseries.calendars.LengthOfPeriodType;
 import ec.tstoolkit.timeseries.calendars.TradingDaysType;
 import ec.tstoolkit.timeseries.regression.AdditiveOutlier;
 import ec.tstoolkit.timeseries.regression.IOutlierVariable;
 import ec.tstoolkit.timeseries.regression.LevelShift;
-import ec.tstoolkit.timeseries.regression.OutlierDefinition;
 import ec.tstoolkit.timeseries.regression.OutlierType;
 import ec.tstoolkit.timeseries.regression.SeasonalOutlier;
 import ec.tstoolkit.timeseries.regression.TransitoryChange;
@@ -77,7 +75,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
             REGRESSOR = "regressor_", OUTLIER = "outlier_",
             //CALENDAR
             //TRADINGDAYS
-            HOLIDAYS = "holidays", TRADINGDAYSTYPE = "td", LEAP_YEAR = "leap_year", AUTOADJUST = "auto_adjust", W = "w", TEST = "td_test",
+            HOLIDAYS = "holidays", TRADING_DAYS_TYPE = "td", LEAP_YEAR = "leap_year", AUTO_ADJUST = "auto_adjust", W = "w", TEST = "td_test",
             //EASTER
             EASTER = "easter", EASTER_JULIAN = "easter_julian", PRE_TEST = "easter_pre_test", DURATION = "easter_duration",
             //OUTLIERS
@@ -167,10 +165,10 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         tradingDaysSpec.setHolidays(information.get(HOLIDAYS));
 
         consumeEnum(TEST, RegressionTestSpec::valueOf, tradingDaysSpec::setTest);
-        consumeEnum(TRADINGDAYSTYPE, TradingDaysType::valueOf, tradingDaysSpec::setTradingDaysType);
+        consumeEnum(TRADING_DAYS_TYPE, TradingDaysType::valueOf, tradingDaysSpec::setTradingDaysType);
         consumeEnum(LEAP_YEAR, LengthOfPeriodType::valueOf, tradingDaysSpec::setLengthOfPeriod);
 
-        consumeBoolean(AUTOADJUST, tradingDaysSpec::setAutoAdjust);
+        consumeBoolean(AUTO_ADJUST, tradingDaysSpec::setAutoAdjust);
 
         //EASTER
         if (information.containsKey(EASTER)) {
@@ -440,351 +438,6 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         }
     }
 
-    @Override
-    public Map<String, String> writeSpecification(X13Specification spec) {
-        String base = spec.toString();
-        if (!base.equals("X13")) {
-            information.put(BASE, base);
-            return information;
-        }
-        RegArimaSpecification regArimaSpecification = spec.getRegArimaSpecification();
-
-        //SERIES
-        writeSeriesInformation(regArimaSpecification.getBasic());
-
-        if (regArimaSpecification.equals(RegArimaSpecification.RGDISABLED)) {
-            //just X11
-            information.put(BASE, X13Specification.RSAX11.toString());
-            //X11
-            writeX11Information(spec.getX11Specification(), true);
-        } else {
-            //ESTIMATE
-            writeEstimateInformation(regArimaSpecification.getEstimate());
-            //TRANSFORMATION
-            writeTransformationInformation(regArimaSpecification.getTransform());
-            //REGRESSION
-            writeRegressionInformation(regArimaSpecification.getRegression());
-            //OUTLIERS
-            writeOutlierInformation(regArimaSpecification.getOutliers());
-            //ARIMA
-            if (regArimaSpecification.isUsingAutoModel()) {
-                writeAutoModelInformation(regArimaSpecification.getAutoModel());
-            } else {
-                writeARIMAInformation(regArimaSpecification.getArima());
-            }
-            //X11
-            writeX11Information(spec.getX11Specification(), false);
-        }
-        return information;
-    }
-
-    private void writeSeriesInformation(BasicSpec basicSpec) {
-        TsPeriodSelector span = basicSpec.getSpan();
-        if (span.getType() == PeriodSelectorType.All && basicSpec.isPreliminaryCheck()) {
-            return;
-        }
-        information.put(PRELIMINARY_CHECK, Boolean.toString(basicSpec.isPreliminaryCheck()));
-        writeSpan(span, SERIES);
-
-    }
-
-    private void writeEstimateInformation(EstimateSpec estimateSpec) {
-        if (estimateSpec.isDefault()) {
-            return;
-        }
-        TsPeriodSelector span = estimateSpec.getSpan();
-        information.put(TOLERANCE, Double.toString(estimateSpec.getTol()));
-        writeSpan(span, ESTIMATE);
-    }
-
-    private void writeTransformationInformation(TransformSpec transformSpec) {
-        DefaultTransformationType function = transformSpec.getFunction();
-        information.put(TRANSFORM, function.toString());
-        switch (function) {
-            case None:
-                break;
-            case Auto:
-                information.put(AIC_DIFFERENCE, Double.toString(transformSpec.getAICDiff()));
-                break;
-            case Log:
-                information.put(ADJUST, transformSpec.getAdjust().toString());
-                break;
-            default:
-                throw new AssertionError();
-        }
-    }
-
-    private void writeRegressionInformation(RegressionSpec regressionSpec) {
-        int regressionCounter = 0;
-        regressionCounter = writeTradingDays(regressionSpec, regressionCounter);
-        writeEaster(regressionSpec);
-        writePreSpecifiedOutliers(regressionSpec);
-        //INTERVENTION (TODO)
-        //RAMP (TODO)
-        writeUserDefinedVariables(regressionSpec, regressionCounter);
-        //FIXED REGRESSION COEFFICIENTS (TODO)
-    }
-
-    private int writeTradingDays(RegressionSpec regressionSpec, int regressionCounter) {
-        TradingDaysSpec tradingDays = regressionSpec.getTradingDays();
-        if (tradingDays != null) {
-            String holidays = tradingDays.getHolidays();
-            if (holidays != null) {
-                information.put(HOLIDAYS, holidays);
-            }
-
-            TradingDaysType tradingDaysType = tradingDays.getTradingDaysType();
-            information.put(TRADINGDAYSTYPE, tradingDaysType.toString());
-
-            if (holidays != null || !tradingDaysType.equals(TradingDaysType.None)) {
-                boolean autoAdjust = tradingDays.isAutoAdjust();
-                information.put(AUTOADJUST, Boolean.toString(autoAdjust));
-                if (!autoAdjust) {
-                    LengthOfPeriodType lengthOfPeriod = tradingDays.getLengthOfPeriod();
-                    information.put(LEAP_YEAR, lengthOfPeriod.toString());
-                }
-            }
-
-            int stockTradingDays = tradingDays.getStockTradingDays();
-            if (stockTradingDays != 0) {
-                information.put(W, Integer.toString(stockTradingDays));
-            }
-
-            String[] userVariables = tradingDays.getUserVariables();
-            if (userVariables != null) {
-                for (int i = 0; i < userVariables.length; i++) {
-                    information.put(REGRESSOR + (regressionCounter + i + 1), userVariables[i] + "*c");
-                    regressionCounter++;
-                }
-            }
-            RegressionTestSpec test = tradingDays.getTest();
-            information.put(TEST, test.toString());
-        }
-        return regressionCounter;
-    }
-
-    private void writeEaster(RegressionSpec regressionSpec) {
-        //EASTER
-        MovingHolidaySpec easter = regressionSpec.getEaster();
-        if (easter == null) {
-            information.put(EASTER, Boolean.toString(false));
-        } else {
-            information.put(EASTER, Boolean.toString(true));
-            information.put(EASTER_JULIAN, Boolean.toString(easter.getType() == MovingHolidaySpec.Type.JulianEaster));
-            information.put(PRE_TEST, easter.getTest().toString());
-            information.put(DURATION, Integer.toString(easter.getW()));
-        }
-    }
-
-    private void writePreSpecifiedOutliers(RegressionSpec regressionSpec) {
-        if (regressionSpec.getOutliersCount() > 0) {
-            OutlierDefinition[] outliers = regressionSpec.getOutliers();
-            for (int i = 0; i < outliers.length; i++) {
-                information.put(OUTLIER + (i + 1), outliers[i].getCode() + outliers[i].getPosition().toString());
-            }
-        }
-    }
-
-    private void writeUserDefinedVariables(RegressionSpec regressionSpec, int regressionCounter) throws AssertionError {
-        if (regressionSpec.getUserDefinedVariablesCount() > 0) {
-            TsVariableDescriptor[] userDefinedVariables = regressionSpec.getUserDefinedVariables();
-            for (int i = 0; i < userDefinedVariables.length; i++) {
-                TsVariableDescriptor userDefinedVariable = userDefinedVariables[i];
-                String effect;
-                switch (userDefinedVariable.getEffect()) {
-                    case Undefined:
-                        effect = "u";
-                        break;
-                    case Series:
-                        effect = "y";
-                        break;
-                    case Trend:
-                        effect = "t";
-                        break;
-                    case Seasonal:
-                        effect = "s";
-                        break;
-                    case SeasonallyAdjusted:
-                        effect = "sa";
-                        break;
-                    case Irregular:
-                        effect = "i";
-                        break;
-                    default:
-                        throw new AssertionError();
-                }
-                String info = userDefinedVariable.getName() + "*" + effect;
-                information.put(REGRESSOR + (regressionCounter + i + 1), info);
-                regressionCounter++;
-            }
-        }
-    }
-
-    private void writeOutlierInformation(OutlierSpec outlierSpec) {
-        if (!outlierSpec.isUsed()) {
-            return;
-        }
-        writeSpan(outlierSpec.getSpan(), OUTLIER);
-        information.put(CRITICAL_VALUE, Double.toString(outlierSpec.getDefaultCriticalValue()));
-        information.put(AO, Boolean.toString(outlierSpec.search(OutlierType.AO) != null));
-        information.put(LS, Boolean.toString(outlierSpec.search(OutlierType.LS) != null));
-        information.put(TC, Boolean.toString(outlierSpec.search(OutlierType.TC) != null));
-        information.put(SO, Boolean.toString(outlierSpec.search(OutlierType.SO) != null));
-        information.put(TC_RATE, Double.toString(outlierSpec.getMonthlyTCRate()));
-        information.put(METHOD, outlierSpec.getMethod().toString());
-    }
-
-    private void writeAutoModelInformation(AutoModelSpec autoModelSpec) {
-        information.put(AUTOMODEL, Boolean.toString(true));
-        information.put(ACCEPT_DEFAULT, Boolean.toString(autoModelSpec.isAcceptDefault()));
-        information.put(CANCELATION_LIMIT, Double.toString(autoModelSpec.getCancelationLimit()));
-        information.put(INITIAL_UR, Double.toString(autoModelSpec.getInitialUnitRootLimit()));
-        information.put(FINAL_UR, Double.toString(autoModelSpec.getFinalUnitRootLimit()));
-        information.put(MIXED, Boolean.toString(autoModelSpec.isMixed()));
-        information.put(BALANCED, Boolean.toString(autoModelSpec.isBalanced()));
-        information.put(ARMALIMIT, Double.toString(autoModelSpec.getArmaSignificance()));
-        information.put(REDUCE_CV, Double.toString(autoModelSpec.getPercentReductionCV()));
-        information.put(LJUNGBOX_LIMIT, Double.toString(autoModelSpec.getLjungBoxLimit()));
-        information.put(URFINAL, Double.toString(autoModelSpec.getUnitRootLimit()));
-    }
-
-    private void writeARIMAInformation(ArimaSpec arimaSpec) {
-        information.put(AUTOMODEL, Boolean.toString(false));
-        information.put(MEAN, Boolean.toString(arimaSpec.isMean()));
-        StringBuilder arima = new StringBuilder("(");
-        arima.append(arimaSpec.getP()).append(" ")
-                .append(arimaSpec.getD()).append(" ")
-                .append(arimaSpec.getQ()).append(")(")
-                .append(arimaSpec.getBP()).append(" ")
-                .append(arimaSpec.getBD()).append(" ")
-                .append(arimaSpec.getBQ()).append(")");
-        information.put(ARIMA, arima.toString());
-        for (int i = 0; i < arimaSpec.getP(); i++) {
-            Parameter parameter = arimaSpec.getPhi()[i];
-            String info = Double.toString(parameter.getValue()) + translateType(parameter);
-            information.put(P + (i + 1), info);
-        }
-        for (int i = 0; i < arimaSpec.getQ(); i++) {
-            Parameter parameter = arimaSpec.getTheta()[i];
-            String info = Double.toString(parameter.getValue()) + translateType(parameter);
-            information.put(Q + (i + 1), info);
-        }
-        for (int i = 0; i < arimaSpec.getBP(); i++) {
-            Parameter parameter = arimaSpec.getBPhi()[i];
-            String info = Double.toString(parameter.getValue()) + translateType(parameter);
-            information.put(BP + (i + 1), info);
-        }
-        for (int i = 0; i < arimaSpec.getBQ(); i++) {
-            Parameter parameter = arimaSpec.getBTheta()[i];
-            String info = Double.toString(parameter.getValue()) + translateType(parameter);
-            information.put(BQ + (i + 1), info);
-        }
-    }
-
-    private void writeX11Information(X11Specification x11, boolean onlyX11) {
-        //Mode
-        DecompositionMode mode = x11.getMode();
-        information.put(MODE, mode.toString());
-        //Seasonal Component
-        information.put(SEASONAL, Boolean.toString(x11.isSeasonal()));
-        //LSigma
-        information.put(LOWER_SIGMA, Double.toString(x11.getLowerSigma()));
-        //USigma
-        information.put(UPPER_SIGMA, Double.toString(x11.getUpperSigma()));
-        //SeasonalFilter
-        SeasonalFilterOption[] seasonalFilters = x11.getSeasonalFilters();
-        if (seasonalFilters == null) {
-            information.put(SEASONALFILTER, SeasonalFilterOption.Msr.toString());
-        } else if (seasonalFilters.length == 1) {
-            information.put(SEASONALFILTER, seasonalFilters[0].toString());
-        } else {
-            for (int i = 0; i < seasonalFilters.length; i++) {
-                information.put(SEASONALFILTERS + (i + 1), seasonalFilters[i].toString());
-            }
-        }
-        //Henderson
-        information.put(HENDERSON, Integer.toString(x11.getHendersonFilterLength()));
-        //Calendarsigma
-        CalendarSigma calendarSigma = x11.getCalendarSigma();
-        information.put(CALENDARSIGMA, calendarSigma.toString());
-        if (calendarSigma.equals(CalendarSigma.Select)) {
-            SigmavecOption[] sigmavec = x11.getSigmavec();
-            if (sigmavec != null) {
-                for (int i = 0; i < sigmavec.length; i++) {
-                    information.put(SIGMA_VECTOR + (i + 1), sigmavec[i].toString());
-                }
-            }
-        }
-        //Excludeforecast
-        boolean excludefcst = x11.isExcludefcst();
-        information.put(EXCLUDEFORECAST, Boolean.toString(excludefcst));
-        //Bias correction (only for LogAdditive)
-        if (mode.equals(DecompositionMode.LogAdditive)) {
-            information.put(BIAS_CORRECTION, x11.getBiasCorrection().toString());
-        }
-        if (!onlyX11) {
-            information.put(MAXLEAD, Integer.toString(x11.getForecastHorizon()));
-            information.put(MAXBACK, Integer.toString(x11.getBackcastHorizon()));
-        }
-    }
-
-    private OptionalInt tryParseInteger(String value) {
-        try {
-            return OptionalInt.of(Integer.parseInt(value));
-        } catch (NumberFormatException e) {
-            return OptionalInt.empty();
-        }
-    }
-
-    private String translateType(Parameter p) throws AssertionError {
-        switch (p.getType()) {
-            case Undefined:
-                return "*u";
-            case Initial:
-                return "*i";
-            case Fixed:
-                return "*f";
-            //Should not happen (TODO)
-            case Estimated:
-            case Derived:
-            default:
-                throw new AssertionError();
-        }
-    }
-
-    private void writeSpan(TsPeriodSelector span, String part) throws AssertionError {
-        switch (span.getType()) {
-            case All:
-                break;
-            case From:
-                information.put(part + START, span.getD0().toString());
-                break;
-            case Between:
-                information.put(part + START, span.getD0().toString());
-                information.put(part + END, span.getD1().toString());
-                break;
-            case To:
-                information.put(part + END, span.getD1().toString());
-                break;
-            case First:
-                information.put(part + FIRST, Integer.toString(span.getN0()));
-                break;
-            case Last:
-                information.put(part + LAST, Integer.toString(span.getN1()));
-                break;
-            case Excluding:
-                information.put(part + FIRST, Integer.toString(span.getN0()));
-                information.put(part + LAST, Integer.toString(span.getN1()));
-                break;
-            case None:
-                information.put(part + START, SPAN_NONE_VALUE);
-                information.put(part + END, SPAN_NONE_VALUE);
-                break;
-            default:
-                throw new AssertionError();
-        }
-    }
-
     private void consumeSpan(String part, Consumer<TsPeriodSelector> consumer) {
         if (!information.containsKey(part + START) && !information.containsKey(part + END) && !information.containsKey(part + FIRST) && !information.containsKey(part + LAST)) {
             return;
@@ -968,6 +621,14 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
                 type = ParameterType.Fixed;
             }
             parameter.get()[i - 1] = new Parameter(value, type);
+        }
+    }
+
+    private OptionalInt tryParseInteger(String value) {
+        try {
+            return OptionalInt.of(Integer.parseInt(value));
+        } catch (NumberFormatException e) {
+            return OptionalInt.empty();
         }
     }
 

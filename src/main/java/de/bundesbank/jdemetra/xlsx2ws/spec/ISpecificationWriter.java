@@ -5,16 +5,15 @@
  */
 package de.bundesbank.jdemetra.xlsx2ws.spec;
 
-import de.bundesbank.jdemetra.xlsx2ws.dto.SpecificationDTO;
+import de.bundesbank.jdemetra.xlsx2ws.dto.PositionInfo;
 import ec.satoolkit.ISaSpecification;
+import java.util.Map;
 
 /**
  *
- * @author Thomas Witthohn
+ * @author s4504tw
  */
-public interface ISpecificationReader<T extends ISaSpecification> {
+public interface ISpecificationWriter<T extends ISaSpecification> {
 
-    SpecificationDTO<T> readSpecification(ISaSpecification old);
-
-    void putInformation(String key, String value);
+    Map<PositionInfo, String> writeSpecification(T spec);
 }

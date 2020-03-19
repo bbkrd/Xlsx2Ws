@@ -18,14 +18,20 @@ public class X13SpecificationReaderFactoryTest {
     }
 
     @Test
-    public void testGetNewInstance() {
-        X13SpecificationReaderFactory instance = new X13SpecificationReaderFactory();
-        Assert.assertTrue(instance.getNewInstance() instanceof X13SpecificationReader);
+    public void testGetNewReaderInstance() {
+        X13SpecificationFactory instance = new X13SpecificationFactory();
+        Assert.assertTrue(instance.getNewReaderInstance() instanceof X13SpecificationReader);
+    }
+
+    @Test
+    public void testGetNewWriterInstance() {
+        X13SpecificationFactory instance = new X13SpecificationFactory();
+        Assert.assertTrue(instance.getNewWriterInstance() instanceof X13SpecificationWriter);
     }
 
     @Test
     public void testGetSpecificationName() {
-        X13SpecificationReaderFactory instance = new X13SpecificationReaderFactory();
+        X13SpecificationFactory instance = new X13SpecificationFactory();
         String expected = "X13";
         Assert.assertEquals(expected, instance.getSpecificationName());
     }

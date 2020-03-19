@@ -12,15 +12,15 @@ import org.openide.util.lookup.ServiceProvider;
  *
  * @author Thomas Witthohn
  */
-@ServiceProvider(service = ISpecificationReaderFactory.class)
-public class X13SpecificationReaderFactory implements ISpecificationReaderFactory<X13SpecificationReader> {
+@ServiceProvider(service = ISpecificationFactory.class)
+public class X13SpecificationFactory implements ISpecificationFactory<X13SpecificationReader, X13SpecificationWriter> {
 
     private static final String SPECIFICATION_NAME = "X13";
 
     private static final Class<X13Specification> SUPPORTED_CLASS = X13Specification.class;
 
     @Override
-    public X13SpecificationReader getNewInstance() {
+    public X13SpecificationReader getNewReaderInstance() {
         return new X13SpecificationReader();
     }
 
@@ -32,6 +32,11 @@ public class X13SpecificationReaderFactory implements ISpecificationReaderFactor
     @Override
     public String getSupportedClass() {
         return SUPPORTED_CLASS.getName();
+    }
+
+    @Override
+    public X13SpecificationWriter getNewWriterInstance() {
+        return new X13SpecificationWriter();
     }
 
 }

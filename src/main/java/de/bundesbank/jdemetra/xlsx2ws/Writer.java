@@ -6,14 +6,14 @@
 package de.bundesbank.jdemetra.xlsx2ws;
 
 import de.bundesbank.jdemetra.xlsx2ws.dto.IProviderInfo;
+import de.bundesbank.jdemetra.xlsx2ws.dto.PositionInfo;
 import de.bundesbank.jdemetra.xlsx2ws.dto.RegressorInfo;
 import de.bundesbank.jdemetra.xlsx2ws.dto.SaItemInfo;
 import de.bundesbank.jdemetra.xlsx2ws.provider.GenericProvider;
 import de.bundesbank.jdemetra.xlsx2ws.provider.GenericProviderFactory;
 import de.bundesbank.jdemetra.xlsx2ws.provider.IProvider;
 import de.bundesbank.jdemetra.xlsx2ws.provider.IProviderFactory;
-import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationReader;
-import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationReaderFactory;
+import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationWriter;
 import ec.nbdemetra.sa.MultiProcessingDocument;
 import ec.nbdemetra.ui.calendars.CalendarDocumentManager;
 import ec.nbdemetra.ws.Workspace;
@@ -46,6 +46,7 @@ import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openide.util.Lookup;
+import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationFactory;
 
 @Log
 public class Writer {
@@ -53,7 +54,7 @@ public class Writer {
     public void writeWorkspace(File file) {
         try (FileOutputStream fileOut = new FileOutputStream(file)) {
             TreeSet<String> providerInfoHeaderSaItems = new TreeSet<>();
-            TreeSet<String> specificationInfoHeader = new TreeSet<>();
+            TreeSet<PositionInfo> specificationInfoHeader = new TreeSet<>();
             TreeSet<String> metaInfoHeader = new TreeSet<>();
 
             List<SaItemInfo> saItemInfos = new ArrayList();
@@ -181,20 +182,20 @@ public class Writer {
         });
     }
 
-    private void writeSpecificationInfo(SaItem item, SaItemInfo saItemInfo, TreeSet<String> specificationInfoHeader) {
+    private void writeSpecificationInfo(SaItem item, SaItemInfo saItemInfo, TreeSet<PositionInfo> specificationInfoHeader) {
         ISaSpecification domainSpecification = item.getDomainSpecification();
         String specName = domainSpecification.getClass().getName();
 
-        Optional<? extends ISpecificationReaderFactory> optionalSpec = Lookup.getDefault().lookupAll(ISpecificationReaderFactory.class).stream().filter(specReader -> specReader.getSupportedClass().equalsIgnoreCase(specName)).findFirst();
+        Optional<? extends ISpecificationFactory> optionalSpec = Lookup.getDefault().lookupAll(ISpecificationFactory.class).stream().filter(specReader -> specReader.getSupportedClass().equalsIgnoreCase(specName)).findFirst();
         if (!optionalSpec.isPresent()) {
             //TODO Log
             return;
         }
-        ISpecificationReader specReader = optionalSpec.get().getNewInstance();
+        ISpecificationWriter specWriter = optionalSpec.get().getNewWriterInstance();
         saItemInfo.setSpecificationName(optionalSpec.get().getSpecificationName());
-        Map<String, String> specInfo = specReader.writeSpecification(domainSpecification);
+        Map<PositionInfo, String> specInfo = specWriter.writeSpecification(domainSpecification);
         specInfo.forEach((key, value) -> {
-            saItemInfo.addSpecificationInfo(key, value);
+            saItemInfo.addSpecificationInfo(key.getName(), value);
             specificationInfoHeader.add(key);
         });
     }
@@ -236,8 +237,8 @@ public class Writer {
         int counter = offset;
         HashMap<String, Header> headers = new HashMap<>();
         for (PrefixSet prefixSet : prefixSets) {
-            for (String string : prefixSet.getSet()) {
-                headers.put(string, new Header(prefixSet.getPrefix() + string, counter++));
+            for (Object o : prefixSet.getSet()) {
+                headers.put(o.toString(), new Header(prefixSet.getPrefix() + o.toString(), counter++));
             }
         }
         return headers;
@@ -252,9 +253,9 @@ public class Writer {
     }
 
     @lombok.Value
-    private static class PrefixSet {
+    private static class PrefixSet<T> {
 
         private final String prefix;
-        private final TreeSet<String> set;
+        private final TreeSet<T> set;
     }
 }
