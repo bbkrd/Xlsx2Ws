@@ -42,6 +42,7 @@ import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -62,6 +63,8 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
     private static final Pattern DATE_PATTERN = Pattern.compile("\\d{4}(.(0[1-9]|1[0-2])(.(0[1-9]|[12]\\d|3[01]))?)?");
     private static final Pattern ARIMA_PATTERN = Pattern.compile("\\(([0-6])\\s*([0-2])\\s*([0-6])\\)\\s*\\(([01])\\s*([01])\\s*([01])\\)");
     private static final Pattern REGRESSOR_PATTERN = Pattern.compile(".*\\..+?((\\*).*)?", Pattern.CASE_INSENSITIVE);
+    private static final String DOUBLE = "([-+]?([0-9]+\\.?[0-9]*|[0-9]*\\.?[0-9]+)([eE][-+]?[0-9]+)?)";
+    private static final Pattern FIXED_COEFFICIENT_PATTERN = Pattern.compile(".*(\\*)(" + DOUBLE + ";)*" + DOUBLE, Pattern.CASE_INSENSITIVE);
     private static final LocalDate START_EXCEL = LocalDate.of(1900, Month.JANUARY, 1);
 
     public static final String BASE = "base", SPAN_NONE_VALUE = "X", START = "start", END = "end", FIRST = "first", LAST = "last",
@@ -72,7 +75,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
             //TRANSFORMATION
             TRANSFORM = "transform", AIC_DIFFERENCE = "aicdiff", ADJUST = "adjust",
             //REGRESSION
-            REGRESSOR = "regressor_", OUTLIER = "outlier_",
+            REGRESSOR = "regressor_", OUTLIER = "outlier_", FIXED_COEFFICIENT = "fixed_coefficient_",
             //CALENDAR
             //TRADINGDAYS
             HOLIDAYS = "holidays", TRADING_DAYS_TYPE = "td", LEAP_YEAR = "leap_year", AUTO_ADJUST = "auto_adjust", W = "w", TEST = "td_test",
@@ -156,6 +159,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         //TODO Ramps
         readPreSpecifiedOutliers(regressionSpec);
         readUserDefinedVariables(regressionSpec);
+        readFixedCoefficients(regressionSpec);
     }
 
     private void readCalendar(RegressionSpec regressionSpec) {
@@ -280,6 +284,21 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
             messages.add(new Message(Level.INFO, "Userdefined trading day variables were defined. All other trading day settings were overridden."));
             regressionSpec.getTradingDays().setUserVariables(userDefinedCalendarEffects.toArray(new String[userDefinedCalendarEffects.size()]));
         }
+    }
+
+    private void readFixedCoefficients(RegressionSpec regressionSpec) {
+        information.entrySet().stream()
+                .filter(x -> x.getKey().startsWith(FIXED_COEFFICIENT))
+                .forEach((x) -> {
+                    if (FIXED_COEFFICIENT_PATTERN.matcher(x.getValue()).matches()) {
+                        String[] split = x.getValue().split("\\*");
+                        String name = split[0];
+                        double[] c = Arrays.stream(split[1].split(";")).mapToDouble(s -> Double.parseDouble(s)).toArray();
+                        regressionSpec.setFixedCoefficients(name, c);
+                    } else {
+                        messages.add(new Message(Level.SEVERE, x.getKey() + " has an invalid syntax."));
+                    }
+                });
     }
 
     private void readOutliers(OutlierSpec outlierSpec) {

@@ -24,8 +24,10 @@ import ec.tstoolkit.timeseries.calendars.LengthOfPeriodType;
 import ec.tstoolkit.timeseries.calendars.TradingDaysType;
 import ec.tstoolkit.timeseries.regression.OutlierDefinition;
 import ec.tstoolkit.timeseries.regression.OutlierType;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -37,6 +39,7 @@ public class X13SpecificationWriter implements ISpecificationWriter<X13Specifica
     public static final int INITIAL_POS_ESTIMATE_SPAN = 121000;
     public static final int INITIAL_POS_OUTLIER = 150000;
     public static final int INITIAL_POS_REGRESSOR = 160000;
+    public static final int INITIAL_POS_FIXED = 165000;
     public static final int INITIAL_POS_OUTLIER_SPAN = 170000;
     public static final int INITIAL_POS_P = 184000;
     public static final int INITIAL_POS_Q = 185000;
@@ -182,7 +185,7 @@ public class X13SpecificationWriter implements ISpecificationWriter<X13Specifica
         //INTERVENTION (TODO)
         //RAMP (TODO)
         writeUserDefinedVariables(regressionSpec, regressionCounter);
-        //FIXED REGRESSION COEFFICIENTS (TODO)
+        writeFixedRegressionCoefficients(regressionSpec);
     }
 
     private int writeTradingDays(RegressionSpec regressionSpec, int regressionCounter) {
@@ -277,6 +280,18 @@ public class X13SpecificationWriter implements ISpecificationWriter<X13Specifica
                 information.put(new PositionInfo(INITIAL_POS_REGRESSOR + regressionCounter + i, REGRESSOR + (regressionCounter + i + 1)), info);
                 regressionCounter++;
             }
+        }
+    }
+
+    private void writeFixedRegressionCoefficients(RegressionSpec regressionSpec) {
+        Map<String, double[]> allFixedCoefficients = regressionSpec.getAllFixedCoefficients();
+        int counter = 0;
+        for (Map.Entry<String, double[]> entry : allFixedCoefficients.entrySet()) {
+            String key = entry.getKey();
+            double[] value = entry.getValue();
+            String info = key + "*" + Arrays.stream(value).mapToObj(d -> Double.toString(d)).collect(Collectors.joining(";"));
+            information.put(new PositionInfo(INITIAL_POS_FIXED + counter, FIXED_COEFFICIENT + (counter + 1)), info);
+            counter++;
         }
     }
 

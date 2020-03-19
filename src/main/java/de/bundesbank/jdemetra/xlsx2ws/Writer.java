@@ -13,6 +13,7 @@ import de.bundesbank.jdemetra.xlsx2ws.provider.GenericProvider;
 import de.bundesbank.jdemetra.xlsx2ws.provider.GenericProviderFactory;
 import de.bundesbank.jdemetra.xlsx2ws.provider.IProvider;
 import de.bundesbank.jdemetra.xlsx2ws.provider.IProviderFactory;
+import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationFactory;
 import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationWriter;
 import ec.nbdemetra.sa.MultiProcessingDocument;
 import ec.nbdemetra.ui.calendars.CalendarDocumentManager;
@@ -46,7 +47,6 @@ import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openide.util.Lookup;
-import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationFactory;
 
 @Log
 public class Writer {
@@ -84,9 +84,9 @@ public class Writer {
             });
 
             HashMap<String, Header> headersSaItems = createHeaders(4,
-                    new PrefixSet("p_", providerInfoHeaderSaItems),
-                    new PrefixSet("s_", specificationInfoHeader),
-                    new PrefixSet("m_", metaInfoHeader));
+                    new PrefixSet("prov_", providerInfoHeaderSaItems),
+                    new PrefixSet("spec_", specificationInfoHeader),
+                    new PrefixSet("meta_", metaInfoHeader));
 
             List<RegressorInfo> regressorInfos = new ArrayList<>();
             TreeSet<String> providerInfoHeaderRegressors = new TreeSet<>();
