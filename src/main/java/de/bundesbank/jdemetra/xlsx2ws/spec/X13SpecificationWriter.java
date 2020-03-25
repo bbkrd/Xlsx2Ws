@@ -96,10 +96,10 @@ public class X13SpecificationWriter implements ISpecificationWriter<X13Specifica
     public static final PositionInfo POS_SEASONALFILTER = new PositionInfo(194000, SEASONALFILTER);
     public static final PositionInfo POS_HENDERSON = new PositionInfo(195000, HENDERSON);
     public static final PositionInfo POS_CALENDARSIGMA = new PositionInfo(196000, CALENDARSIGMA);
-    public static final PositionInfo POS_MAXBACK = new PositionInfo(199500, MAXBACK);
-    public static final PositionInfo POS_MAXLEAD = new PositionInfo(199000, MAXLEAD);
-    public static final PositionInfo POS_BIAS_CORRECTION = new PositionInfo(198000, BIAS_CORRECTION);
     public static final PositionInfo POS_EXCLUDE_FORECAST = new PositionInfo(197000, EXCLUDEFORECAST);
+    public static final PositionInfo POS_BIAS_CORRECTION = new PositionInfo(198000, BIAS_CORRECTION);
+    public static final PositionInfo POS_MAXLEAD = new PositionInfo(199000, MAXLEAD);
+    public static final PositionInfo POS_MAXBACK = new PositionInfo(199500, MAXBACK);
 
     private final Map<PositionInfo, String> information = new HashMap<>();
 
