@@ -496,6 +496,10 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         } else if (startDay == null) { //Implied endDay !=null
             tsPeriodSelector.to(endDay);
         } else { //Implied startDay != null && endDay != null
+            if (startDay.isNotBefore(endDay)) {
+                endDay = startDay.plus(1);
+                messages.add(new Message(Level.SEVERE, "The " + part + " end date is set before its start date. It was changed to one day after the start date."));
+            }
             tsPeriodSelector.between(startDay, endDay);
         }
         consumer.accept(tsPeriodSelector);

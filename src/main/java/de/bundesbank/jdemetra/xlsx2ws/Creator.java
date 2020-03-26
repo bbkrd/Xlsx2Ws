@@ -13,6 +13,7 @@ import de.bundesbank.jdemetra.xlsx2ws.dto.SaItemInfo;
 import de.bundesbank.jdemetra.xlsx2ws.dto.SpecificationDTO;
 import de.bundesbank.jdemetra.xlsx2ws.provider.IProvider;
 import de.bundesbank.jdemetra.xlsx2ws.provider.IProviderFactory;
+import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationFactory;
 import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationReader;
 import ec.nbdemetra.sa.MultiProcessingDocument;
 import ec.nbdemetra.sa.MultiProcessingManager;
@@ -27,6 +28,7 @@ import ec.tss.sa.SaItem;
 import ec.tstoolkit.MetaData;
 import ec.tstoolkit.algorithm.ProcessingContext;
 import ec.tstoolkit.timeseries.regression.TsVariables;
+import java.awt.Dimension;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -46,6 +48,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import lombok.extern.java.Log;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -54,7 +58,6 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openide.util.Lookup;
-import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationFactory;
 
 /**
  *
@@ -154,7 +157,12 @@ public class Creator {
         if (startingString.equals(sb.toString())) {
             sb.append("Everything is fine!");
         }
-        JOptionPane.showMessageDialog(null, sb.toString());
+
+        JTextArea jta = new JTextArea(sb.toString());
+        jta.setEditable(false);
+        JScrollPane jsp = new JScrollPane(jta);
+        jsp.setPreferredSize(new Dimension(480, 120));
+        JOptionPane.showMessageDialog(null, jsp, "Report", JOptionPane.PLAIN_MESSAGE);
     }
 
     private void readExistingWorkspace(Workspace ws) {
@@ -364,9 +372,9 @@ public class Creator {
                 }
                 regressorInfos.add(info);
             }
-            if (!regressorInfos.isEmpty()) {
-                sb.append("Messages for regressors:").append(NEW_LINE);
-            }
+//            if (!regressorInfos.isEmpty()) {
+//                sb.append("Messages for regressors:").append(NEW_LINE);
+//            }
 
             regressorInfos.forEach(information -> {
                 String variablesListName = information.getDocumentName();
