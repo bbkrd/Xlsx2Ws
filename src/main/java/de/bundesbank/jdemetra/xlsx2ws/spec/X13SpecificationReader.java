@@ -32,8 +32,8 @@ import ec.tstoolkit.timeseries.TsPeriodSelector;
 import ec.tstoolkit.timeseries.calendars.LengthOfPeriodType;
 import ec.tstoolkit.timeseries.calendars.TradingDaysType;
 import ec.tstoolkit.timeseries.regression.AdditiveOutlier;
-import ec.tstoolkit.timeseries.regression.IOutlierVariable;
 import ec.tstoolkit.timeseries.regression.LevelShift;
+import ec.tstoolkit.timeseries.regression.OutlierDefinition;
 import ec.tstoolkit.timeseries.regression.OutlierType;
 import ec.tstoolkit.timeseries.regression.SeasonalOutlier;
 import ec.tstoolkit.timeseries.regression.TransitoryChange;
@@ -189,6 +189,10 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
     }
 
     private void readPreSpecifiedOutliers(RegressionSpec regressionSpec) {
+        if (information.containsKey(OUTLIER + 1)) {
+            regressionSpec.clearOutliers();
+        }
+
         information.entrySet().stream()
                 .filter(x -> x.getKey().startsWith(OUTLIER))
                 .forEach(x -> {
@@ -201,24 +205,26 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
                     if (day == null) {
                         return;
                     }
-                    IOutlierVariable outlier;
+                    OutlierDefinition outlier;
                     switch (outlierInfo.substring(0, 2).toUpperCase()) {
                         case AdditiveOutlier.CODE:
-                            outlier = new AdditiveOutlier(day);
+                            outlier = new OutlierDefinition(day, OutlierType.AO);
                             break;
                         case LevelShift.CODE:
-                            outlier = new LevelShift(day);
+                            outlier = new OutlierDefinition(day, OutlierType.LS);
                             break;
                         case TransitoryChange.CODE:
-                            outlier = new TransitoryChange(day);
+                            outlier = new OutlierDefinition(day, OutlierType.TC);
                             break;
                         case SeasonalOutlier.CODE:
-                            outlier = new SeasonalOutlier(day);
+                            outlier = new OutlierDefinition(day, OutlierType.SO);
                             break;
                         default:
                             return;
                     }
-                    regressionSpec.add(outlier);
+                    if (!regressionSpec.contains(outlier)) {
+                        regressionSpec.add(outlier);
+                    }
                 });
     }
 
