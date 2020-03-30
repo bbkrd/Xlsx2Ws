@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.bundesbank.jdemetra</groupId>
     <artifactId>Xlsx2Ws</artifactId>
-    <version>0.8.3</version>
+    <version>0.8.4</version>
     <packaging>nbm</packaging>
     <properties>
         <netbeans.version>RELEASE82</netbeans.version>
@@ -136,6 +136,16 @@
             <groupId>org.netbeans.api</groupId>
             <artifactId>org-netbeans-api-progress</artifactId>
             <version>RELEASE82</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-netbeans-api-templates</artifactId>
+            <version>${netbeans.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-util-ui</artifactId>
+            <version>${netbeans.version}</version>
         </dependency>
     </dependencies>
 </project>

@@ -624,6 +624,21 @@ public class X13SpecificationReaderTest {
     }
 
     @Test
+    public void testReadSpecification_SeasonalFilterOrdering() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        for (int i = 1; i < 10; i++) {
+            instance.putInformation(X13SpecificationReader.SEASONALFILTERS + i, "S3X15");
+        }
+        instance.putInformation(X13SpecificationReader.SEASONALFILTERS + 10, "S3X9");
+        instance.putInformation(X13SpecificationReader.SEASONALFILTERS + 11, "S3X9");
+        instance.putInformation(X13SpecificationReader.SEASONALFILTERS + 12, "S3X9");
+        X13Specification specification = instance.readSpecification(null).getSpecification();
+
+        Assert.assertArrayEquals(new SeasonalFilterOption[]{SeasonalFilterOption.S3X15, SeasonalFilterOption.S3X15, SeasonalFilterOption.S3X15, SeasonalFilterOption.S3X15, SeasonalFilterOption.S3X15, SeasonalFilterOption.S3X15, SeasonalFilterOption.S3X15, SeasonalFilterOption.S3X15, SeasonalFilterOption.S3X15, SeasonalFilterOption.S3X9, SeasonalFilterOption.S3X9, SeasonalFilterOption.S3X9},
+                specification.getX11Specification().getSeasonalFilters());
+    }
+
+    @Test
     public void testReadSpecification_Tolerance() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.TOLERANCE, "0.1");

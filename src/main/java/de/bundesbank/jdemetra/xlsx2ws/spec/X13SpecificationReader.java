@@ -43,6 +43,7 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -195,6 +196,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
 
         information.entrySet().stream()
                 .filter(x -> x.getKey().startsWith(OUTLIER))
+                .sorted(STRING_MAP_COMPARATOR)
                 .forEach(x -> {
                     String outlierInfo = x.getValue();
                     if (outlierInfo.length() < 2) {
@@ -233,6 +235,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         List<String> userDefinedCalendarEffects = new ArrayList<>();
         information.entrySet().stream()
                 .filter(x -> x.getKey().startsWith(REGRESSOR))
+                .sorted(STRING_MAP_COMPARATOR)
                 .forEach(x -> {
                     if (REGRESSOR_PATTERN.matcher(x.getValue()).matches()) {
 
@@ -295,6 +298,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
     private void readFixedCoefficients(RegressionSpec regressionSpec) {
         information.entrySet().stream()
                 .filter(x -> x.getKey().startsWith(FIXED_COEFFICIENT))
+                .sorted(STRING_MAP_COMPARATOR)
                 .forEach((x) -> {
                     if (FIXED_COEFFICIENT_PATTERN.matcher(x.getValue()).matches()) {
                         String[] split = x.getValue().split("\\*");
@@ -596,9 +600,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
             return null;
         }
         List<R> options = new ArrayList<>(max);
-        Collator instance = Collator.getInstance();
-        instance.setStrength(Collator.PRIMARY);
-        list.sort(instance);
+        list.sort(STRING_COMPARATOR);
         list.forEach((entry) -> {
             consumeEnum(entry, function, options::add);
         });
@@ -677,6 +679,33 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
                     easterSpec.setTest(regressionTestSpec);
                 }
                 regressionSpec.add(easterSpec);
+            }
+        }
+    }
+
+    private static final StringMapComparator STRING_MAP_COMPARATOR = new StringMapComparator();
+
+    private static class StringMapComparator implements Comparator<Map.Entry<String, String>> {
+
+        @Override
+        public int compare(Map.Entry<String, String> o1, Map.Entry<String, String> o2) {
+            String key1 = o1.getKey();
+            String key2 = o2.getKey();
+            return STRING_COMPARATOR.compare(key1, key2);
+        }
+    }
+
+    private static final StringComparator STRING_COMPARATOR = new StringComparator();
+
+    private static class StringComparator implements Comparator<String> {
+
+        @Override
+        public int compare(String x, String y) {
+            int i = Integer.compare(x.length(), y.length());
+            if (i == 0) {
+                return Collator.getInstance().compare(x, y);
+            } else {
+                return i;
             }
         }
     }
