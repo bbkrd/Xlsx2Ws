@@ -6,6 +6,7 @@
 package de.bundesbank.jdemetra.xlsx2ws;
 
 import de.bundesbank.jdemetra.xlsx2ws.dto.IProviderInfo;
+import de.bundesbank.jdemetra.xlsx2ws.dto.ISetting;
 import de.bundesbank.jdemetra.xlsx2ws.dto.PositionInfo;
 import de.bundesbank.jdemetra.xlsx2ws.dto.RegressorInfo;
 import de.bundesbank.jdemetra.xlsx2ws.dto.SaItemInfo;
@@ -52,7 +53,11 @@ import org.openide.util.Lookup;
 public class Writer {
 
     public void writeWorkspace(File file) {
-        try (FileOutputStream fileOut = new FileOutputStream(file)) {
+        writeWorkspace(file, null);
+    }
+
+    public void writeWorkspace(File file, Map<String, ISetting> settings) {
+        try (final FileOutputStream fileOut = new FileOutputStream(file)) {
             TreeSet<String> providerInfoHeaderSaItems = new TreeSet<>();
             TreeSet<PositionInfo> specificationInfoHeader = new TreeSet<>();
             TreeSet<String> metaInfoHeader = new TreeSet<>();
@@ -78,7 +83,7 @@ public class Writer {
                         return;
                     }
                     writeProviderInfo(originalMoniker, saItemInfo, providerInfoHeaderSaItems);
-                    writeSpecificationInfo(item, saItemInfo, specificationInfoHeader);
+                    writeSpecificationInfo(item, saItemInfo, specificationInfoHeader, settings);
                     saItemInfos.add(saItemInfo);
                 });
             });
@@ -160,7 +165,6 @@ public class Writer {
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(null, ex.toString(), "Error", JOptionPane.ERROR_MESSAGE);
         }
-
     }
 
     private void writeProviderInfo(TsMoniker moniker, IProviderInfo iProviderInfo, TreeSet<String> providerInfoHeader) {
@@ -182,7 +186,7 @@ public class Writer {
         });
     }
 
-    private void writeSpecificationInfo(SaItem item, SaItemInfo saItemInfo, TreeSet<PositionInfo> specificationInfoHeader) {
+    private void writeSpecificationInfo(SaItem item, SaItemInfo saItemInfo, TreeSet<PositionInfo> specificationInfoHeader, Map<String, ISetting> settings) {
         ISaSpecification domainSpecification = item.getDomainSpecification();
         String specName = domainSpecification.getClass().getName();
 
@@ -193,7 +197,9 @@ public class Writer {
         }
         ISpecificationWriter specWriter = optionalSpec.get().getNewWriterInstance();
         saItemInfo.setSpecificationName(optionalSpec.get().getSpecificationName());
-        Map<PositionInfo, String> specInfo = specWriter.writeSpecification(domainSpecification);
+
+        ISetting setting = settings != null ? settings.get(specName) : null;
+        Map<PositionInfo, String> specInfo = specWriter.writeSpecification(domainSpecification, setting);
         specInfo.forEach((key, value) -> {
             saItemInfo.addSpecificationInfo(key.getName(), value);
             specificationInfoHeader.add(key);

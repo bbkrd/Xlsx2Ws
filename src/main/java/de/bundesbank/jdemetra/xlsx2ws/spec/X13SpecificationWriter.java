@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  *
  * @author s4504tw
  */
-public class X13SpecificationWriter implements ISpecificationWriter<X13Specification> {
+public class X13SpecificationWriter implements ISpecificationWriter<X13Specification, X13SpecificationSetting> {
 
     public static final int INITIAL_POS_SERIES_SPAN = 111000;
     public static final int INITIAL_POS_ESTIMATE_SPAN = 121000;
@@ -103,8 +103,15 @@ public class X13SpecificationWriter implements ISpecificationWriter<X13Specifica
 
     private final Map<PositionInfo, String> information = new HashMap<>();
 
-    @Override
     public Map<PositionInfo, String> writeSpecification(X13Specification spec) {
+        return writeSpecification(spec, null);
+    }
+
+    @Override
+    public Map<PositionInfo, String> writeSpecification(X13Specification spec, X13SpecificationSetting settings) {
+        if (settings == null) {
+            settings = new X13SpecificationSetting();
+        }
         String base = spec.toString();
         if (!base.equals("X13")) {
             information.put(POS_BASE, base);
@@ -113,30 +120,46 @@ public class X13SpecificationWriter implements ISpecificationWriter<X13Specifica
         RegArimaSpecification regArimaSpecification = spec.getRegArimaSpecification();
 
         //SERIES
-        writeSeriesInformation(regArimaSpecification.getBasic());
+        if (settings.isSeries()) {
+            writeSeriesInformation(regArimaSpecification.getBasic());
+        }
 
         if (regArimaSpecification.equals(RegArimaSpecification.RGDISABLED)) {
-            //just X11
-            information.put(POS_BASE, X13Specification.RSAX11.toString());
-            //X11
-            writeX11Information(spec.getX11Specification(), true);
+            if (settings.isX11()) {
+                //just X11
+                information.put(POS_BASE, X13Specification.RSAX11.toString());
+                //X11
+                writeX11Information(spec.getX11Specification(), true);
+            }
         } else {
             //ESTIMATE
-            writeEstimateInformation(regArimaSpecification.getEstimate());
+            if (settings.isEstimate()) {
+                writeEstimateInformation(regArimaSpecification.getEstimate());
+            }
             //TRANSFORMATION
-            writeTransformationInformation(regArimaSpecification.getTransform());
+            if (settings.isTransform()) {
+                writeTransformationInformation(regArimaSpecification.getTransform());
+            }
             //REGRESSION
-            writeRegressionInformation(regArimaSpecification.getRegression());
+            if (settings.isRegression()) {
+                writeRegressionInformation(regArimaSpecification.getRegression());
+            }
             //OUTLIERS
-            writeOutlierInformation(regArimaSpecification.getOutliers());
+            if (settings.isOutlier()) {
+                writeOutlierInformation(regArimaSpecification.getOutliers());
+            }
             //ARIMA
-            if (regArimaSpecification.isUsingAutoModel()) {
-                writeAutoModelInformation(regArimaSpecification.getAutoModel());
-            } else {
-                writeARIMAInformation(regArimaSpecification.getArima());
+            if (settings.isArima()) {
+                if (regArimaSpecification.isUsingAutoModel()) {
+                    writeAutoModelInformation(regArimaSpecification.getAutoModel());
+                } else {
+                    writeARIMAInformation(regArimaSpecification.getArima());
+                }
             }
             //X11
-            writeX11Information(spec.getX11Specification(), false);
+            if (settings.isX11()) {
+                writeX11Information(spec.getX11Specification(), false);
+            }
         }
         return information;
     }

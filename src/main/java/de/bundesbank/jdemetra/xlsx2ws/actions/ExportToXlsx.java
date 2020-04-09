@@ -27,7 +27,7 @@ import org.openide.util.NbPreferences;
 @ActionRegistration(
         displayName = "#CTL_ExportToXlsx"
 )
-@ActionReference(path = "Menu/File", position = 402, separatorAfter = 403)
+@ActionReference(path = "Menu/File", position = 402)
 @Messages("CTL_ExportToXlsx=Export to Xlsx file")
 public final class ExportToXlsx implements ActionListener {
 

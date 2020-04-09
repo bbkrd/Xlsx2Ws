@@ -5,19 +5,26 @@
  */
 package de.bundesbank.jdemetra.xlsx2ws.spec;
 
+import de.bundesbank.jdemetra.xlsx2ws.wizard.IChoose;
+import de.bundesbank.jdemetra.xlsx2ws.wizard.X13SettingWizard;
 import ec.satoolkit.x13.X13Specification;
+import org.openide.WizardDescriptor;
 import org.openide.util.lookup.ServiceProvider;
+import org.openide.util.lookup.ServiceProviders;
 
 /**
  *
  * @author Thomas Witthohn
  */
-@ServiceProvider(service = ISpecificationFactory.class)
-public class X13SpecificationFactory implements ISpecificationFactory<X13SpecificationReader, X13SpecificationWriter> {
+@ServiceProviders(value = {
+    @ServiceProvider(service = ISpecificationFactory.class),
+    @ServiceProvider(service = IChoose.class)}
+)
+public class X13SpecificationFactory implements ISpecificationFactory<X13SpecificationReader, X13SpecificationWriter>, IChoose {
 
     private static final String SPECIFICATION_NAME = "X13";
 
-    private static final Class<X13Specification> SUPPORTED_CLASS = X13Specification.class;
+    public static final Class<X13Specification> SUPPORTED_CLASS = X13Specification.class;
 
     @Override
     public X13SpecificationReader getNewReaderInstance() {
@@ -37,6 +44,11 @@ public class X13SpecificationFactory implements ISpecificationFactory<X13Specifi
     @Override
     public X13SpecificationWriter getNewWriterInstance() {
         return new X13SpecificationWriter();
+    }
+
+    @Override
+    public WizardDescriptor.Panel<WizardDescriptor> createPanel() {
+        return new X13SettingWizard();
     }
 
 }

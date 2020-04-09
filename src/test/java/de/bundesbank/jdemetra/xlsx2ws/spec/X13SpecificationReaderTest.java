@@ -634,7 +634,10 @@ public class X13SpecificationReaderTest {
         instance.putInformation(X13SpecificationReader.SEASONALFILTERS + 12, "S3X9");
         X13Specification specification = instance.readSpecification(null).getSpecification();
 
-        Assert.assertArrayEquals(new SeasonalFilterOption[]{SeasonalFilterOption.S3X15, SeasonalFilterOption.S3X15, SeasonalFilterOption.S3X15, SeasonalFilterOption.S3X15, SeasonalFilterOption.S3X15, SeasonalFilterOption.S3X15, SeasonalFilterOption.S3X15, SeasonalFilterOption.S3X15, SeasonalFilterOption.S3X15, SeasonalFilterOption.S3X9, SeasonalFilterOption.S3X9, SeasonalFilterOption.S3X9},
+        Assert.assertArrayEquals(new SeasonalFilterOption[]{SeasonalFilterOption.S3X15, SeasonalFilterOption.S3X15, SeasonalFilterOption.S3X15,
+            SeasonalFilterOption.S3X15, SeasonalFilterOption.S3X15, SeasonalFilterOption.S3X15,
+            SeasonalFilterOption.S3X15, SeasonalFilterOption.S3X15, SeasonalFilterOption.S3X15,
+            SeasonalFilterOption.S3X9, SeasonalFilterOption.S3X9, SeasonalFilterOption.S3X9},
                 specification.getX11Specification().getSeasonalFilters());
     }
 
