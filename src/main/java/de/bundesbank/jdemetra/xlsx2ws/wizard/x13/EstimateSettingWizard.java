@@ -3,39 +3,34 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.bundesbank.jdemetra.xlsx2ws.wizard;
+package de.bundesbank.jdemetra.xlsx2ws.wizard.x13;
 
 import de.bundesbank.jdemetra.xlsx2ws.actions.ExportToXlsx;
 import de.bundesbank.jdemetra.xlsx2ws.dto.ISetting;
 import de.bundesbank.jdemetra.xlsx2ws.spec.X13SpecificationFactory;
-import java.util.ArrayList;
+import de.bundesbank.jdemetra.xlsx2ws.spec.X13SpecificationSetting;
 import java.util.HashMap;
-import java.util.List;
-import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.openide.WizardDescriptor;
 import org.openide.util.HelpCtx;
 
-public class X13SettingWizard implements WizardDescriptor.Panel<WizardDescriptor> {
-
-    private final List<ChangeListener> listener = new ArrayList<>();
+public class EstimateSettingWizard implements WizardDescriptor.Panel<WizardDescriptor> {
 
     /**
      * The visual component that displays this panel. If you need to access the
      * component from this class, just use getComponent().
      */
-    private X13SettingVisual component;
-    private HashMap<String, ISetting> settings;
+    private EstimateSettingVisual component;
+    private X13SpecificationSetting setting;
 
     // Get the visual component for the panel. In this template, the component
     // is kept separate. This can be more efficient: if the wizard is created
     // but never displayed, or not all panels are displayed, it is better to
     // create only those which really need to be visible.
     @Override
-    public X13SettingVisual getComponent() {
+    public EstimateSettingVisual getComponent() {
         if (component == null) {
-            component = new X13SettingVisual();
-            component.addChangeListener(x -> notifyListener(x));
+            component = new EstimateSettingVisual();
         }
         return component;
     }
@@ -52,31 +47,26 @@ public class X13SettingWizard implements WizardDescriptor.Panel<WizardDescriptor
 
     @Override
     public void addChangeListener(ChangeListener l) {
-        listener.add(l);
     }
 
     @Override
     public void removeChangeListener(ChangeListener l) {
-        listener.remove(l);
-    }
-
-    private synchronized void notifyListener(ChangeEvent ev) {
-        for (ChangeListener changeListener : listener) {
-            changeListener.stateChanged(ev);
-        }
     }
 
     @Override
     public void readSettings(WizardDescriptor wiz) {
         Object property = wiz.getProperty(ExportToXlsx.SETTINGS);
         if (property instanceof HashMap) {
-            settings = (HashMap<String, ISetting>) property;
+            ISetting settingTemp = ((HashMap<String, ISetting>) property).get(X13SpecificationFactory.SUPPORTED_CLASS.getName());
+            if (settingTemp instanceof X13SpecificationSetting) {
+                this.setting = (X13SpecificationSetting) settingTemp;
+            }
         }
     }
 
     @Override
     public void storeSettings(WizardDescriptor wiz) {
-        settings.put(X13SpecificationFactory.SUPPORTED_CLASS.getName(), component.createSetting());
+        setting.setEstimateSetting(component.createSetting());
     }
 
 }

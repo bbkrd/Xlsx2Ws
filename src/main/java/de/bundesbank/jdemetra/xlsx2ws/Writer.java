@@ -7,6 +7,8 @@ package de.bundesbank.jdemetra.xlsx2ws;
 
 import de.bundesbank.jdemetra.xlsx2ws.dto.IProviderInfo;
 import de.bundesbank.jdemetra.xlsx2ws.dto.ISetting;
+import de.bundesbank.jdemetra.xlsx2ws.dto.MetaDataSetting;
+import de.bundesbank.jdemetra.xlsx2ws.dto.MultiDocSetting;
 import de.bundesbank.jdemetra.xlsx2ws.dto.PositionInfo;
 import de.bundesbank.jdemetra.xlsx2ws.dto.RegressorInfo;
 import de.bundesbank.jdemetra.xlsx2ws.dto.SaItemInfo;
@@ -63,30 +65,37 @@ public class Writer {
             TreeSet<String> metaInfoHeader = new TreeSet<>();
 
             List<SaItemInfo> saItemInfos = new ArrayList();
+            MultiDocSetting multiDocSetting = getMultiDocSetting(settings);
+            MetaDataSetting metaDataSetting = getMetaDataSetting(settings);
 
             Workspace ws = WorkspaceFactory.getInstance().getActiveWorkspace();
             List<WorkspaceItem<MultiProcessingDocument>> existingDocuments = ws.searchDocuments(MultiProcessingDocument.class);
-            existingDocuments.forEach(existingDocument -> {
-                String name = existingDocument.getDisplayName();
-                existingDocument.getElement().getCurrent().forEach(item -> {
-                    SaItemInfo saItemInfo = new SaItemInfo();
-                    saItemInfo.setMultidocName(name);
-                    saItemInfo.setSaItemName(item.getRawName().equals("") ? Integer.toString(saItemInfos.size() + 1) : item.getRawName());
-                    if (item.getMetaData() != null) {
-                        for (Map.Entry<String, String> entry : item.getMetaData().entrySet()) {
-                            saItemInfo.getMetaData().put(entry.getKey(), entry.getValue());
-                            metaInfoHeader.add(entry.getKey());
-                        }
-                    }
-                    TsMoniker originalMoniker = getOriginalMoniker(item.getTs().getMoniker());
-                    if (originalMoniker == null) {
-                        return;
-                    }
-                    writeProviderInfo(originalMoniker, saItemInfo, providerInfoHeaderSaItems);
-                    writeSpecificationInfo(item, saItemInfo, specificationInfoHeader, settings);
-                    saItemInfos.add(saItemInfo);
-                });
-            });
+            existingDocuments.stream()
+                    .filter(x -> multiDocSetting == null || multiDocSetting.contains(x.getDisplayName()))
+                    .forEach(existingDocument -> {
+                        String name = existingDocument.getDisplayName();
+                        existingDocument.getElement().getCurrent().forEach(item -> {
+                            SaItemInfo saItemInfo = new SaItemInfo();
+                            saItemInfo.setMultidocName(name);
+                            saItemInfo.setSaItemName(item.getRawName().equals("") ? Integer.toString(saItemInfos.size() + 1) : item.getRawName());
+                            if (item.getMetaData() != null) {
+                                item.getMetaData().entrySet().stream()
+                                        .filter(e -> metaDataSetting == null || metaDataSetting.contains(e.getKey()))
+                                        .forEach((entry) -> {
+                                            saItemInfo.getMetaData().put(entry.getKey(), entry.getValue());
+                                            metaInfoHeader.add(entry.getKey());
+                                        });
+
+                            }
+                            TsMoniker originalMoniker = getOriginalMoniker(item.getTs().getMoniker());
+                            if (originalMoniker == null) {
+                                return;
+                            }
+                            writeProviderInfo(originalMoniker, saItemInfo, providerInfoHeaderSaItems);
+                            writeSpecificationInfo(item, saItemInfo, specificationInfoHeader, settings);
+                            saItemInfos.add(saItemInfo);
+                        });
+                    });
 
             HashMap<String, Header> headersSaItems = createHeaders(4,
                     new PrefixSet("prov_", providerInfoHeaderSaItems),
@@ -248,6 +257,22 @@ public class Writer {
             }
         }
         return headers;
+    }
+
+    private MultiDocSetting getMultiDocSetting(Map<String, ISetting> settings) {
+        ISetting multidocSetting = settings != null ? settings.get(MultiDocSetting.MULTIDOC_SETTING) : null;
+        if (multidocSetting instanceof MultiDocSetting) {
+            return (MultiDocSetting) multidocSetting;
+        }
+        return null;
+    }
+
+    private MetaDataSetting getMetaDataSetting(Map<String, ISetting> settings) {
+        ISetting setting = settings != null ? settings.get(MetaDataSetting.META_DATA_SETTING) : null;
+        if (setting instanceof MetaDataSetting) {
+            return (MetaDataSetting) setting;
+        }
+        return null;
     }
 
     @lombok.Value

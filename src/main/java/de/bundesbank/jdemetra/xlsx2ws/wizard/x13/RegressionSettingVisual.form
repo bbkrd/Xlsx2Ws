@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<Form version="1.5" maxVersion="1.9" type="org.netbeans.modules.form.forminfo.JPanelFormInfo">
+  <AuxValues>
+    <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="0"/>
+    <AuxValue name="FormSettings_autoSetComponentName" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_generateFQN" type="java.lang.Boolean" value="true"/>
+    <AuxValue name="FormSettings_generateMnemonicsCode" type="java.lang.Boolean" value="true"/>
+    <AuxValue name="FormSettings_i18nAutoMode" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_layoutCodeTarget" type="java.lang.Integer" value="1"/>
+    <AuxValue name="FormSettings_listenerGenerationStyle" type="java.lang.Integer" value="0"/>
+    <AuxValue name="FormSettings_variablesLocal" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_variablesModifier" type="java.lang.Integer" value="2"/>
+  </AuxValues>
+
+  <Layout>
+    <DimensionLayout dim="0">
+      <Group type="103" groupAlignment="0" attributes="0">
+          <Group type="102" alignment="0" attributes="0">
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Component id="jLabel1" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Group type="102" alignment="0" attributes="0">
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="cbHolidays" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Group type="102" alignment="0" attributes="0">
+                              <Group type="103" groupAlignment="0" attributes="0">
+                                  <Component id="cbTradingDaysType" alignment="0" min="-2" max="-2" attributes="0"/>
+                                  <Component id="cbAutoAdjust" alignment="0" min="-2" max="-2" attributes="0"/>
+                                  <Component id="cbLeapYear" alignment="0" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <EmptySpace type="separate" max="-2" attributes="0"/>
+                              <Group type="103" groupAlignment="0" attributes="0">
+                                  <Component id="cbEaster" min="-2" max="-2" attributes="0"/>
+                                  <Component id="cbUserVariables" min="-2" max="-2" attributes="0"/>
+                                  <Component id="cbW" min="-2" max="-2" attributes="0"/>
+                                  <Component id="cbTradingDaysTest" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                          </Group>
+                      </Group>
+                      <EmptySpace type="separate" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="cbPrespecifiedOutliers" min="-2" max="-2" attributes="0"/>
+                          <Component id="cbFixedRegressionCoefficients" min="-2" max="-2" attributes="0"/>
+                          <Component id="cbUserDefinedVariables" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                  </Group>
+              </Group>
+              <EmptySpace max="32767" attributes="0"/>
+          </Group>
+      </Group>
+    </DimensionLayout>
+    <DimensionLayout dim="1">
+      <Group type="103" groupAlignment="0" attributes="0">
+          <Group type="102" alignment="0" attributes="0">
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="cbHolidays" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cbW" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cbPrespecifiedOutliers" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="cbTradingDaysType" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cbUserVariables" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cbUserDefinedVariables" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="cbAutoAdjust" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cbTradingDaysTest" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cbFixedRegressionCoefficients" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="cbLeapYear" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cbEaster" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace pref="122" max="32767" attributes="0"/>
+          </Group>
+      </Group>
+    </DimensionLayout>
+  </Layout>
+  <SubComponents>
+    <Component class="javax.swing.JCheckBox" name="cbHolidays">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Holidays"/>
+      </Properties>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_SerializeTo" type="java.lang.String" value="ArimaSettingVisual_cbAcceptDefault"/>
+      </AuxValues>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbTradingDaysType">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Trading days type"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbAutoAdjust">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Auto adjust"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbLeapYear">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Leap year"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbW">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Stock trading day (w)"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbUserVariables">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="User variables"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbTradingDaysTest">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Trading days test"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbEaster">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Easter"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbPrespecifiedOutliers">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Prespecified outliers"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbUserDefinedVariables">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="User defined variables"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbFixedRegressionCoefficients">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Fixed regression coefficients"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabel1">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Choose which parts of the regression specification (X13) should be written to the XLSX."/>
+      </Properties>
+    </Component>
+  </SubComponents>
+</Form>

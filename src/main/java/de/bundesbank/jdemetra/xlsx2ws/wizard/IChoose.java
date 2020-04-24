@@ -15,5 +15,5 @@ import org.openide.WizardDescriptor;
 @ServiceDefinition
 public interface IChoose {
 
-    WizardDescriptor.Panel<WizardDescriptor> createPanel();
+    WizardDescriptor.Iterator<WizardDescriptor> createIterator();
 }

@@ -7,6 +7,13 @@ package de.bundesbank.jdemetra.xlsx2ws.spec;
 
 import de.bundesbank.jdemetra.xlsx2ws.dto.PositionInfo;
 import static de.bundesbank.jdemetra.xlsx2ws.spec.X13SpecificationReader.*;
+import de.bundesbank.jdemetra.xlsx2ws.spec.x13.ArimaSetting;
+import de.bundesbank.jdemetra.xlsx2ws.spec.x13.EstimateSetting;
+import de.bundesbank.jdemetra.xlsx2ws.spec.x13.OutlierSetting;
+import de.bundesbank.jdemetra.xlsx2ws.spec.x13.RegressionSetting;
+import de.bundesbank.jdemetra.xlsx2ws.spec.x13.SeriesSetting;
+import de.bundesbank.jdemetra.xlsx2ws.spec.x13.TransformSetting;
+import de.bundesbank.jdemetra.xlsx2ws.spec.x13.X11Setting;
 import ec.satoolkit.DecompositionMode;
 import ec.satoolkit.x11.CalendarSigma;
 import ec.satoolkit.x11.SeasonalFilterOption;
@@ -15,7 +22,6 @@ import ec.satoolkit.x11.X11Specification;
 import ec.satoolkit.x13.X13Specification;
 import ec.tstoolkit.Parameter;
 import ec.tstoolkit.modelling.DefaultTransformationType;
-import ec.tstoolkit.modelling.RegressionTestSpec;
 import ec.tstoolkit.modelling.TsVariableDescriptor;
 import ec.tstoolkit.modelling.arima.x13.*;
 import ec.tstoolkit.timeseries.PeriodSelectorType;
@@ -121,7 +127,11 @@ public class X13SpecificationWriter implements ISpecificationWriter<X13Specifica
 
         //SERIES
         if (settings.isSeries()) {
-            writeSeriesInformation(regArimaSpecification.getBasic());
+            SeriesSetting seriesSetting = settings.getSeriesSetting();
+            if (seriesSetting == null) {
+                seriesSetting = new SeriesSetting();
+            }
+            writeSeriesInformation(regArimaSpecification.getBasic(), seriesSetting);
         }
 
         if (regArimaSpecification.equals(RegArimaSpecification.RGDISABLED)) {
@@ -129,122 +139,179 @@ public class X13SpecificationWriter implements ISpecificationWriter<X13Specifica
                 //just X11
                 information.put(POS_BASE, X13Specification.RSAX11.toString());
                 //X11
-                writeX11Information(spec.getX11Specification(), true);
+                X11Setting x11Setting = settings.getX11Setting();
+                if (x11Setting == null) {
+                    x11Setting = new X11Setting();
+                }
+                writeX11Information(spec.getX11Specification(), x11Setting, true);
             }
         } else {
             //ESTIMATE
             if (settings.isEstimate()) {
-                writeEstimateInformation(regArimaSpecification.getEstimate());
+                EstimateSetting estimateSetting = settings.getEstimateSetting();
+                if (estimateSetting == null) {
+                    estimateSetting = new EstimateSetting();
+                }
+                writeEstimateInformation(regArimaSpecification.getEstimate(), estimateSetting);
             }
             //TRANSFORMATION
             if (settings.isTransform()) {
-                writeTransformationInformation(regArimaSpecification.getTransform());
+                TransformSetting transformSetting = settings.getTransformSetting();
+                if (transformSetting == null) {
+                    transformSetting = new TransformSetting();
+                }
+                writeTransformationInformation(regArimaSpecification.getTransform(), transformSetting);
             }
             //REGRESSION
             if (settings.isRegression()) {
-                writeRegressionInformation(regArimaSpecification.getRegression());
+                RegressionSetting regressionSetting = settings.getRegressionSetting();
+                if (regressionSetting == null) {
+                    regressionSetting = new RegressionSetting();
+                }
+                writeRegressionInformation(regArimaSpecification.getRegression(), regressionSetting);
             }
             //OUTLIERS
             if (settings.isOutlier()) {
-                writeOutlierInformation(regArimaSpecification.getOutliers());
+                OutlierSetting outlierSetting = settings.getOutlierSetting();
+                if (outlierSetting == null) {
+                    outlierSetting = new OutlierSetting();
+                }
+                writeOutlierInformation(regArimaSpecification.getOutliers(), outlierSetting);
             }
             //ARIMA
             if (settings.isArima()) {
+                ArimaSetting arimaSetting = settings.getArimaSetting();
+                if (arimaSetting == null) {
+                    arimaSetting = new ArimaSetting();
+                }
                 if (regArimaSpecification.isUsingAutoModel()) {
-                    writeAutoModelInformation(regArimaSpecification.getAutoModel());
+                    writeAutoModelInformation(regArimaSpecification.getAutoModel(), arimaSetting);
                 } else {
-                    writeARIMAInformation(regArimaSpecification.getArima());
+                    writeARIMAInformation(regArimaSpecification.getArima(), arimaSetting);
                 }
             }
             //X11
             if (settings.isX11()) {
-                writeX11Information(spec.getX11Specification(), false);
+                X11Setting x11Setting = settings.getX11Setting();
+                if (x11Setting == null) {
+                    x11Setting = new X11Setting();
+                }
+                writeX11Information(spec.getX11Specification(), x11Setting, false);
             }
         }
         return information;
     }
 
-    private void writeSeriesInformation(BasicSpec basicSpec) {
+    private void writeSeriesInformation(BasicSpec basicSpec, SeriesSetting seriesSetting) {
         TsPeriodSelector span = basicSpec.getSpan();
         if (span.getType() == PeriodSelectorType.All && basicSpec.isPreliminaryCheck()) {
             return;
         }
-        information.put(POS_PRELIMINARY_CHECK, Boolean.toString(basicSpec.isPreliminaryCheck()));
-        writeSpan(span, SERIES, INITIAL_POS_SERIES_SPAN);
+        if (seriesSetting.isPreCheck()) {
+            information.put(POS_PRELIMINARY_CHECK, Boolean.toString(basicSpec.isPreliminaryCheck()));
+        }
+        if (seriesSetting.isSpan()) {
+            writeSpan(span, SERIES, INITIAL_POS_SERIES_SPAN);
+        }
 
     }
 
-    private void writeEstimateInformation(EstimateSpec estimateSpec) {
+    private void writeEstimateInformation(EstimateSpec estimateSpec, EstimateSetting estimateSetting) {
         if (estimateSpec.isDefault()) {
             return;
         }
-        TsPeriodSelector span = estimateSpec.getSpan();
-        information.put(POS_TOLERANCE, Double.toString(estimateSpec.getTol()));
-        writeSpan(span, ESTIMATE, INITIAL_POS_ESTIMATE_SPAN);
+        if (estimateSetting.isTolerance()) {
+            information.put(POS_TOLERANCE, Double.toString(estimateSpec.getTol()));
+        }
+        if (estimateSetting.isSpan()) {
+            writeSpan(estimateSpec.getSpan(), ESTIMATE, INITIAL_POS_ESTIMATE_SPAN);
+        }
     }
 
-    private void writeTransformationInformation(TransformSpec transformSpec) {
+    private void writeTransformationInformation(TransformSpec transformSpec, TransformSetting transformSetting) {
         DefaultTransformationType function = transformSpec.getFunction();
-        information.put(POS_TRANSFORM, function.toString());
+        if (transformSetting.isTransform()) {
+            information.put(POS_TRANSFORM, function.toString());
+        }
         switch (function) {
             case None:
                 break;
             case Auto:
-                information.put(POS_AIC_DIFFERENCE, Double.toString(transformSpec.getAICDiff()));
+                if (transformSetting.isAicDiff()) {
+                    information.put(POS_AIC_DIFFERENCE, Double.toString(transformSpec.getAICDiff()));
+                }
                 break;
             case Log:
-                information.put(POS_ADJUST, transformSpec.getAdjust().toString());
+                if (transformSetting.isAdjust()) {
+                    information.put(POS_ADJUST, transformSpec.getAdjust().toString());
+                }
                 break;
             default:
                 throw new AssertionError();
         }
     }
 
-    private void writeRegressionInformation(RegressionSpec regressionSpec) {
+    private void writeRegressionInformation(RegressionSpec regressionSpec, RegressionSetting regressionSetting) {
         int regressionCounter = 0;
-        regressionCounter = writeTradingDays(regressionSpec, regressionCounter);
-        writeEaster(regressionSpec);
-        writePreSpecifiedOutliers(regressionSpec);
+        regressionCounter = writeTradingDays(regressionSpec, regressionSetting, regressionCounter);
+        if (regressionSetting.isEaster()) {
+            writeEaster(regressionSpec);
+        }
+        if (regressionSetting.isPrespecifiedOutliers()) {
+            writePreSpecifiedOutliers(regressionSpec);
+        }
         //INTERVENTION (TODO)
         //RAMP (TODO)
-        writeUserDefinedVariables(regressionSpec, regressionCounter);
-        writeFixedRegressionCoefficients(regressionSpec);
+        if (regressionSetting.isUserDefinedVariables()) {
+            writeUserDefinedVariables(regressionSpec, regressionCounter);
+        }
+        if (regressionSetting.isFixedRegressionCoefficients()) {
+            writeFixedRegressionCoefficients(regressionSpec);
+        }
     }
 
-    private int writeTradingDays(RegressionSpec regressionSpec, int regressionCounter) {
+    private int writeTradingDays(RegressionSpec regressionSpec, RegressionSetting regressionSetting, int regressionCounter) {
         TradingDaysSpec tradingDays = regressionSpec.getTradingDays();
         if (tradingDays != null) {
             String holidays = tradingDays.getHolidays();
-            if (holidays != null) {
+            if (holidays != null && regressionSetting.isHolidays()) {
                 information.put(POS_HOLIDAYS, holidays);
             }
 
             TradingDaysType tradingDaysType = tradingDays.getTradingDaysType();
-            information.put(POS_TRADING_DAYS_TYPE, tradingDaysType.toString());
+            if (regressionSetting.isTradingDaysType()) {
+                information.put(POS_TRADING_DAYS_TYPE, tradingDaysType.toString());
+            }
 
             if (holidays != null || !tradingDaysType.equals(TradingDaysType.None)) {
                 boolean autoAdjust = tradingDays.isAutoAdjust();
-                information.put(POS_AUTO_ADJUST, Boolean.toString(autoAdjust));
-                if (!autoAdjust) {
+                if (regressionSetting.isAutoAdjust()) {
+                    information.put(POS_AUTO_ADJUST, Boolean.toString(autoAdjust));
+                }
+                if (!autoAdjust && regressionSetting.isLeapYear()) {
                     LengthOfPeriodType lengthOfPeriod = tradingDays.getLengthOfPeriod();
                     information.put(POS_LEAP_YEAR, lengthOfPeriod.toString());
                 }
             }
 
-            int stockTradingDays = tradingDays.getStockTradingDays();
-            if (stockTradingDays != 0) {
-                information.put(POS_W, Integer.toString(stockTradingDays));
+            if (regressionSetting.isW()) {
+                int stockTradingDays = tradingDays.getStockTradingDays();
+                if (stockTradingDays != 0) {
+                    information.put(POS_W, Integer.toString(stockTradingDays));
+                }
             }
 
             String[] userVariables = tradingDays.getUserVariables();
-            if (userVariables != null) {
+            if (userVariables != null && regressionSetting.isUserDefinedVariables()) {
                 for (int i = 0; i < userVariables.length; i++) {
                     information.put(new PositionInfo(INITIAL_POS_REGRESSOR + regressionCounter + i, REGRESSOR + (regressionCounter + i + 1)), userVariables[i] + "*c");
                     regressionCounter++;
                 }
             }
-            RegressionTestSpec test = tradingDays.getTest();
-            information.put(POS_TEST, test.toString());
+
+            if (regressionSetting.isTradingDaysTest()) {
+                information.put(POS_TEST, tradingDays.getTest().toString());
+            }
         }
         return regressionCounter;
     }
@@ -318,111 +385,178 @@ public class X13SpecificationWriter implements ISpecificationWriter<X13Specifica
         }
     }
 
-    private void writeOutlierInformation(OutlierSpec outlierSpec) {
+    private void writeOutlierInformation(OutlierSpec outlierSpec, OutlierSetting outlierSetting) {
         if (!outlierSpec.isUsed()) {
             return;
         }
-        writeSpan(outlierSpec.getSpan(), OUTLIER, INITIAL_POS_OUTLIER_SPAN);
-        information.put(POS_CRITICAL_VALUE, Double.toString(outlierSpec.getDefaultCriticalValue()));
-        information.put(POS_AO, Boolean.toString(outlierSpec.search(OutlierType.AO) != null));
-        information.put(POS_LS, Boolean.toString(outlierSpec.search(OutlierType.LS) != null));
-        information.put(POS_TC, Boolean.toString(outlierSpec.search(OutlierType.TC) != null));
-        information.put(POS_SO, Boolean.toString(outlierSpec.search(OutlierType.SO) != null));
-        information.put(POS_TC_RATE, Double.toString(outlierSpec.getMonthlyTCRate()));
-        information.put(POS_METHOD, outlierSpec.getMethod().toString());
+        if (outlierSetting.isSpan()) {
+            writeSpan(outlierSpec.getSpan(), OUTLIER, INITIAL_POS_OUTLIER_SPAN);
+        }
+        if (outlierSetting.isCriticalValue()) {
+            information.put(POS_CRITICAL_VALUE, Double.toString(outlierSpec.getDefaultCriticalValue()));
+        }
+        if (outlierSetting.isAo()) {
+            information.put(POS_AO, Boolean.toString(outlierSpec.search(OutlierType.AO) != null));
+        }
+        if (outlierSetting.isLs()) {
+            information.put(POS_LS, Boolean.toString(outlierSpec.search(OutlierType.LS) != null));
+        }
+        if (outlierSetting.isTc()) {
+            information.put(POS_TC, Boolean.toString(outlierSpec.search(OutlierType.TC) != null));
+        }
+        if (outlierSetting.isSo()) {
+            information.put(POS_SO, Boolean.toString(outlierSpec.search(OutlierType.SO) != null));
+        }
+        if (outlierSetting.isTcRate()) {
+            information.put(POS_TC_RATE, Double.toString(outlierSpec.getMonthlyTCRate()));
+        }
+        if (outlierSetting.isMethod()) {
+            information.put(POS_METHOD, outlierSpec.getMethod().toString());
+        }
     }
 
-    private void writeAutoModelInformation(AutoModelSpec autoModelSpec) {
+    private void writeAutoModelInformation(AutoModelSpec autoModelSpec, ArimaSetting arimaSetting) {
         information.put(POS_AUTOMODEL, Boolean.toString(true));
-        information.put(POS_ACCEPT_DEFAULT, Boolean.toString(autoModelSpec.isAcceptDefault()));
-        information.put(POS_CANCELATION_LIMIT, Double.toString(autoModelSpec.getCancelationLimit()));
-        information.put(POS_INITIAL_UR, Double.toString(autoModelSpec.getInitialUnitRootLimit()));
-        information.put(POS_FINAL_UR, Double.toString(autoModelSpec.getFinalUnitRootLimit()));
-        information.put(POS_MIXED, Boolean.toString(autoModelSpec.isMixed()));
-        information.put(POS_BALANCED, Boolean.toString(autoModelSpec.isBalanced()));
-        information.put(POS_ARMALIMIT, Double.toString(autoModelSpec.getArmaSignificance()));
-        information.put(POS_REDUCE_CV, Double.toString(autoModelSpec.getPercentReductionCV()));
-        information.put(POS_LJUNGBOX_LIMIT, Double.toString(autoModelSpec.getLjungBoxLimit()));
-        information.put(POS_URFINAL, Double.toString(autoModelSpec.getUnitRootLimit()));
+        if (arimaSetting.isAcceptDefault()) {
+            information.put(POS_ACCEPT_DEFAULT, Boolean.toString(autoModelSpec.isAcceptDefault()));
+        }
+        if (arimaSetting.isCancelationLimit()) {
+            information.put(POS_CANCELATION_LIMIT, Double.toString(autoModelSpec.getCancelationLimit()));
+        }
+        if (arimaSetting.isInitialUR()) {
+            information.put(POS_INITIAL_UR, Double.toString(autoModelSpec.getInitialUnitRootLimit()));
+        }
+        if (arimaSetting.isFinalUR()) {
+            information.put(POS_FINAL_UR, Double.toString(autoModelSpec.getFinalUnitRootLimit()));
+        }
+        if (arimaSetting.isMixed()) {
+            information.put(POS_MIXED, Boolean.toString(autoModelSpec.isMixed()));
+        }
+        if (arimaSetting.isBalanced()) {
+            information.put(POS_BALANCED, Boolean.toString(autoModelSpec.isBalanced()));
+        }
+        if (arimaSetting.isArmaLimit()) {
+            information.put(POS_ARMALIMIT, Double.toString(autoModelSpec.getArmaSignificance()));
+        }
+        if (arimaSetting.isReduceCV()) {
+            information.put(POS_REDUCE_CV, Double.toString(autoModelSpec.getPercentReductionCV()));
+        }
+        if (arimaSetting.isLjungboxLimit()) {
+            information.put(POS_LJUNGBOX_LIMIT, Double.toString(autoModelSpec.getLjungBoxLimit()));
+        }
+        if (arimaSetting.isUrFinal()) {
+            information.put(POS_URFINAL, Double.toString(autoModelSpec.getUnitRootLimit()));
+        }
     }
 
-    private void writeARIMAInformation(ArimaSpec arimaSpec) {
+    private void writeARIMAInformation(ArimaSpec arimaSpec, ArimaSetting arimaSetting) {
         information.put(POS_AUTOMODEL, Boolean.toString(false));
-        information.put(POS_MEAN, Boolean.toString(arimaSpec.isMean()));
-        StringBuilder arima = new StringBuilder("(");
-        arima.append(arimaSpec.getP()).append(" ")
-                .append(arimaSpec.getD()).append(" ")
-                .append(arimaSpec.getQ()).append(")(")
-                .append(arimaSpec.getBP()).append(" ")
-                .append(arimaSpec.getBD()).append(" ")
-                .append(arimaSpec.getBQ()).append(")");
-        information.put(POS_ARIMA, arima.toString());
-        for (int i = 0; i < arimaSpec.getP(); i++) {
-            Parameter parameter = arimaSpec.getPhi()[i];
-            String info = Double.toString(parameter.getValue()) + translateType(parameter);
-            information.put(new PositionInfo(INITIAL_POS_P + i, P + (i + 1)), info);
+        if (arimaSetting.isMean()) {
+            information.put(POS_MEAN, Boolean.toString(arimaSpec.isMean()));
         }
-        for (int i = 0; i < arimaSpec.getQ(); i++) {
-            Parameter parameter = arimaSpec.getTheta()[i];
-            String info = Double.toString(parameter.getValue()) + translateType(parameter);
-            information.put(new PositionInfo(INITIAL_POS_Q + i, Q + (i + 1)), info);
+        if (arimaSetting.isArimaModel()) {
+            StringBuilder arima = new StringBuilder("(");
+            arima.append(arimaSpec.getP()).append(" ")
+                    .append(arimaSpec.getD()).append(" ")
+                    .append(arimaSpec.getQ()).append(")(")
+                    .append(arimaSpec.getBP()).append(" ")
+                    .append(arimaSpec.getBD()).append(" ")
+                    .append(arimaSpec.getBQ()).append(")");
+            information.put(POS_ARIMA, arima.toString());
         }
-        for (int i = 0; i < arimaSpec.getBP(); i++) {
-            Parameter parameter = arimaSpec.getBPhi()[i];
-            String info = Double.toString(parameter.getValue()) + translateType(parameter);
-            information.put(new PositionInfo(INITIAL_POS_BP + i, BP + (i + 1)), info);
+        if (arimaSetting.isP()) {
+            for (int i = 0; i < arimaSpec.getP(); i++) {
+                Parameter parameter = arimaSpec.getPhi()[i];
+                String info = Double.toString(parameter.getValue()) + translateType(parameter);
+                information.put(new PositionInfo(INITIAL_POS_P + i, P + (i + 1)), info);
+            }
         }
-        for (int i = 0; i < arimaSpec.getBQ(); i++) {
-            Parameter parameter = arimaSpec.getBTheta()[i];
-            String info = Double.toString(parameter.getValue()) + translateType(parameter);
-            information.put(new PositionInfo(INITIAL_POS_BQ + i, BQ + (i + 1)), info);
+        if (arimaSetting.isQ()) {
+            for (int i = 0; i < arimaSpec.getQ(); i++) {
+                Parameter parameter = arimaSpec.getTheta()[i];
+                String info = Double.toString(parameter.getValue()) + translateType(parameter);
+                information.put(new PositionInfo(INITIAL_POS_Q + i, Q + (i + 1)), info);
+            }
+        }
+        if (arimaSetting.isBp()) {
+            for (int i = 0; i < arimaSpec.getBP(); i++) {
+                Parameter parameter = arimaSpec.getBPhi()[i];
+                String info = Double.toString(parameter.getValue()) + translateType(parameter);
+                information.put(new PositionInfo(INITIAL_POS_BP + i, BP + (i + 1)), info);
+            }
+        }
+        if (arimaSetting.isBq()) {
+            for (int i = 0; i < arimaSpec.getBQ(); i++) {
+                Parameter parameter = arimaSpec.getBTheta()[i];
+                String info = Double.toString(parameter.getValue()) + translateType(parameter);
+                information.put(new PositionInfo(INITIAL_POS_BQ + i, BQ + (i + 1)), info);
+            }
         }
     }
 
-    private void writeX11Information(X11Specification x11, boolean onlyX11) {
-        //Mode
+    private void writeX11Information(X11Specification x11, X11Setting x11Setting, boolean onlyX11) {
         DecompositionMode mode = x11.getMode();
-        information.put(POS_MODE, mode.toString());
+        //Mode
+        if (x11Setting.isMode()) {
+            information.put(POS_MODE, mode.toString());
+        }
         //Seasonal Component
-        information.put(POS_SEASONAL, Boolean.toString(x11.isSeasonal()));
+        if (x11Setting.isSeasonal()) {
+            information.put(POS_SEASONAL, Boolean.toString(x11.isSeasonal()));
+        }
         //LSigma
-        information.put(POS_LOWER_SIGMA, Double.toString(x11.getLowerSigma()));
+        if (x11Setting.isLowerSigma()) {
+            information.put(POS_LOWER_SIGMA, Double.toString(x11.getLowerSigma()));
+        }
         //USigma
-        information.put(POS_UPPER_SIGMA, Double.toString(x11.getUpperSigma()));
+        if (x11Setting.isUpperSigma()) {
+            information.put(POS_UPPER_SIGMA, Double.toString(x11.getUpperSigma()));
+        }
         //SeasonalFilter
-        SeasonalFilterOption[] seasonalFilters = x11.getSeasonalFilters();
-        if (seasonalFilters == null) {
-            information.put(POS_SEASONALFILTER, SeasonalFilterOption.Msr.toString());
-        } else if (seasonalFilters.length == 1) {
-            information.put(POS_SEASONALFILTER, seasonalFilters[0].toString());
-        } else {
-            for (int i = 0; i < seasonalFilters.length; i++) {
-                information.put(new PositionInfo(INITIAL_POS_SEASONALFILTERS + i, SEASONALFILTERS + (i + 1)), seasonalFilters[i].toString());
+        if (x11Setting.isSeasonalfilter()) {
+            SeasonalFilterOption[] seasonalFilters = x11.getSeasonalFilters();
+            if (seasonalFilters == null) {
+                information.put(POS_SEASONALFILTER, SeasonalFilterOption.Msr.toString());
+            } else if (seasonalFilters.length == 1) {
+                information.put(POS_SEASONALFILTER, seasonalFilters[0].toString());
+            } else {
+                for (int i = 0; i < seasonalFilters.length; i++) {
+                    information.put(new PositionInfo(INITIAL_POS_SEASONALFILTERS + i, SEASONALFILTERS + (i + 1)), seasonalFilters[i].toString());
+                }
             }
         }
         //Henderson
-        information.put(POS_HENDERSON, Integer.toString(x11.getHendersonFilterLength()));
+        if (x11Setting.isHenderson()) {
+            information.put(POS_HENDERSON, Integer.toString(x11.getHendersonFilterLength()));
+        }
         //Calendarsigma
-        CalendarSigma calendarSigma = x11.getCalendarSigma();
-        information.put(POS_CALENDARSIGMA, calendarSigma.toString());
-        if (calendarSigma.equals(CalendarSigma.Select)) {
-            SigmavecOption[] sigmavec = x11.getSigmavec();
-            if (sigmavec != null) {
-                for (int i = 0; i < sigmavec.length; i++) {
-                    information.put(new PositionInfo(INITIAL_POS_SIGMA_VECTOR + i, SIGMA_VECTOR + (i + 1)), sigmavec[i].toString());
+        if (x11Setting.isCalendarsigma()) {
+            CalendarSigma calendarSigma = x11.getCalendarSigma();
+            information.put(POS_CALENDARSIGMA, calendarSigma.toString());
+            if (calendarSigma.equals(CalendarSigma.Select)) {
+                SigmavecOption[] sigmavec = x11.getSigmavec();
+                if (sigmavec != null) {
+                    for (int i = 0; i < sigmavec.length; i++) {
+                        information.put(new PositionInfo(INITIAL_POS_SIGMA_VECTOR + i, SIGMA_VECTOR + (i + 1)), sigmavec[i].toString());
+                    }
                 }
             }
         }
         //Excludeforecast
-        boolean excludefcst = x11.isExcludefcst();
-        information.put(POS_EXCLUDE_FORECAST, Boolean.toString(excludefcst));
+        if (x11Setting.isExcludeforecast()) {
+            information.put(POS_EXCLUDE_FORECAST, Boolean.toString(x11.isExcludefcst()));
+        }
         //Bias correction (only for LogAdditive)
-        if (mode.equals(DecompositionMode.LogAdditive)) {
+        if (mode.equals(DecompositionMode.LogAdditive) && x11Setting.isBiascorrection()) {
             information.put(POS_BIAS_CORRECTION, x11.getBiasCorrection().toString());
         }
         if (!onlyX11) {
-            information.put(POS_MAXLEAD, Integer.toString(x11.getForecastHorizon()));
-            information.put(POS_MAXBACK, Integer.toString(x11.getBackcastHorizon()));
+            if (x11Setting.isMaxlead()) {
+                information.put(POS_MAXLEAD, Integer.toString(x11.getForecastHorizon()));
+            }
+            if (x11Setting.isMaxback()) {
+                information.put(POS_MAXBACK, Integer.toString(x11.getBackcastHorizon()));
+            }
         }
     }
 

@@ -5,8 +5,8 @@
  */
 package de.bundesbank.jdemetra.xlsx2ws.spec;
 
+import de.bundesbank.jdemetra.xlsx2ws.wizard.x13.X13WizardIterator;
 import de.bundesbank.jdemetra.xlsx2ws.wizard.IChoose;
-import de.bundesbank.jdemetra.xlsx2ws.wizard.X13SettingWizard;
 import ec.satoolkit.x13.X13Specification;
 import org.openide.WizardDescriptor;
 import org.openide.util.lookup.ServiceProvider;
@@ -47,8 +47,8 @@ public class X13SpecificationFactory implements ISpecificationFactory<X13Specifi
     }
 
     @Override
-    public WizardDescriptor.Panel<WizardDescriptor> createPanel() {
-        return new X13SettingWizard();
+    public WizardDescriptor.Iterator<WizardDescriptor> createIterator() {
+        return new X13WizardIterator();
     }
 
 }

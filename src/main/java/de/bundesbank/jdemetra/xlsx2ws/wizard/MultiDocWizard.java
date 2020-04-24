@@ -7,24 +7,20 @@ package de.bundesbank.jdemetra.xlsx2ws.wizard;
 
 import de.bundesbank.jdemetra.xlsx2ws.actions.ExportToXlsx;
 import de.bundesbank.jdemetra.xlsx2ws.dto.ISetting;
-import de.bundesbank.jdemetra.xlsx2ws.spec.X13SpecificationFactory;
-import java.util.ArrayList;
+import de.bundesbank.jdemetra.xlsx2ws.dto.MultiDocSetting;
 import java.util.HashMap;
-import java.util.List;
-import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.openide.WizardDescriptor;
+import org.openide.WizardValidationException;
 import org.openide.util.HelpCtx;
 
-public class X13SettingWizard implements WizardDescriptor.Panel<WizardDescriptor> {
-
-    private final List<ChangeListener> listener = new ArrayList<>();
+public class MultiDocWizard implements WizardDescriptor.ValidatingPanel<WizardDescriptor>, WizardDescriptor.FinishablePanel<WizardDescriptor> {
 
     /**
      * The visual component that displays this panel. If you need to access the
      * component from this class, just use getComponent().
      */
-    private X13SettingVisual component;
+    private MultiDocVisual component;
     private HashMap<String, ISetting> settings;
 
     // Get the visual component for the panel. In this template, the component
@@ -32,10 +28,9 @@ public class X13SettingWizard implements WizardDescriptor.Panel<WizardDescriptor
     // but never displayed, or not all panels are displayed, it is better to
     // create only those which really need to be visible.
     @Override
-    public X13SettingVisual getComponent() {
+    public MultiDocVisual getComponent() {
         if (component == null) {
-            component = new X13SettingVisual();
-            component.addChangeListener(x -> notifyListener(x));
+            component = new MultiDocVisual();
         }
         return component;
     }
@@ -52,18 +47,10 @@ public class X13SettingWizard implements WizardDescriptor.Panel<WizardDescriptor
 
     @Override
     public void addChangeListener(ChangeListener l) {
-        listener.add(l);
     }
 
     @Override
     public void removeChangeListener(ChangeListener l) {
-        listener.remove(l);
-    }
-
-    private synchronized void notifyListener(ChangeEvent ev) {
-        for (ChangeListener changeListener : listener) {
-            changeListener.stateChanged(ev);
-        }
     }
 
     @Override
@@ -76,7 +63,22 @@ public class X13SettingWizard implements WizardDescriptor.Panel<WizardDescriptor
 
     @Override
     public void storeSettings(WizardDescriptor wiz) {
-        settings.put(X13SpecificationFactory.SUPPORTED_CLASS.getName(), component.createSetting());
+        if (wiz.getValue() == WizardDescriptor.FINISH_OPTION) {
+            settings.clear();
+        }
+        settings.put(MultiDocSetting.MULTIDOC_SETTING, component.createSetting());
+    }
+
+    @Override
+    public void validate() throws WizardValidationException {
+        if (component.createSetting().isEmpty()) {
+            throw new WizardValidationException(null, "Please select at least one multi-document to continue!", null);
+        }
+    }
+
+    @Override
+    public boolean isFinishPanel() {
+        return true;
     }
 
 }

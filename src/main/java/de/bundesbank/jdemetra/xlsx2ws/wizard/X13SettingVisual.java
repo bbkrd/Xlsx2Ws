@@ -6,13 +6,31 @@
 package de.bundesbank.jdemetra.xlsx2ws.wizard;
 
 import de.bundesbank.jdemetra.xlsx2ws.spec.X13SpecificationSetting;
+import de.bundesbank.jdemetra.xlsx2ws.spec.x13.X13MainSettingDTO;
+import de.bundesbank.jdemetra.xlsx2ws.spec.x13.X13MainSetting;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.JCheckBox;
 import javax.swing.JPanel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 public final class X13SettingVisual extends JPanel {
+
+    private final List<ChangeListener> listeners = new ArrayList<>();
 
     /** Creates new form ChooseVisualPanel3 */
     public X13SettingVisual() {
         initComponents();
+        series.addItemListener(new SettingItemListener(X13MainSetting.SERIES));
+        estimate.addItemListener(new SettingItemListener(X13MainSetting.ESTIMATE));
+        transform.addItemListener(new SettingItemListener(X13MainSetting.TRANSFORM));
+        regression.addItemListener(new SettingItemListener(X13MainSetting.REGRESSION));
+        outlier.addItemListener(new SettingItemListener(X13MainSetting.OUTLIER));
+        arima.addItemListener(new SettingItemListener(X13MainSetting.ARIMA));
+        x11.addItemListener(new SettingItemListener(X13MainSetting.X11));
     }
 
     @Override
@@ -24,6 +42,14 @@ public final class X13SettingVisual extends JPanel {
         return new X13SpecificationSetting(series.isSelected(), estimate.isSelected(), transform.isSelected(),
                 regression.isSelected(), outlier.isSelected(), arima.isSelected(), x11.isSelected());
 
+    }
+
+    public void addChangeListener(ChangeListener l) {
+        listeners.add(l);
+    }
+
+    public void removeChangeListener(ChangeListener l) {
+        listeners.remove(l);
     }
 
     /** This method is called from within the constructor to
@@ -74,7 +100,7 @@ public final class X13SettingVisual extends JPanel {
                     .addComponent(estimate)
                     .addComponent(series)
                     .addComponent(jLabel1))
-                .addContainerGap(28, Short.MAX_VALUE))
+                .addContainerGap(92, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -95,7 +121,7 @@ public final class X13SettingVisual extends JPanel {
                 .addComponent(arima)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(x11)
-                .addContainerGap(89, Short.MAX_VALUE))
+                .addContainerGap(87, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -108,4 +134,26 @@ public final class X13SettingVisual extends JPanel {
     private javax.swing.JCheckBox transform;
     private javax.swing.JCheckBox x11;
     // End of variables declaration//GEN-END:variables
+
+    private class SettingItemListener implements ItemListener {
+
+        private final X13MainSetting setting;
+
+        public SettingItemListener(X13MainSetting setting) {
+            this.setting = setting;
+        }
+
+        @Override
+        public void itemStateChanged(ItemEvent ev) {
+            ChangeEvent changeEvent = null;
+            boolean selected = ((JCheckBox) ev.getItem()).isSelected();
+            for (ChangeListener x : listeners) {
+                if (changeEvent == null) {
+                    changeEvent = new ChangeEvent(new X13MainSettingDTO(setting, selected));
+                }
+                x.stateChanged(changeEvent);
+            }
+        }
+    }
+
 }

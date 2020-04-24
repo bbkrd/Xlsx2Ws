@@ -6,31 +6,46 @@
 package de.bundesbank.jdemetra.xlsx2ws.spec;
 
 import de.bundesbank.jdemetra.xlsx2ws.dto.ISetting;
+import de.bundesbank.jdemetra.xlsx2ws.spec.x13.ArimaSetting;
+import de.bundesbank.jdemetra.xlsx2ws.spec.x13.EstimateSetting;
+import de.bundesbank.jdemetra.xlsx2ws.spec.x13.OutlierSetting;
+import de.bundesbank.jdemetra.xlsx2ws.spec.x13.RegressionSetting;
+import de.bundesbank.jdemetra.xlsx2ws.spec.x13.SeriesSetting;
+import de.bundesbank.jdemetra.xlsx2ws.spec.x13.TransformSetting;
+import de.bundesbank.jdemetra.xlsx2ws.spec.x13.X11Setting;
 
 /**
  *
  * @author s4504tw
  */
-@lombok.Value
-@lombok.AllArgsConstructor
+@lombok.Data
+@lombok.RequiredArgsConstructor
 public class X13SpecificationSetting implements ISetting {
 
-    boolean series;
-    boolean estimate;
-    boolean transform;
-    boolean regression;
-    boolean outlier;
-    boolean arima;
-    boolean x11;
+    final boolean series;
+    final boolean estimate;
+    final boolean transform;
+    final boolean regression;
+    final boolean outlier;
+    final boolean arima;
+    final boolean x11;
+
+    SeriesSetting seriesSetting = new SeriesSetting();
+    EstimateSetting estimateSetting = new EstimateSetting();
+    TransformSetting transformSetting = new TransformSetting();
+    RegressionSetting regressionSetting = new RegressionSetting();
+    OutlierSetting outlierSetting = new OutlierSetting();
+    ArimaSetting arimaSetting = new ArimaSetting();
+    X11Setting x11Setting = new X11Setting();
 
     public X13SpecificationSetting() {
-        this.series = true;
-        this.estimate = true;
-        this.transform = true;
-        this.regression = true;
-        this.outlier = true;
-        this.arima = true;
-        this.x11 = true;
+        series = true;
+        estimate = true;
+        transform = true;
+        regression = true;
+        outlier = true;
+        arima = true;
+        x11 = true;
     }
 
 }

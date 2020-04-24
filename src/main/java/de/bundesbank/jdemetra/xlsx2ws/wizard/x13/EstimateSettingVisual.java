@@ -3,20 +3,26 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.bundesbank.jdemetra.xlsx2ws.wizard;
+package de.bundesbank.jdemetra.xlsx2ws.wizard.x13;
 
+import de.bundesbank.jdemetra.xlsx2ws.spec.x13.EstimateSetting;
 import javax.swing.JPanel;
 
-public final class IntroductionVisual extends JPanel {
+public final class EstimateSettingVisual extends JPanel {
 
-    /** Creates new form ChooseVisualPanel1 */
-    public IntroductionVisual() {
+    public EstimateSettingVisual() {
         initComponents();
     }
 
     @Override
     public String getName() {
-        return "Introduction";
+        return "Estimate Settings (X13)";
+    }
+
+    public EstimateSetting createSetting() {
+        return new EstimateSetting(
+                cbSpan.isSelected(),
+                cbTolerance.isSelected());
     }
 
     /** This method is called from within the constructor to
@@ -27,37 +33,44 @@ public final class IntroductionVisual extends JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel1 = new javax.swing.JLabel();
+        cbSpan = new javax.swing.JCheckBox();
+        cbTolerance = new javax.swing.JCheckBox();
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(IntroductionVisual.class, "IntroductionVisual.jLabel1.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, "Choose which parts of the estimate specification (X13) should be written to the XLSX.");
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel2, org.openide.util.NbBundle.getMessage(IntroductionVisual.class, "IntroductionVisual.jLabel2.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(cbSpan, "Span");
+
+        org.openide.awt.Mnemonics.setLocalizedText(cbTolerance, "Tolerance");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(45, 45, 45)
+                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel2)
-                    .addComponent(jLabel1))
-                .addContainerGap(184, Short.MAX_VALUE))
+                    .addComponent(jLabel1)
+                    .addComponent(cbTolerance)
+                    .addComponent(cbSpan))
+                .addContainerGap(16, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(62, 62, 62)
+                .addContainerGap()
                 .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(cbSpan)
                 .addGap(18, 18, 18)
-                .addComponent(jLabel2)
-                .addContainerGap(192, Short.MAX_VALUE))
+                .addComponent(cbTolerance)
+                .addContainerGap(204, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
+    private javax.swing.JCheckBox cbSpan;
+    private javax.swing.JCheckBox cbTolerance;
     // End of variables declaration//GEN-END:variables
+
 }

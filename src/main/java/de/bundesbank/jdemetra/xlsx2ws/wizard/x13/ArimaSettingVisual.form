@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<Form version="1.5" maxVersion="1.9" type="org.netbeans.modules.form.forminfo.JPanelFormInfo">
+  <AuxValues>
+    <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="0"/>
+    <AuxValue name="FormSettings_autoSetComponentName" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_generateFQN" type="java.lang.Boolean" value="true"/>
+    <AuxValue name="FormSettings_generateMnemonicsCode" type="java.lang.Boolean" value="true"/>
+    <AuxValue name="FormSettings_i18nAutoMode" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_layoutCodeTarget" type="java.lang.Integer" value="1"/>
+    <AuxValue name="FormSettings_listenerGenerationStyle" type="java.lang.Integer" value="0"/>
+    <AuxValue name="FormSettings_variablesLocal" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_variablesModifier" type="java.lang.Integer" value="2"/>
+  </AuxValues>
+
+  <Layout>
+    <DimensionLayout dim="0">
+      <Group type="103" groupAlignment="0" attributes="0">
+          <Group type="102" attributes="0">
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" alignment="0" attributes="0">
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="cbCancelLimit" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="cbAcceptDefault" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="cbInitialUR" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="cbFinalUR" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="cbMixed" alignment="0" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace type="separate" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="cbBalanced" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="cbArmaLimit" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="cbReduceCV" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="cbLjungboxLimit" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="cbURFinal" alignment="0" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace min="-2" pref="60" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="cbQ" min="-2" max="-2" attributes="0"/>
+                          <Component id="cbP" min="-2" max="-2" attributes="0"/>
+                          <Component id="cbArima" min="-2" max="-2" attributes="0"/>
+                          <Component id="cbMean" min="-2" max="-2" attributes="0"/>
+                          <Component id="cbBP" min="-2" max="-2" attributes="0"/>
+                          <Component id="cbBQ" alignment="0" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                  </Group>
+                  <Component id="jLabel1" alignment="0" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace max="32767" attributes="0"/>
+          </Group>
+      </Group>
+    </DimensionLayout>
+    <DimensionLayout dim="1">
+      <Group type="103" groupAlignment="0" attributes="0">
+          <Group type="102" alignment="0" attributes="0">
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="cbAcceptDefault" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cbBalanced" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cbMean" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="cbCancelLimit" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cbArmaLimit" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cbArima" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="cbInitialUR" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cbReduceCV" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cbP" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="cbFinalUR" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cbLjungboxLimit" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cbQ" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="cbMixed" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cbURFinal" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cbBP" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Component id="cbBQ" min="-2" max="-2" attributes="0"/>
+              <EmptySpace pref="40" max="32767" attributes="0"/>
+          </Group>
+      </Group>
+    </DimensionLayout>
+  </Layout>
+  <SubComponents>
+    <Component class="javax.swing.JCheckBox" name="cbAcceptDefault">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Accept Default"/>
+      </Properties>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_SerializeTo" type="java.lang.String" value="ArimaSettingVisual_cbAcceptDefault"/>
+      </AuxValues>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbCancelLimit">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Cancel limit"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbInitialUR">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Initial unit root"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbFinalUR">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Final unit root"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbMixed">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Mixed"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbBalanced">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Balanced"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbArmaLimit">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="ARMA limit"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbReduceCV">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Reduce CV"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbLjungboxLimit">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Ljungbox limit"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbURFinal">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="UR final"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbMean">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Mean"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbArima">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="ARIMA model"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbP">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="P parameter"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbQ">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Q parameter"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbBP">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="BP parameter"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbBQ">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="BQ parameter"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabel1">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Choose which parts of the ARIMA specification (X13) should be written to the XLSX."/>
+      </Properties>
+    </Component>
+  </SubComponents>
+</Form>

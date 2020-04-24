@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<Form version="1.5" maxVersion="1.9" type="org.netbeans.modules.form.forminfo.JPanelFormInfo">
+  <AuxValues>
+    <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="0"/>
+    <AuxValue name="FormSettings_autoSetComponentName" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_generateFQN" type="java.lang.Boolean" value="true"/>
+    <AuxValue name="FormSettings_generateMnemonicsCode" type="java.lang.Boolean" value="true"/>
+    <AuxValue name="FormSettings_i18nAutoMode" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_layoutCodeTarget" type="java.lang.Integer" value="1"/>
+    <AuxValue name="FormSettings_listenerGenerationStyle" type="java.lang.Integer" value="0"/>
+    <AuxValue name="FormSettings_variablesLocal" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_variablesModifier" type="java.lang.Integer" value="2"/>
+  </AuxValues>
+
+  <Layout>
+    <DimensionLayout dim="0">
+      <Group type="103" groupAlignment="0" attributes="0">
+          <Group type="102" alignment="0" attributes="0">
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
+                  <Group type="102" alignment="0" attributes="0">
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="cbCriticalValue" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="cbSpan" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="cbAO" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="cbLS" alignment="0" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace type="separate" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="cbMethod" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="cbTC" min="-2" max="-2" attributes="0"/>
+                          <Component id="cbSO" min="-2" max="-2" attributes="0"/>
+                          <Component id="cbTCRate" alignment="0" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                  </Group>
+              </Group>
+              <EmptySpace max="32767" attributes="0"/>
+          </Group>
+      </Group>
+    </DimensionLayout>
+    <DimensionLayout dim="1">
+      <Group type="103" groupAlignment="0" attributes="0">
+          <Group type="102" alignment="0" attributes="0">
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="cbSpan" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cbTC" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="cbCriticalValue" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cbSO" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="cbAO" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cbTCRate" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="cbLS" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cbMethod" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace pref="122" max="32767" attributes="0"/>
+          </Group>
+      </Group>
+    </DimensionLayout>
+  </Layout>
+  <SubComponents>
+    <Component class="javax.swing.JLabel" name="jLabel1">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Choose which parts of the outlier specification (X13) should be written to the XLSX."/>
+      </Properties>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_VariableLocal" type="java.lang.Boolean" value="true"/>
+        <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
+      </AuxValues>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbSpan">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Span"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbCriticalValue">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Critical Value"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbAO">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="AO"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbLS">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="LS"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbTC">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="TC"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbSO">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="SO"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbTCRate">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="TC rate"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbMethod">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Method"/>
+      </Properties>
+    </Component>
+  </SubComponents>
+</Form>
