@@ -9,6 +9,7 @@ import de.bundesbank.jdemetra.xlsx2ws.actions.ExportToXlsx;
 import de.bundesbank.jdemetra.xlsx2ws.dto.ISetting;
 import de.bundesbank.jdemetra.xlsx2ws.spec.X13SpecificationFactory;
 import de.bundesbank.jdemetra.xlsx2ws.spec.X13SpecificationSetting;
+import de.bundesbank.jdemetra.xlsx2ws.wizard.WizardUtil;
 import java.util.HashMap;
 import javax.swing.event.ChangeListener;
 import org.openide.WizardDescriptor;
@@ -22,6 +23,7 @@ public class EstimateSettingWizard implements WizardDescriptor.Panel<WizardDescr
      */
     private EstimateSettingVisual component;
     private X13SpecificationSetting setting;
+    private int index;
 
     // Get the visual component for the panel. In this template, the component
     // is kept separate. This can be more efficient: if the wizard is created
@@ -62,11 +64,13 @@ public class EstimateSettingWizard implements WizardDescriptor.Panel<WizardDescr
                 this.setting = (X13SpecificationSetting) settingTemp;
             }
         }
+        index = (int) wiz.getProperty(WizardDescriptor.PROP_CONTENT_SELECTED_INDEX);
     }
 
     @Override
     public void storeSettings(WizardDescriptor wiz) {
         setting.setEstimateSetting(component.createSetting());
+        WizardUtil.countIndex(wiz, index);
     }
 
 }

@@ -8,8 +8,6 @@ package de.bundesbank.jdemetra.xlsx2ws.wizard.x13;
 import de.bundesbank.jdemetra.xlsx2ws.spec.x13.X13MainSetting;
 import de.bundesbank.jdemetra.xlsx2ws.spec.x13.X13MainSettingDTO;
 import de.bundesbank.jdemetra.xlsx2ws.wizard.X13SettingWizard;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.NoSuchElementException;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -22,8 +20,9 @@ import org.openide.WizardDescriptor;
 public class X13WizardIterator implements WizardDescriptor.Iterator<WizardDescriptor> {
 
     int index = 0;
+    boolean isMainPanel;
 
-    private final List<WizardDescriptor.Panel<WizardDescriptor>> panels = new ArrayList<>();
+    private final WizardDescriptor.Panel<WizardDescriptor>[] panels = new WizardDescriptor.Panel[8];
 
     public X13WizardIterator() {
         X13SettingWizard x13SettingWizard = new X13SettingWizard();
@@ -32,36 +31,36 @@ public class X13WizardIterator implements WizardDescriptor.Iterator<WizardDescri
             if (source instanceof X13MainSettingDTO) {
                 X13MainSetting mainSetting = ((X13MainSettingDTO) source).getMainSetting();
                 boolean active = ((X13MainSettingDTO) source).isActive();
+                int position = mainSetting.getPosition();
                 if (active) {
                     WizardDescriptor.Panel<WizardDescriptor> wizard = mainSetting.createWizard();
-                    int position = mainSetting.getPosition();
-                    if (panels.size() < position) {
-                        panels.add(wizard);
-                    } else {
-                        panels.add(position, wizard);
-                    }
+                    panels[position] = wizard;
                 } else {
-                    panels.removeIf(mainSetting.getWizardClass()::isInstance);
+                    panels[position] = null;
                 }
             }
         });
-        panels.add(x13SettingWizard);
+        panels[0] = x13SettingWizard;
     }
 
     @Override
     public WizardDescriptor.Panel<WizardDescriptor> current() {
-        return panels.get(index);
+        return panels[index];
     }
 
     @Override
     public String name() {
-        //TODO?
-        return null;
+        return "X13";
     }
 
     @Override
     public boolean hasNext() {
-        return index < panels.size() - 1;
+        for (int i = index + 1; i < panels.length; i++) {
+            if (panels[i] != null) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -74,7 +73,12 @@ public class X13WizardIterator implements WizardDescriptor.Iterator<WizardDescri
         if (!hasNext()) {
             throw new NoSuchElementException();
         }
-        index++;
+        for (int i = index + 1; i < panels.length; i++) {
+            if (panels[i] != null) {
+                index = i;
+                return;
+            }
+        }
     }
 
     @Override
@@ -82,7 +86,12 @@ public class X13WizardIterator implements WizardDescriptor.Iterator<WizardDescri
         if (!hasPrevious()) {
             throw new NoSuchElementException();
         }
-        index--;
+        for (int i = index - 1; i >= 0; i--) {
+            if (panels[i] != null) {
+                index = i;
+                return;
+            }
+        }
     }
 
     @Override

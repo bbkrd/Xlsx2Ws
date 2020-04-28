@@ -54,6 +54,8 @@ public final class MultiDocVisual extends JPanel {
         jLabel1 = new javax.swing.JLabel();
         jPanel1 = new javax.swing.JPanel();
 
+        setPreferredSize(new java.awt.Dimension(430, 312));
+
         org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(MultiDocVisual.class, "MultiDocVisual.jLabel1.text")); // NOI18N
 
         jPanel1.setLayout(new java.awt.BorderLayout());
@@ -67,7 +69,7 @@ public final class MultiDocVisual extends JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel1)
-                        .addGap(0, 126, Short.MAX_VALUE))
+                        .addGap(0, 156, Short.MAX_VALUE))
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );

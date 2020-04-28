@@ -6,8 +6,8 @@
 package de.bundesbank.jdemetra.xlsx2ws.wizard;
 
 import de.bundesbank.jdemetra.xlsx2ws.spec.X13SpecificationSetting;
-import de.bundesbank.jdemetra.xlsx2ws.spec.x13.X13MainSettingDTO;
 import de.bundesbank.jdemetra.xlsx2ws.spec.x13.X13MainSetting;
+import de.bundesbank.jdemetra.xlsx2ws.spec.x13.X13MainSettingDTO;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
@@ -21,7 +21,6 @@ public final class X13SettingVisual extends JPanel {
 
     private final List<ChangeListener> listeners = new ArrayList<>();
 
-    /** Creates new form ChooseVisualPanel3 */
     public X13SettingVisual() {
         initComponents();
         series.addItemListener(new SettingItemListener(X13MainSetting.SERIES));
@@ -68,6 +67,10 @@ public final class X13SettingVisual extends JPanel {
         outlier = new javax.swing.JCheckBox();
         arima = new javax.swing.JCheckBox();
         x11 = new javax.swing.JCheckBox();
+        all = new javax.swing.JButton();
+        none = new javax.swing.JButton();
+
+        setPreferredSize(new java.awt.Dimension(430, 312));
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(X13SettingVisual.class, "X13SettingVisual.jLabel1.text")); // NOI18N
 
@@ -85,6 +88,23 @@ public final class X13SettingVisual extends JPanel {
 
         org.openide.awt.Mnemonics.setLocalizedText(x11, org.openide.util.NbBundle.getMessage(X13SettingVisual.class, "X13SettingVisual.x11.text")); // NOI18N
 
+        org.openide.awt.Mnemonics.setLocalizedText(all, org.openide.util.NbBundle.getMessage(X13SettingVisual.class, "X13SettingVisual.all.text")); // NOI18N
+        all.setMaximumSize(new java.awt.Dimension(89, 23));
+        all.setMinimumSize(new java.awt.Dimension(89, 23));
+        all.setPreferredSize(new java.awt.Dimension(89, 23));
+        all.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                allActionPerformed(evt);
+            }
+        });
+
+        org.openide.awt.Mnemonics.setLocalizedText(none, org.openide.util.NbBundle.getMessage(X13SettingVisual.class, "X13SettingVisual.none.text")); // NOI18N
+        none.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                noneActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -99,14 +119,18 @@ public final class X13SettingVisual extends JPanel {
                     .addComponent(transform)
                     .addComponent(estimate)
                     .addComponent(series)
-                    .addComponent(jLabel1))
-                .addContainerGap(92, Short.MAX_VALUE))
+                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(all, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(none)))
+                .addContainerGap(55, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel1)
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(series)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -121,19 +145,43 @@ public final class X13SettingVisual extends JPanel {
                 .addComponent(arima)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(x11)
-                .addContainerGap(87, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 55, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(all, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(none))
+                .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void allActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_allActionPerformed
+        changeAllCheckboxes(true);
+    }//GEN-LAST:event_allActionPerformed
+
+    private void noneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_noneActionPerformed
+        changeAllCheckboxes(false);
+    }//GEN-LAST:event_noneActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton all;
     private javax.swing.JCheckBox arima;
     private javax.swing.JCheckBox estimate;
+    private javax.swing.JButton none;
     private javax.swing.JCheckBox outlier;
     private javax.swing.JCheckBox regression;
     private javax.swing.JCheckBox series;
     private javax.swing.JCheckBox transform;
     private javax.swing.JCheckBox x11;
     // End of variables declaration//GEN-END:variables
+
+    public void changeAllCheckboxes(boolean selected) {
+        series.setSelected(selected);
+        estimate.setSelected(selected);
+        transform.setSelected(selected);
+        regression.setSelected(selected);
+        outlier.setSelected(selected);
+        arima.setSelected(selected);
+        x11.setSelected(selected);
+    }
 
     private class SettingItemListener implements ItemListener {
 

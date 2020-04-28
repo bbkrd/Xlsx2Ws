@@ -8,6 +8,7 @@ package de.bundesbank.jdemetra.xlsx2ws.wizard;
 import de.bundesbank.jdemetra.xlsx2ws.actions.ExportToXlsx;
 import de.bundesbank.jdemetra.xlsx2ws.dto.ISetting;
 import de.bundesbank.jdemetra.xlsx2ws.spec.X13SpecificationFactory;
+import de.bundesbank.jdemetra.xlsx2ws.spec.X13SpecificationSetting;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +27,7 @@ public class X13SettingWizard implements WizardDescriptor.Panel<WizardDescriptor
      */
     private X13SettingVisual component;
     private HashMap<String, ISetting> settings;
+    private int index;
 
     // Get the visual component for the panel. In this template, the component
     // is kept separate. This can be more efficient: if the wizard is created
@@ -36,6 +38,7 @@ public class X13SettingWizard implements WizardDescriptor.Panel<WizardDescriptor
         if (component == null) {
             component = new X13SettingVisual();
             component.addChangeListener(x -> notifyListener(x));
+            component.changeAllCheckboxes(true);
         }
         return component;
     }
@@ -72,11 +75,44 @@ public class X13SettingWizard implements WizardDescriptor.Panel<WizardDescriptor
         if (property instanceof HashMap) {
             settings = (HashMap<String, ISetting>) property;
         }
+        index = (int) wiz.getProperty(WizardDescriptor.PROP_CONTENT_SELECTED_INDEX);
     }
 
     @Override
     public void storeSettings(WizardDescriptor wiz) {
-        settings.put(X13SpecificationFactory.SUPPORTED_CLASS.getName(), component.createSetting());
+        X13SpecificationSetting setting = component.createSetting();
+        settings.put(X13SpecificationFactory.SUPPORTED_CLASS.getName(), setting);
+
+        String[] property = (String[]) wiz.getProperty(WizardDescriptor.PROP_CONTENT_DATA);
+        List<String> steps = new ArrayList<>();
+        int i = 0;
+        for (; i <= index; i++) {
+            steps.add(property[i]);
+        }
+        i = write(property, i, setting.isSeries(), steps, "Series");
+        i = write(property, i, setting.isEstimate(), steps, "Estimate");
+        i = write(property, i, setting.isTransform(), steps, "Transform");
+        i = write(property, i, setting.isRegression(), steps, "Regression");
+        i = write(property, i, setting.isOutlier(), steps, "Outlier");
+        i = write(property, i, setting.isArima(), steps, "ARIMA");
+        i = write(property, i, setting.isX11(), steps, "X11");
+
+        for (; i < property.length; i++) {
+            steps.add(property[i]);
+        }
+
+        wiz.putProperty(WizardDescriptor.PROP_CONTENT_DATA, steps.toArray(new String[steps.size()]));
+        WizardUtil.countIndex(wiz, index);
+    }
+
+    public int write(String[] property, int i, boolean isActive, List<String> steps, String x) {
+        if (isActive) {
+            steps.add(x);
+        }
+        if (property.length > i && x.equals(property[i])) {
+            ++i;
+        }
+        return i;
     }
 
 }

@@ -12,6 +12,7 @@ public final class X11SettingVisual extends JPanel {
 
     public X11SettingVisual() {
         initComponents();
+        changeAllCheckboxes(true);
     }
 
     @Override
@@ -55,8 +56,12 @@ public final class X11SettingVisual extends JPanel {
         cbBiasCorrection = new javax.swing.JCheckBox();
         cbMaxLead = new javax.swing.JCheckBox();
         cbMaxBack = new javax.swing.JCheckBox();
+        all = new javax.swing.JButton();
+        none = new javax.swing.JButton();
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, "Choose which parts of the X11 specification should be written to the XLSX.");
+        setPreferredSize(new java.awt.Dimension(430, 312));
+
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, "<html>Choose which parts of the <b>X11</b> specification should be written to the XLSX.</html>");
 
         org.openide.awt.Mnemonics.setLocalizedText(cbMode, "Mode");
 
@@ -80,6 +85,23 @@ public final class X11SettingVisual extends JPanel {
 
         org.openide.awt.Mnemonics.setLocalizedText(cbMaxBack, "Backcast");
 
+        org.openide.awt.Mnemonics.setLocalizedText(all, "Select all");
+        all.setMaximumSize(new java.awt.Dimension(89, 23));
+        all.setMinimumSize(new java.awt.Dimension(89, 23));
+        all.setPreferredSize(new java.awt.Dimension(89, 23));
+        all.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                allActionPerformed(evt);
+            }
+        });
+
+        org.openide.awt.Mnemonics.setLocalizedText(none, "Select none");
+        none.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                noneActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -87,7 +109,7 @@ public final class X11SettingVisual extends JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel1)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(cbSeasonal)
@@ -106,14 +128,18 @@ public final class X11SettingVisual extends JPanel {
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(cbMaxLead)
                                     .addComponent(cbMaxBack)
-                                    .addComponent(cbBiasCorrection))))))
-                .addContainerGap(41, Short.MAX_VALUE))
+                                    .addComponent(cbBiasCorrection)))))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(all, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(none)))
+                .addContainerGap(60, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel1)
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cbMode)
@@ -133,11 +159,24 @@ public final class X11SettingVisual extends JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cbUpperSigma)
                     .addComponent(cbExcludeForecast))
-                .addContainerGap(122, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 100, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(all, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(none))
+                .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void allActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_allActionPerformed
+        changeAllCheckboxes(true);
+    }//GEN-LAST:event_allActionPerformed
+
+    private void noneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_noneActionPerformed
+        changeAllCheckboxes(false);
+    }//GEN-LAST:event_noneActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton all;
     private javax.swing.JCheckBox cbBiasCorrection;
     private javax.swing.JCheckBox cbCalendarSigma;
     private javax.swing.JCheckBox cbExcludeForecast;
@@ -149,6 +188,21 @@ public final class X11SettingVisual extends JPanel {
     private javax.swing.JCheckBox cbSeasonal;
     private javax.swing.JCheckBox cbSeasonalFilter;
     private javax.swing.JCheckBox cbUpperSigma;
+    private javax.swing.JButton none;
     // End of variables declaration//GEN-END:variables
+
+    private void changeAllCheckboxes(boolean selected) {
+        cbMode.setSelected(selected);
+        cbSeasonal.setSelected(selected);
+        cbLowerSigma.setSelected(selected);
+        cbUpperSigma.setSelected(selected);
+        cbSeasonalFilter.setSelected(selected);
+        cbHenderson.setSelected(selected);
+        cbCalendarSigma.setSelected(selected);
+        cbExcludeForecast.setSelected(selected);
+        cbBiasCorrection.setSelected(selected);
+        cbMaxLead.setSelected(selected);
+        cbMaxBack.setSelected(selected);
+    }
 
 }

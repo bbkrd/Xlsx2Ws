@@ -5,13 +5,11 @@
  */
 package de.bundesbank.jdemetra.xlsx2ws.wizard;
 
-import java.awt.Component;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import javax.swing.JComponent;
 import javax.swing.event.ChangeListener;
 import org.openide.WizardDescriptor;
 import org.openide.util.Lookup;
@@ -39,21 +37,6 @@ public class WizardIterator implements WizardDescriptor.InstantiatingIterator<Wi
                 iterators.add(createIterator);
             }
         });
-
-        String[] steps = new String[panels.size()];
-        for (int i = 0; i < panels.size(); i++) {
-            Component c = panels.get(i).getComponent();
-            // Default step name to component name of panel.
-            steps[i] = c.getName();
-            if (c instanceof JComponent) { // assume Swing components
-                JComponent jc = (JComponent) c;
-                jc.putClientProperty(WizardDescriptor.PROP_CONTENT_SELECTED_INDEX, i);
-                jc.putClientProperty(WizardDescriptor.PROP_CONTENT_DATA, steps);
-                jc.putClientProperty(WizardDescriptor.PROP_AUTO_WIZARD_STYLE, true);
-                jc.putClientProperty(WizardDescriptor.PROP_CONTENT_DISPLAYED, true);
-                jc.putClientProperty(WizardDescriptor.PROP_CONTENT_NUMBERED, true);
-            }
-        }
 
         isMultiDoc = true;
         isMetaData = false;
@@ -156,6 +139,19 @@ public class WizardIterator implements WizardDescriptor.InstantiatingIterator<Wi
 
     @Override
     public void initialize(WizardDescriptor wd) {
+        wd.putProperty(WizardDescriptor.PROP_AUTO_WIZARD_STYLE, true);
+        wd.putProperty(WizardDescriptor.PROP_CONTENT_DISPLAYED, true);
+        wd.putProperty(WizardDescriptor.PROP_CONTENT_NUMBERED, true);
+        wd.putProperty(WizardDescriptor.PROP_CONTENT_SELECTED_INDEX, 0);
+
+        List<String> steps = new ArrayList<>();
+        steps.add(panels.get(0).getComponent().getName());
+        for (WizardDescriptor.Iterator<WizardDescriptor> iterator : iterators) {
+            steps.add(iterator.name());
+        }
+        steps.add(panels.get(1).getComponent().getName());
+
+        wd.putProperty(WizardDescriptor.PROP_CONTENT_DATA, steps.toArray(new String[steps.size()]));
     }
 
     @Override

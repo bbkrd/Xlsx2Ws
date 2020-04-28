@@ -12,6 +12,7 @@ public final class ArimaSettingVisual extends JPanel {
 
     public ArimaSettingVisual() {
         initComponents();
+        changeAllCheckboxes(true);
     }
 
     @Override
@@ -64,6 +65,10 @@ public final class ArimaSettingVisual extends JPanel {
         cbBP = new javax.swing.JCheckBox();
         cbBQ = new javax.swing.JCheckBox();
         jLabel1 = new javax.swing.JLabel();
+        all = new javax.swing.JButton();
+        none = new javax.swing.JButton();
+
+        setPreferredSize(new java.awt.Dimension(430, 312));
 
         org.openide.awt.Mnemonics.setLocalizedText(cbAcceptDefault, "Accept Default");
 
@@ -97,7 +102,24 @@ public final class ArimaSettingVisual extends JPanel {
 
         org.openide.awt.Mnemonics.setLocalizedText(cbBQ, "BQ parameter");
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, "Choose which parts of the ARIMA specification (X13) should be written to the XLSX.");
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, "<html>Choose which parts of the <b>ARIMA</b> specification should be written to the XLSX.</html>");
+
+        org.openide.awt.Mnemonics.setLocalizedText(all, "Select all");
+        all.setMaximumSize(new java.awt.Dimension(89, 23));
+        all.setMinimumSize(new java.awt.Dimension(89, 23));
+        all.setPreferredSize(new java.awt.Dimension(89, 23));
+        all.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                allActionPerformed(evt);
+            }
+        });
+
+        org.openide.awt.Mnemonics.setLocalizedText(none, "Select none");
+        none.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                noneActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -128,14 +150,18 @@ public final class ArimaSettingVisual extends JPanel {
                             .addComponent(cbMean)
                             .addComponent(cbBP)
                             .addComponent(cbBQ)))
-                    .addComponent(jLabel1))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(all, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(none)))
+                .addContainerGap(42, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel1)
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cbAcceptDefault)
@@ -163,11 +189,24 @@ public final class ArimaSettingVisual extends JPanel {
                     .addComponent(cbBP))
                 .addGap(18, 18, 18)
                 .addComponent(cbBQ)
-                .addContainerGap(40, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 18, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(all, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(none))
+                .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void allActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_allActionPerformed
+        changeAllCheckboxes(true);
+    }//GEN-LAST:event_allActionPerformed
+
+    private void noneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_noneActionPerformed
+        changeAllCheckboxes(false);
+    }//GEN-LAST:event_noneActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton all;
     private javax.swing.JCheckBox cbAcceptDefault;
     private javax.swing.JCheckBox cbArima;
     private javax.swing.JCheckBox cbArmaLimit;
@@ -185,6 +224,25 @@ public final class ArimaSettingVisual extends JPanel {
     private javax.swing.JCheckBox cbReduceCV;
     private javax.swing.JCheckBox cbURFinal;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JButton none;
     // End of variables declaration//GEN-END:variables
 
+    private void changeAllCheckboxes(boolean selected) {
+        cbMean.setSelected(selected);
+        cbArima.setSelected(selected);
+        cbP.setSelected(selected);
+        cbQ.setSelected(selected);
+        cbBP.setSelected(selected);
+        cbBQ.setSelected(selected);
+        cbAcceptDefault.setSelected(selected);
+        cbCancelLimit.setSelected(selected);
+        cbInitialUR.setSelected(selected);
+        cbFinalUR.setSelected(selected);
+        cbMixed.setSelected(selected);
+        cbBalanced.setSelected(selected);
+        cbArmaLimit.setSelected(selected);
+        cbReduceCV.setSelected(selected);
+        cbLjungboxLimit.setSelected(selected);
+        cbURFinal.setSelected(selected);
+    }
 }

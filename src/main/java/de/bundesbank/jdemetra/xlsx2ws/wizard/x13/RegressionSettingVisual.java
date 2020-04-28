@@ -12,6 +12,7 @@ public final class RegressionSettingVisual extends JPanel {
 
     public RegressionSettingVisual() {
         initComponents();
+        changeAllCheckboxes(true);
     }
 
     @Override
@@ -55,6 +56,10 @@ public final class RegressionSettingVisual extends JPanel {
         cbUserDefinedVariables = new javax.swing.JCheckBox();
         cbFixedRegressionCoefficients = new javax.swing.JCheckBox();
         jLabel1 = new javax.swing.JLabel();
+        all = new javax.swing.JButton();
+        none = new javax.swing.JButton();
+
+        setPreferredSize(new java.awt.Dimension(430, 312));
 
         org.openide.awt.Mnemonics.setLocalizedText(cbHolidays, "Holidays");
 
@@ -78,7 +83,24 @@ public final class RegressionSettingVisual extends JPanel {
 
         org.openide.awt.Mnemonics.setLocalizedText(cbFixedRegressionCoefficients, "Fixed regression coefficients");
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, "Choose which parts of the regression specification (X13) should be written to the XLSX.");
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, "<html>Choose which parts of the <b>REGRESSION</b> specification should be written to the XLSX.</html>");
+
+        org.openide.awt.Mnemonics.setLocalizedText(all, "Select all");
+        all.setMaximumSize(new java.awt.Dimension(89, 23));
+        all.setMinimumSize(new java.awt.Dimension(89, 23));
+        all.setPreferredSize(new java.awt.Dimension(89, 23));
+        all.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                allActionPerformed(evt);
+            }
+        });
+
+        org.openide.awt.Mnemonics.setLocalizedText(none, "Select none");
+        none.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                noneActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -87,57 +109,75 @@ public final class RegressionSettingVisual extends JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel1)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(cbHolidays)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(cbHolidays)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(cbTradingDaysType)
-                                    .addComponent(cbAutoAdjust)
-                                    .addComponent(cbLeapYear))
-                                .addGap(18, 18, 18)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(cbEaster)
-                                    .addComponent(cbUserVariables)
-                                    .addComponent(cbW)
-                                    .addComponent(cbTradingDaysTest))))
-                        .addGap(18, 18, 18)
+                            .addComponent(cbTradingDaysType)
+                            .addComponent(cbAutoAdjust)
+                            .addComponent(cbLeapYear))
+                        .addGap(26, 26, 26)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(cbPrespecifiedOutliers)
-                            .addComponent(cbFixedRegressionCoefficients)
-                            .addComponent(cbUserDefinedVariables))))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addComponent(cbEaster)
+                            .addComponent(cbUserVariables)
+                            .addComponent(cbTradingDaysTest)
+                            .addComponent(cbW)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(cbPrespecifiedOutliers)
+                        .addGap(18, 18, 18)
+                        .addComponent(cbUserDefinedVariables))
+                    .addComponent(cbFixedRegressionCoefficients)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(all, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(none)))
+                .addContainerGap(11, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel1)
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cbHolidays)
-                    .addComponent(cbW)
-                    .addComponent(cbPrespecifiedOutliers))
+                    .addComponent(cbW))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cbTradingDaysType)
-                    .addComponent(cbUserVariables)
-                    .addComponent(cbUserDefinedVariables))
+                    .addComponent(cbUserVariables))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cbAutoAdjust)
-                    .addComponent(cbTradingDaysTest)
-                    .addComponent(cbFixedRegressionCoefficients))
+                    .addComponent(cbTradingDaysTest))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cbLeapYear)
                     .addComponent(cbEaster))
-                .addContainerGap(122, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(cbPrespecifiedOutliers)
+                    .addComponent(cbUserDefinedVariables))
+                .addGap(18, 18, 18)
+                .addComponent(cbFixedRegressionCoefficients)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(all, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(none))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void allActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_allActionPerformed
+        changeAllCheckboxes(true);
+    }//GEN-LAST:event_allActionPerformed
+
+    private void noneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_noneActionPerformed
+        changeAllCheckboxes(false);
+    }//GEN-LAST:event_noneActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton all;
     private javax.swing.JCheckBox cbAutoAdjust;
     private javax.swing.JCheckBox cbEaster;
     private javax.swing.JCheckBox cbFixedRegressionCoefficients;
@@ -150,6 +190,20 @@ public final class RegressionSettingVisual extends JPanel {
     private javax.swing.JCheckBox cbUserVariables;
     private javax.swing.JCheckBox cbW;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JButton none;
     // End of variables declaration//GEN-END:variables
 
+    private void changeAllCheckboxes(boolean selected) {
+        cbHolidays.setSelected(selected);
+        cbTradingDaysType.setSelected(selected);
+        cbAutoAdjust.setSelected(selected);
+        cbLeapYear.setSelected(selected);
+        cbW.setSelected(selected);
+        cbUserVariables.setSelected(selected);
+        cbTradingDaysTest.setSelected(selected);
+        cbEaster.setSelected(selected);
+        cbPrespecifiedOutliers.setSelected(selected);
+        cbUserDefinedVariables.setSelected(selected);
+        cbFixedRegressionCoefficients.setSelected(selected);
+    }
 }

@@ -22,6 +22,7 @@ public class MultiDocWizard implements WizardDescriptor.ValidatingPanel<WizardDe
      */
     private MultiDocVisual component;
     private HashMap<String, ISetting> settings;
+    private int index;
 
     // Get the visual component for the panel. In this template, the component
     // is kept separate. This can be more efficient: if the wizard is created
@@ -59,6 +60,7 @@ public class MultiDocWizard implements WizardDescriptor.ValidatingPanel<WizardDe
         if (property instanceof HashMap) {
             settings = (HashMap<String, ISetting>) property;
         }
+        index = (int) wiz.getProperty(WizardDescriptor.PROP_CONTENT_SELECTED_INDEX);
     }
 
     @Override
@@ -67,6 +69,7 @@ public class MultiDocWizard implements WizardDescriptor.ValidatingPanel<WizardDe
             settings.clear();
         }
         settings.put(MultiDocSetting.MULTIDOC_SETTING, component.createSetting());
+        WizardUtil.countIndex(wiz, index);
     }
 
     @Override

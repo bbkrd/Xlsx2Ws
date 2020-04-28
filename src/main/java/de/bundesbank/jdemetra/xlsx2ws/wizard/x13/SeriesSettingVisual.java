@@ -12,6 +12,7 @@ public final class SeriesSettingVisual extends JPanel {
 
     public SeriesSettingVisual() {
         initComponents();
+        changeAllCheckboxes(true);
     }
 
     @Override
@@ -36,12 +37,33 @@ public final class SeriesSettingVisual extends JPanel {
         javax.swing.JLabel jLabel1 = new javax.swing.JLabel();
         cbSpan = new javax.swing.JCheckBox();
         cbPreliminaryCheck = new javax.swing.JCheckBox();
+        all = new javax.swing.JButton();
+        none = new javax.swing.JButton();
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, "Choose which parts of the series specification (X13) should be written to the XLSX.");
+        setPreferredSize(new java.awt.Dimension(430, 312));
+
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, "<html>Choose which parts of the <b>SERIES</b> specification should be written to the XLSX.</html>");
 
         org.openide.awt.Mnemonics.setLocalizedText(cbSpan, "Span");
 
         org.openide.awt.Mnemonics.setLocalizedText(cbPreliminaryCheck, "Preliminary check");
+
+        org.openide.awt.Mnemonics.setLocalizedText(all, "Select all");
+        all.setMaximumSize(new java.awt.Dimension(89, 23));
+        all.setMinimumSize(new java.awt.Dimension(89, 23));
+        all.setPreferredSize(new java.awt.Dimension(89, 23));
+        all.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                allActionPerformed(evt);
+            }
+        });
+
+        org.openide.awt.Mnemonics.setLocalizedText(none, "Select none");
+        none.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                noneActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -50,27 +72,49 @@ public final class SeriesSettingVisual extends JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel1)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(cbPreliminaryCheck)
-                    .addComponent(cbSpan))
+                    .addComponent(cbSpan)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(all, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(none)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel1)
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(cbSpan)
                 .addGap(18, 18, 18)
                 .addComponent(cbPreliminaryCheck)
-                .addContainerGap(204, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 182, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(all, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(none))
+                .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void allActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_allActionPerformed
+        changeAllCheckboxes(true);
+    }//GEN-LAST:event_allActionPerformed
+
+    private void noneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_noneActionPerformed
+        changeAllCheckboxes(false);
+    }//GEN-LAST:event_noneActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton all;
     private javax.swing.JCheckBox cbPreliminaryCheck;
     private javax.swing.JCheckBox cbSpan;
+    private javax.swing.JButton none;
     // End of variables declaration//GEN-END:variables
 
+    private void changeAllCheckboxes(boolean selected) {
+        cbSpan.setSelected(selected);
+        cbPreliminaryCheck.setSelected(selected);
+    }
 }
