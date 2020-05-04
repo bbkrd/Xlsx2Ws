@@ -11,10 +11,9 @@ import de.bundesbank.jdemetra.xlsx2ws.dto.MetaDataSetting;
 import java.util.HashMap;
 import javax.swing.event.ChangeListener;
 import org.openide.WizardDescriptor;
-import org.openide.WizardValidationException;
 import org.openide.util.HelpCtx;
 
-public class MetaDataWizard implements WizardDescriptor.ValidatingPanel<WizardDescriptor>, WizardDescriptor.FinishablePanel<WizardDescriptor> {
+public class MetaDataWizard implements WizardDescriptor.FinishablePanel<WizardDescriptor> {
 
     /**
      * The visual component that displays this panel. If you need to access the
@@ -67,13 +66,6 @@ public class MetaDataWizard implements WizardDescriptor.ValidatingPanel<WizardDe
     public void storeSettings(WizardDescriptor wiz) {
         settings.put(MetaDataSetting.META_DATA_SETTING, component.createSetting());
         WizardUtil.countIndex(wiz, index);
-    }
-
-    @Override
-    public void validate() throws WizardValidationException {
-        if (component.createSetting().isEmpty()) {
-            throw new WizardValidationException(null, "Please select at least one multi-document to continue!", null);
-        }
     }
 
     @Override
