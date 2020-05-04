@@ -105,15 +105,23 @@ public class Creator {
             SpecificationDTO specificationDTO = readSpecification(information, old);
 
             Message[] messages = specificationDTO.getMessages();
+            boolean hasSevereMessages = false;
             if (messages.length != 0) {
                 sb.append("Messages for ").append(multiDocumentName).append("->").append(saItemName).append(":").append(NEW_LINE);
                 for (Message message : messages) {
-                    sb.append(message.getType()).append(" - ").append(message.getText()).append(NEW_LINE);
+                    Level type = message.getType();
+                    if (Level.SEVERE.equals(type)) {
+                        hasSevereMessages = true;
+                    }
+                    sb.append(type).append(" - ").append(message.getText()).append(NEW_LINE);
+                }
+                if (hasSevereMessages) {
+                    sb.append("Severe errors prevent importing!").append(NEW_LINE);
                 }
             }
 
             ISaSpecification specification = specificationDTO.getSpecification();
-            if (specification == null) {
+            if (specification == null || hasSevereMessages) {
                 return;
             }
 

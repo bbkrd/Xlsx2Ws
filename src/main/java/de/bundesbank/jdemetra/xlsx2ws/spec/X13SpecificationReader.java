@@ -501,8 +501,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
             tsPeriodSelector.to(endDay);
         } else { //Implied startDay != null && endDay != null
             if (startDay.isNotBefore(endDay)) {
-                endDay = startDay.plus(1);
-                messages.add(new Message(Level.SEVERE, "The " + part + " end date is set before its start date. It was changed to one day after the start date."));
+                messages.add(new Message(Level.SEVERE, "A mismatch between the starting and ending dates of the " + part.substring(0, part.length() - 1) + " was detected. Please correct it."));
             }
             tsPeriodSelector.between(startDay, endDay);
         }

@@ -201,7 +201,9 @@ public class Writer {
 
         Optional<? extends ISpecificationFactory> optionalSpec = Lookup.getDefault().lookupAll(ISpecificationFactory.class).stream().filter(specReader -> specReader.getSupportedClass().equalsIgnoreCase(specName)).findFirst();
         if (!optionalSpec.isPresent()) {
-            //TODO Log
+            saItemInfo.setSpecificationName(domainSpecification.toLongString());
+            saItemInfo.addSpecificationInfo("ERROR", "No available specwriter");
+            specificationInfoHeader.add(new PositionInfo(0, "ERROR"));
             return;
         }
         ISpecificationWriter specWriter = optionalSpec.get().getNewWriterInstance();
