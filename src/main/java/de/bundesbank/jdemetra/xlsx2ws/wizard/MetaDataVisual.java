@@ -30,7 +30,13 @@ public final class MetaDataVisual extends JPanel {
         Workspace ws = WorkspaceFactory.getInstance().getActiveWorkspace();
         List<WorkspaceItem<MultiProcessingDocument>> existingDocuments = ws.searchDocuments(MultiProcessingDocument.class);
         Set<String> set = new TreeSet<>();
-        existingDocuments.stream().map(x -> x.getElement().getCurrent()).flatMap((t) -> t.stream()).map((t) -> t.getMetaData().keySet()).forEach(set::addAll);
+        existingDocuments.stream()
+                .map(x -> x.getElement().getCurrent())
+                .flatMap((t) -> t.stream())
+                .map((t) -> t.getMetaData())
+                .filter((t) -> t != null)
+                .map((t) -> t.keySet())
+                .forEach(set::addAll);
 
         DefaultListModel targetModel = listSelection.getTargetModel();
         set.forEach(targetModel::addElement);
