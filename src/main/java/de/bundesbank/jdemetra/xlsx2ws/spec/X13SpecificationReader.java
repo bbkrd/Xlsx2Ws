@@ -437,7 +437,6 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
     }
 
     private void readSigmaVec(X11Specification x11Specification) {
-
         List<SigmavecOption> options = prepareEnumList(SIGMA_VECTOR, SigmavecOption::valueOf);
         if (options != null) {
             x11Specification.setSigmavec(options.toArray(new SigmavecOption[options.size()]));
@@ -445,26 +444,10 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
     }
 
     private void readSigmaLimit(X11Specification x11Specification) {
-        Double usigma = null, lsigma = null;
-        if (information.containsKey(UPPER_SIGMA)) {
-            usigma = Double.valueOf(information.get(UPPER_SIGMA));
-        }
-
-        if (information.containsKey(LOWER_SIGMA)) {
-            lsigma = Double.valueOf(information.get(LOWER_SIGMA));
-        }
-
-        if (usigma == null && lsigma != null) {
-            //TODO Log if lsigma > default usigma?
-            x11Specification.setLowerSigma(lsigma);
-        }
-        if (usigma != null && lsigma == null) {
-            //TODO Log if usigma < default lsigma?
-            x11Specification.setUpperSigma(usigma);
-        }
-        if (usigma != null && lsigma != null) {
-            x11Specification.setSigma(lsigma, usigma);
-        }
+        SigmaLimit sigmaLimit = new SigmaLimit();
+        consumeDouble(UPPER_SIGMA, sigmaLimit::setUpperSigma);
+        consumeDouble(LOWER_SIGMA, sigmaLimit::setLowerSigma);
+        sigmaLimit.fill(x11Specification);
     }
 
     private void consumeSpan(String part, Consumer<TsPeriodSelector> consumer) {
@@ -626,12 +609,13 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
                 continue;
             }
             final String get = information.get(key + i);
+            String valueString;
             double value;
-            ParameterType type;
+            ParameterType type = ParameterType.Fixed;
 
             if (get.contains("*")) {
                 String[] split = get.split("\\*", 2);
-                value = Double.parseDouble(split[0]);
+                valueString = split[0];
                 switch (split[1].toLowerCase()) {
                     case "i":
                         type = ParameterType.Initial;
@@ -644,13 +628,23 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
                         break;
                     default:
                         messages.add(new Message(Level.INFO, "Parameter " + key + i + " has no known type declared. It will be assumed to be fixed."));
-                        type = ParameterType.Fixed;
                 }
             } else {
-                value = Double.parseDouble(get);
-                type = ParameterType.Fixed;
+                valueString = get;
+            }
+
+            try {
+                value = Double.parseDouble(valueString);
+            } catch (NumberFormatException e) {
+                messages.add(new Message(Level.SEVERE, "The information " + key + i + " doesn't contain a parseble double value."));
+                continue;
             }
             parameter.get()[i - 1] = new Parameter(value, type);
+        }
+        for (int i = lastPosition + 1; i <= 6; i++) {
+            if (information.containsKey(key + i)) {
+                messages.add(new Message(Level.WARNING, "Parameter " + key + i + " is declared but does not fit the declared ARIMA model."));
+            }
         }
     }
 
@@ -678,6 +672,27 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
                     easterSpec.setTest(regressionTestSpec);
                 }
                 regressionSpec.add(easterSpec);
+            }
+        }
+    }
+
+    @lombok.Setter
+    private static final class SigmaLimit {
+
+        private Double upperSigma = null;
+        private Double lowerSigma = null;
+
+        public void fill(X11Specification x11Specification) {
+            if (upperSigma == null && lowerSigma != null) {
+                //TODO Log if lsigma > default usigma?
+                x11Specification.setLowerSigma(lowerSigma);
+            }
+            if (upperSigma != null && lowerSigma == null) {
+                //TODO Log if usigma < default lsigma?
+                x11Specification.setUpperSigma(upperSigma);
+            }
+            if (upperSigma != null && lowerSigma != null) {
+                x11Specification.setSigma(lowerSigma, upperSigma);
             }
         }
     }

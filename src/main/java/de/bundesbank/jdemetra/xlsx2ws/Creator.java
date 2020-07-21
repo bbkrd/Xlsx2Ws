@@ -207,7 +207,7 @@ public class Creator {
                     if (headers.containsKey(columnIndex)) {
                         InformationDTO informationDTO = headers.get(columnIndex);
                         String information = "";
-                        switch (cell.getCellTypeEnum()) {
+                        switch (cell.getCellType()) {
                             case NUMERIC:
                                 information = Double.toString(cell.getNumericCellValue());
                                 if (information.endsWith(".0")) {
@@ -217,6 +217,9 @@ public class Creator {
                             case STRING:
                                 information = cell.getStringCellValue();
                                 break;
+                        }
+                        if (information.trim().isEmpty()) {
+                            continue;
                         }
                         switch (informationDTO.getType()) {
                             case DOCUMENT_NAME:
