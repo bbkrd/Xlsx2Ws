@@ -11,6 +11,7 @@ import de.bundesbank.jdemetra.xlsx2ws.wizard.WizardIterator;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.prefs.Preferences;
@@ -62,6 +63,11 @@ public final class ExportToXlsx implements ActionListener {
                     progressHandle.start();
                     Preferences preferences = NbPreferences.forModule(ActionUtil.class);
                     File startingDirectory = new File(preferences.get(ActionUtil.LAST_FOLDER, System.getProperty("user.home")));
+                    try {
+                        startingDirectory.getCanonicalPath();
+                    } catch (IOException ex) {
+                        startingDirectory = new File(System.getProperty("user.home"));
+                    }
                     fileChooser.setInitialDirectory(startingDirectory);
                     File file = fileChooser.showSaveDialog(null);
                     if (file != null) {
