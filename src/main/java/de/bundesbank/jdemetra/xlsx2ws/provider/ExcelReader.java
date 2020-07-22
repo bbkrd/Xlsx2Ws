@@ -30,15 +30,16 @@ import org.openide.util.Lookup;
 @Log
 public class ExcelReader implements IProvider {
 
+    private static final String FILE_NOT_SUPPORTED = "File not supported";
     public static final String TIMESERIES_KEY = "timeserieskey";
     public static final String PATH = "path";
     public static final String SHEET = "sheet";
     private final Map<String, String> informations = new HashMap<>();
 
     @Override
-    public Ts readTs() {
+    public Optional<Ts> readTs() {
         if (!informations.containsKey(TIMESERIES_KEY) || !informations.containsKey(PATH) || !informations.containsKey(SHEET)) {
-            return null;
+            return Optional.empty();
         }
         String seriesName = informations.get(TIMESERIES_KEY);
         String path = informations.get(PATH);
@@ -49,8 +50,7 @@ public class ExcelReader implements IProvider {
 
             SpreadSheetProvider provider = Lookup.getDefault().lookup(SpreadSheetProvider.class);
             if (!provider.accept(file)) {
-                log.log(Level.SEVERE, "File not supported");
-                return null;
+                return createTsWithInvalidDataCause(FILE_NOT_SUPPORTED);
             }
 
             SpreadSheetBean bean = new SpreadSheetBean();
@@ -60,23 +60,29 @@ public class ExcelReader implements IProvider {
             List<DataSet> sheets = provider.children(spreadsheet);
             Optional<DataSet> specifiedSheet = sheets.stream().filter(i -> i.getParam("sheetName").get().equals(sheetName)).findFirst();
             if (!specifiedSheet.isPresent()) {
-                log.log(Level.SEVERE, "Sheet {0} doesn't exist.", sheetName);
-                return null;
+                String error = "Sheet " + sheetName + " doesn't exist.";
+                return createTsWithInvalidDataCause(error);
             }
 
             List<DataSet> series = provider.children(specifiedSheet.get());
             Optional<DataSet> specifiedSeries = series.stream().filter(i -> i.getParam("seriesName").get().equals(seriesName)).findFirst();
             if (!specifiedSeries.isPresent()) {
-                log.log(Level.SEVERE, "Series {0} doesn''t exist in sheet {1}.", new Object[]{seriesName, sheetName});
-                return null;
+                String error = "Series " + seriesName + " doesn't exist in sheet " + sheetName + ".";
+                return createTsWithInvalidDataCause(error);
             }
 
             TsMoniker moniker = provider.toMoniker(specifiedSeries.get());
-            return TsFactory.instance.createTs(null, moniker, TsInformationType.All);
+            return Optional.of(TsFactory.instance.createTs(null, moniker, TsInformationType.All));
         } catch (IllegalArgumentException | IOException ex) {
             log.log(Level.SEVERE, null, ex);
-            return null;
+            return Optional.empty();
         }
+    }
+
+    private Optional<Ts> createTsWithInvalidDataCause(String error) {
+        Ts createTs = TsFactory.instance.createTs();
+        createTs.setInvalidDataCause(error);
+        return Optional.of(createTs);
     }
 
     @Override

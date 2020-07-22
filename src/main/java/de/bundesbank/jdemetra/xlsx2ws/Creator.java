@@ -9,6 +9,7 @@ import de.bundesbank.jdemetra.xlsx2ws.dto.IProviderInfo;
 import de.bundesbank.jdemetra.xlsx2ws.dto.InformationDTO;
 import de.bundesbank.jdemetra.xlsx2ws.dto.Message;
 import de.bundesbank.jdemetra.xlsx2ws.dto.RegressorInfo;
+import de.bundesbank.jdemetra.xlsx2ws.dto.ReportItem;
 import de.bundesbank.jdemetra.xlsx2ws.dto.SaItemInfo;
 import de.bundesbank.jdemetra.xlsx2ws.dto.SpecificationDTO;
 import de.bundesbank.jdemetra.xlsx2ws.provider.IProvider;
@@ -28,7 +29,6 @@ import ec.tss.sa.SaItem;
 import ec.tstoolkit.MetaData;
 import ec.tstoolkit.algorithm.ProcessingContext;
 import ec.tstoolkit.timeseries.regression.TsVariables;
-import java.awt.Dimension;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -47,9 +47,6 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import lombok.extern.java.Log;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -73,104 +70,88 @@ public class Creator {
     private final Map<String, Set<String>> variablesMap = new HashMap<>();
     StringBuilder sb;
 
-    public void createWorkspace(File selectedFile) {
-        Workspace ws = WorkspaceFactory.getInstance().getActiveWorkspace();
-        readExistingWorkspace(ws);
-        sb = new StringBuilder();
-        sb.append("Please copy this protocol if you want to keep it!").append(NEW_LINE)
-                .append("Protocol ").append(TIMESTAMP_FORMAT.format(System.currentTimeMillis()))
-                .append('\t').append(System.getProperty("user.name")).append(NEW_LINE).append(NEW_LINE);
-        String startingString = sb.toString();
+    private Workspace ws;
 
-        readRegressorSheet(selectedFile);
+    public void createWorkspace(File selectedFile) {
+        ws = WorkspaceFactory.getInstance().getActiveWorkspace();
+        readExistingWorkspace(ws);
+        List<ReportItem> reportItems = new ArrayList<>();
+
+        List<RegressorInfo> regressors = readRegressorSheet(selectedFile);
 
         List<SaItemInfo> list = readSaItemSheet(selectedFile);
 
-        list.stream().forEach(information -> {
-            String multiDocumentName = information.getMultidocName();
-            String saItemName = information.getSaItemName();
-            SaItem old = null;
-            MultiProcessingDocument document = null;
+        list.stream().map(this::processSaItemInformation).forEach(reportItems::add);
+        regressors.stream().map(this::processRegressorInformation).forEach(reportItems::add);
 
-            if (map.containsKey(multiDocumentName)) {
-                WorkspaceItem<?> doc = ws.searchDocumentByName(MultiProcessingManager.ID, multiDocumentName);
-                document = (MultiProcessingDocument) doc.getElement();
-                if (map.get(multiDocumentName).contains(saItemName)) {
-                    old = document.getCurrent().stream().filter(item -> item.getRawName().equals(saItemName)).findFirst().orElse(null);
-                    //return;
-                }
+        Report report = new Report(reportItems);
+        report.setVisible(true);
+    }
+
+    private ReportItem processSaItemInformation(SaItemInfo information) {
+        final String multiDocumentName = information.getMultidocName();
+        final String saItemName = information.getSaItemName();
+        SaItem old = null;
+        MultiProcessingDocument document = null;
+
+        ArrayList<Message> messageList = new ArrayList<>();
+
+        if (map.containsKey(multiDocumentName)) {
+            WorkspaceItem<?> doc = ws.searchDocumentByName(MultiProcessingManager.ID, multiDocumentName);
+            document = (MultiProcessingDocument) doc.getElement();
+            if (map.get(multiDocumentName).contains(saItemName)) {
+                old = document.getCurrent().stream().filter(item -> item.getRawName().equals(saItemName)).findFirst().orElse(null);
             }
-
-            Ts ts = readTs(information);
-            SpecificationDTO specificationDTO = readSpecification(information, old);
-
-            Message[] messages = specificationDTO.getMessages();
-            boolean hasSevereMessages = false;
-            if (messages.length != 0) {
-                sb.append("Messages for ").append(multiDocumentName).append("->").append(saItemName).append(":").append(NEW_LINE);
-                for (Message message : messages) {
-                    Level type = message.getType();
-                    if (Level.SEVERE.equals(type)) {
-                        hasSevereMessages = true;
-                    }
-                    sb.append(type).append(" - ").append(message.getText()).append(NEW_LINE);
-                }
-                if (hasSevereMessages) {
-                    sb.append("Severe errors prevent importing!").append(NEW_LINE);
-                }
-            }
-
-            ISaSpecification specification = specificationDTO.getSpecification();
-            if (specification == null || hasSevereMessages) {
-                return;
-            }
-
-            if (old == null) {
-                if (ts == null) {
-                    //TODO LOG
-                    return;
-                }
-                SaItem item = new SaItem(specification, ts);
-                item.setName(saItemName);
-                item.setMetaData(new MetaData(information.getMetaData()));
-                if (document == null) {
-                    document = createAbsentMultiDoc(multiDocumentName);
-                }
-                map.get(multiDocumentName).add(saItemName);
-                document.getCurrent().add(item);
-            } else {
-                if (ts == null && information.getMetaData().isEmpty() && old.getDomainSpecification().equals(specification)) {
-                    //TODO LOG (No change)
-                    return;
-                }
-                ts = ts == null ? old.getTs() : ts;
-                MetaData meta = old.getMetaData();
-                if (meta == null) {
-                    meta = new MetaData(information.getMetaData());
-                } else {
-                    meta = meta.clone();
-                    meta.putAll(information.getMetaData());
-                }
-                SaItem item = new SaItem(specification, ts);
-                item.setName(saItemName);
-                item.setMetaData(meta);
-                if (document == null) {
-                    document = createAbsentMultiDoc(multiDocumentName);
-                }
-                document.getCurrent().replace(old, item);
-            }
-
-        });
-
-        if (startingString.equals(sb.toString())) {
-            sb.append("Everything is fine!");
         }
 
-        JTextArea jta = new JTextArea(sb.toString());
-        jta.setEditable(false);
-        JScrollPane jsp = new JScrollPane(jta);
-        jsp.setPreferredSize(new Dimension(480, 120));
-        JOptionPane.showMessageDialog(null, jsp, "Report", JOptionPane.PLAIN_MESSAGE);
+        Optional<Ts> readTs = readTs(information);
+        SpecificationDTO specificationDTO = readSpecification(information, old);
+
+        Message[] messages = specificationDTO.getMessages();
+        Arrays.stream(messages).forEach(messageList::add);
+
+        ISaSpecification specification = specificationDTO.getSpecification();
+
+        Ts ts = null;
+        if (readTs.isPresent()) {
+            ts = readTs.get();
+            String invalidDataCause = ts.getInvalidDataCause();
+            if (invalidDataCause != null && !invalidDataCause.isEmpty()) {
+                messageList.add(new Message(Level.SEVERE, "Timeseries has an error \"" + invalidDataCause + "\"!"));
+            }
+        }
+        MetaData meta = null;
+        if (old != null) {
+            ts = ts == null ? old.getTs() : ts;
+            meta = old.getMetaData().clone();
+        }
+
+        if (ts == null) {
+            messageList.add(new Message(Level.SEVERE, "No timeseries found!"));
+        }
+
+        if (meta == null) {
+            meta = new MetaData(information.getMetaData());
+        } else {
+            meta.putAll(information.getMetaData());
+        }
+        ReportItem reportItem = new ReportItem(multiDocumentName, saItemName, messageList);
+        if (reportItem.getHighestLevel() <= Level.WARNING.intValue()) {
+            SaItem item = new SaItem(specification, ts);
+            item.setName(saItemName);
+            item.setMetaData(meta);
+            if (document == null) {
+                document = createAbsentMultiDoc(multiDocumentName);
+            }
+            if (old != null) {
+                document.getCurrent().replace(old, item);
+            } else {
+                map.get(multiDocumentName).add(saItemName);
+                document.getCurrent().add(item);
+            }
+        }
+        return reportItem;
+
     }
 
     private void readExistingWorkspace(Workspace ws) {
@@ -206,7 +187,7 @@ public class Creator {
                     int columnIndex = cell.getColumnIndex();
                     if (headers.containsKey(columnIndex)) {
                         InformationDTO informationDTO = headers.get(columnIndex);
-                        String information = "";
+                        String information;
                         switch (cell.getCellType()) {
                             case NUMERIC:
                                 information = Double.toString(cell.getNumericCellValue());
@@ -217,6 +198,8 @@ public class Creator {
                             case STRING:
                                 information = cell.getStringCellValue();
                                 break;
+                            default:
+                                information = "";
                         }
                         if (information.trim().isEmpty()) {
                             continue;
@@ -280,7 +263,7 @@ public class Creator {
         Map<Integer, InformationDTO> headers = new TreeMap();
         for (Iterator<Cell> cellIterator = headerRow.cellIterator(); cellIterator.hasNext();) {
             Cell cell = cellIterator.next();
-            if (cell.getCellTypeEnum() == CellType.STRING) {
+            if (cell.getCellType() == CellType.STRING) {
                 int columnIndex = cell.getColumnIndex();
                 String information = cell.getStringCellValue();
                 headers.put(columnIndex, new InformationDTO(information));
@@ -289,12 +272,12 @@ public class Creator {
         return headers;
     }
 
-    private Ts readTs(IProviderInfo information) {
+    private Optional<Ts> readTs(IProviderInfo information) {
         String providerName = information.getProviderName();
         Optional<? extends IProviderFactory> optionalProvider = Lookup.getDefault().lookupAll(IProviderFactory.class).stream().filter(provider -> provider.getProviderName().equalsIgnoreCase(providerName)).findFirst();
         if (!optionalProvider.isPresent()) {
             //TODO Log
-            return null;
+            return Optional.empty();
         }
 
         IProvider provider = optionalProvider.get().getNewInstance();
@@ -302,15 +285,20 @@ public class Creator {
             provider.putInformation(entry.getKey(), entry.getValue());
         });
 
-        Ts ts = provider.readTs();
+        Optional<Ts> ts = provider.readTs();
         return ts;
     }
 
     private SpecificationDTO readSpecification(SaItemInfo information, SaItem old) {
         String specificationName = information.getSpecificationName();
+        ISaSpecification oldSpec = null;
+        if (old != null) {
+            oldSpec = old.getDomainSpecification();
+        }
+
         if (specificationName == null) {
-            if (old != null) {
-                return new SpecificationDTO<>(old.getDomainSpecification(), new Message[]{new Message(Level.INFO, "No specification name declared, old specficition will be used.")});
+            if (oldSpec != null) {
+                return new SpecificationDTO<>(oldSpec, new Message[]{new Message(Level.INFO, "No specification name declared, old specficition will be used.")});
             } else {
                 return new SpecificationDTO<>(null, new Message[]{new Message(Level.SEVERE, "Neither specification name was declared nor an old specification available as fallback.")});
             }
@@ -324,19 +312,15 @@ public class Creator {
             specificationReader.putInformation(entry.getKey(), entry.getValue());
         });
 
-        ISaSpecification oldSpec = null;
-        if (old != null) {
-            oldSpec = old.getDomainSpecification();
-        }
         SpecificationDTO specificationDTO = specificationReader.readSpecification(oldSpec);
         return specificationDTO;
     }
 
-    private void readRegressorSheet(File selectedFile) {
+    private List<RegressorInfo> readRegressorSheet(File selectedFile) {
         try (FileInputStream excelFile = new FileInputStream(selectedFile);) {
             Workbook workbook = new XSSFWorkbook(excelFile);
             if (workbook.getNumberOfSheets() < 2) {
-                return;
+                return new ArrayList<>();
             }
             Sheet datatypeSheet = workbook.getSheet("regressor") == null ? workbook.getSheetAt(1) : workbook.getSheet("regressor");
             Iterator<Row> iterator = datatypeSheet.iterator();
@@ -353,8 +337,8 @@ public class Creator {
                     int columnIndex = cell.getColumnIndex();
                     if (headers.containsKey(columnIndex)) {
                         InformationDTO informationDTO = headers.get(columnIndex);
-                        String information = "";
-                        switch (cell.getCellTypeEnum()) {
+                        String information;
+                        switch (cell.getCellType()) {
                             case NUMERIC:
                                 information = Double.toString(cell.getNumericCellValue());
                                 if (information.endsWith(".0")) {
@@ -364,6 +348,8 @@ public class Creator {
                             case STRING:
                                 information = cell.getStringCellValue();
                                 break;
+                            default:
+                                information = "";
                         }
                         switch (informationDTO.getType()) {
                             case DOCUMENT_NAME:
@@ -378,41 +364,57 @@ public class Creator {
                             case PROVIDER_INFO:
                                 info.addProviderInfo(informationDTO.getName(), information);
                                 break;
+                            default:
+                            //Ignore other input
                         }
                     }
                 }
                 regressorInfos.add(info);
+
             }
-//            if (!regressorInfos.isEmpty()) {
-//                sb.append("Messages for regressors:").append(NEW_LINE);
-//            }
-
-            regressorInfos.forEach(information -> {
-                String variablesListName = information.getDocumentName();
-                String itemName = information.getName();
-                boolean alreadyExists = false;
-
-                Ts ts = readTs(information);
-                if (ts == null) {
-                    //TODO Log
-                    return;
-                }
-                if (variablesMap.containsKey(variablesListName)
-                        && variablesMap.get(variablesListName).contains(itemName)) {
-                    sb.append(itemName).append(" in ").append(variablesListName).append(" was replaced.").append(NEW_LINE);
-                    alreadyExists = true;
-                }
-                TsVariables document = createAbsentVariablesList(variablesListName);
-                variablesMap.get(variablesListName).add(itemName);
-                if (alreadyExists) {
-                    document.remove(itemName);
-                }
-                document.set(itemName, new DynamicTsVariable(ts.getRawName(), ts.getMoniker(), ts.getTsData()));
-            });
-
+            return regressorInfos;
         } catch (IOException e) {
             Logger.getLogger(Creator.class.getName()).log(Level.SEVERE, null, e);
+            return new ArrayList<>();
         }
+
+    }
+
+    private ReportItem processRegressorInformation(RegressorInfo regressorInfo) {
+        String variablesListName = regressorInfo.getDocumentName();
+        String itemName = regressorInfo.getName();
+        boolean alreadyExists = false;
+
+        ArrayList<Message> messageList = new ArrayList<>();
+
+        Optional<Ts> readTs = readTs(regressorInfo);
+
+        Ts ts = null;
+        if (readTs.isPresent()) {
+            ts = readTs.get();
+            String invalidDataCause = ts.getInvalidDataCause();
+            if (invalidDataCause != null && !invalidDataCause.isEmpty()) {
+                messageList.add(new Message(Level.SEVERE, "Timeseries has an error \"" + invalidDataCause + "\"!"));
+            }
+        } else {
+            messageList.add(new Message(Level.SEVERE, "No timeseries found!"));
+        }
+
+        if (ts != null) {
+            if (variablesMap.containsKey(variablesListName)
+                    && variablesMap.get(variablesListName).contains(itemName)) {
+                messageList.add(new Message(Level.INFO, itemName + " in " + variablesListName + " was replaced."));
+                alreadyExists = true;
+            }
+            TsVariables document = createAbsentVariablesList(variablesListName);
+            variablesMap.get(variablesListName).add(itemName);
+            if (alreadyExists) {
+                document.remove(itemName);
+            }
+            document.set(itemName, new DynamicTsVariable(ts.getRawName(), ts.getMoniker(), ts.getTsData()));
+
+        }
+        return new ReportItem(variablesListName, itemName, messageList);
     }
 
     private TsVariables createAbsentVariablesList(String name) {

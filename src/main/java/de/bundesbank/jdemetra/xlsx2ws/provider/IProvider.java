@@ -8,6 +8,7 @@ package de.bundesbank.jdemetra.xlsx2ws.provider;
 import ec.tss.Ts;
 import ec.tss.TsMoniker;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  *
@@ -15,7 +16,7 @@ import java.util.Map;
  */
 public interface IProvider {
 
-    Ts readTs();
+    Optional<Ts> readTs();
 
     Map<String, String> writeTs(TsMoniker moniker);
 

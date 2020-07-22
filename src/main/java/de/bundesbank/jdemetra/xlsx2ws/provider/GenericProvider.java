@@ -11,6 +11,7 @@ import ec.tss.TsInformationType;
 import ec.tss.TsMoniker;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class GenericProvider implements IProvider {
 
@@ -19,12 +20,12 @@ public class GenericProvider implements IProvider {
     private final Map<String, String> informations = new HashMap<>();
 
     @Override
-    public Ts readTs() {
+    public Optional<Ts> readTs() {
         if (informations.containsKey(SOURCE) && informations.containsKey(ID)) {
             TsMoniker tsMoniker = new TsMoniker(informations.get(SOURCE), informations.get(ID));
-            return TsFactory.instance.createTs(null, tsMoniker, TsInformationType.All);
+            return Optional.of(TsFactory.instance.createTs(null, tsMoniker, TsInformationType.All));
         } else {
-            return null;
+            return Optional.empty();
         }
     }
 
