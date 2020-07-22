@@ -39,7 +39,6 @@ import org.openide.util.NbPreferences;
 public final class ExportToXlsx implements ActionListener {
 
     private final FileChooser fileChooser;
-    private final ProgressHandle progressHandle = ProgressHandle.createHandle("Exporting to Xlsx");
 
     public ExportToXlsx() {
         this.fileChooser = new FileChooser();
@@ -59,6 +58,7 @@ public final class ExportToXlsx implements ActionListener {
         wiz.setTitle(Bundle.CTL_ExportToXlsx());
         if (DialogDisplayer.getDefault().notify(wiz) == WizardDescriptor.FINISH_OPTION) {
             Platform.runLater(() -> {
+                ProgressHandle progressHandle = ProgressHandle.createHandle("Exporting to Xlsx");
                 try {
                     progressHandle.start();
                     Preferences preferences = NbPreferences.forModule(ActionUtil.class);

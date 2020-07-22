@@ -36,7 +36,6 @@ import org.openide.util.NbPreferences;
 public final class ImportFromXlsxAction implements ActionListener {
 
     private final FileChooser fileChooser;
-    private final ProgressHandle progressHandle = ProgressHandle.createHandle("Import from Xlsx");
 
     public ImportFromXlsxAction() {
         this.fileChooser = new FileChooser();
@@ -59,6 +58,7 @@ public final class ImportFromXlsxAction implements ActionListener {
         }
 
         Platform.runLater(() -> {
+            ProgressHandle progressHandle = ProgressHandle.createHandle("Import from Xlsx");
             try {
                 progressHandle.start();
                 Preferences preferences = NbPreferences.forModule(ActionUtil.class);

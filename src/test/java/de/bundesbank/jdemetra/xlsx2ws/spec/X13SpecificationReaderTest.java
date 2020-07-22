@@ -76,7 +76,7 @@ public class X13SpecificationReaderTest {
 
         TsPeriodSelector expected = new TsPeriodSelector();
 
-        Assert.assertEquals(new Message(Level.SEVERE, "Unparseable Date format in series_start."), messages[0]);
+        Assert.assertEquals(new Message(Level.SEVERE, "Unparsable Date format in series_start."), messages[0]);
         Assert.assertEquals(expected, specification.getRegArimaSpecification().getBasic().getSpan());
     }
 
@@ -286,7 +286,7 @@ public class X13SpecificationReaderTest {
         SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
         X13Specification specification = readSpecification.getSpecification();
 
-        Assert.assertEquals(new Message(Level.SEVERE, "The information henderson doesn't contain a parseble integer value."), readSpecification.getMessages()[0]);
+        Assert.assertEquals(new Message(Level.SEVERE, "The information henderson doesn't contain a parsable integer value."), readSpecification.getMessages()[0]);
         Assert.assertEquals(0, specification.getX11Specification().getHendersonFilterLength());
     }
 
@@ -315,7 +315,7 @@ public class X13SpecificationReaderTest {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.HENDERSON, "Abc");
         SpecificationDTO<X13Specification> readSpecification = instance.readSpecification(null);
-        Assert.assertEquals(new Message(Level.SEVERE, "The information henderson doesn't contain a parseble integer value."), readSpecification.getMessages()[0]);
+        Assert.assertEquals(new Message(Level.SEVERE, "The information henderson doesn't contain a parsable integer value."), readSpecification.getMessages()[0]);
     }
 
     @Test
@@ -517,7 +517,7 @@ public class X13SpecificationReaderTest {
         X13Specification specification = readSpecification.getSpecification();
         Message[] messages = readSpecification.getMessages();
 
-        Assert.assertEquals(new Message(Level.SEVERE, "Unparseable Date format in outlier_1."), messages[0]);
+        Assert.assertEquals(new Message(Level.SEVERE, "Unparsable Date format in outlier_1."), messages[0]);
         Assert.assertEquals(0, specification.getRegArimaSpecification().getRegression().getOutliersCount());
     }
 
@@ -660,7 +660,7 @@ public class X13SpecificationReaderTest {
         Message[] messages = readSpecification.getMessages();
 
         Assert.assertEquals(1.0E-7, specification.getRegArimaSpecification().getEstimate().getTol(), 0);
-        Assert.assertEquals(new Message(Level.SEVERE, "The information tolerance doesn't contain a parseble floating point value."), messages[0]);
+        Assert.assertEquals(new Message(Level.SEVERE, "The information tolerance doesn't contain a parsable floating point value."), messages[0]);
     }
 
     @Test

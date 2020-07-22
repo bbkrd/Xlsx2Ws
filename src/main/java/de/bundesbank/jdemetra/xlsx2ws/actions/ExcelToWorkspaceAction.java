@@ -34,7 +34,6 @@ import org.openide.util.NbPreferences;
 public final class ExcelToWorkspaceAction implements ActionListener {
 
     private final FileChooser fileChooser;
-    private final ProgressHandle progressHandle = ProgressHandle.createHandle("Creating workspace from Xlsx");
 
     public ExcelToWorkspaceAction() {
         this.fileChooser = new FileChooser();
@@ -49,6 +48,7 @@ public final class ExcelToWorkspaceAction implements ActionListener {
         }
 
         Platform.runLater(() -> {
+            ProgressHandle progressHandle = ProgressHandle.createHandle("Creating workspace from Xlsx");
             try {
                 progressHandle.start();
                 Preferences preferences = NbPreferences.forModule(ActionUtil.class);

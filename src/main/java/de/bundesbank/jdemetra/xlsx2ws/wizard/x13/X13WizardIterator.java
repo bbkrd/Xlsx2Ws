@@ -19,9 +19,7 @@ import org.openide.WizardDescriptor;
  */
 public class X13WizardIterator implements WizardDescriptor.Iterator<WizardDescriptor> {
 
-    int index = 0;
-    boolean isMainPanel;
-
+    private int index = 0;
     private final WizardDescriptor.Panel<WizardDescriptor>[] panels = new WizardDescriptor.Panel[8];
 
     public X13WizardIterator() {

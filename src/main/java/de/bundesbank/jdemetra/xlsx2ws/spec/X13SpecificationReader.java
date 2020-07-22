@@ -507,6 +507,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
                 return Day.fromString(dayInfo);
             } catch (ParseException e) {
             }
+            Day day = null;
             if (DATE_PATTERN.matcher(dayInfo).matches()) {
                 DayBuilder builder = new DayBuilder();
                 switch (dayInfo.length()) {
@@ -515,16 +516,19 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
                     case 7:
                         builder.month(Integer.parseInt(dayInfo.substring(5, 7)));
                     case 4:
-                        return builder.year(Integer.parseInt(dayInfo.substring(0, 4)))
+                        day = builder.year(Integer.parseInt(dayInfo.substring(0, 4)))
                                 .build();
                 }
             } else if (dayInfo.matches("\\d+")) {
-                long day = Long.parseLong(dayInfo);
-                day -= day > 59 ? 2 : 1;
-                LocalDate x = START_EXCEL.plusDays(day);
-                return new DayBuilder().year(x.getYear()).month(x.getMonthValue()).day(x.getDayOfMonth()).build();
+                long l = Long.parseLong(dayInfo);
+                l -= l > 59 ? 2 : 1;
+                LocalDate x = START_EXCEL.plusDays(l);
+                day = new DayBuilder().year(x.getYear()).month(x.getMonthValue()).day(x.getDayOfMonth()).build();
             }
-            messages.add(new Message(Level.SEVERE, "Unparseable Date format in " + key + "."));
+            if (day == null) {
+                messages.add(new Message(Level.SEVERE, "Unparsable Date format in " + key + "."));
+            }
+            return day;
         }
         return null;
     }
@@ -541,7 +545,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
                 messages.add(new Message(Level.SEVERE, "The value " + optionalInt.getAsInt() + " is no valid input for " + key + ". (" + e.getMessage() + ")"));
             }
         } else {
-            messages.add(new Message(Level.SEVERE, "The information " + key + " doesn't contain a parseble integer value."));
+            messages.add(new Message(Level.SEVERE, "The information " + key + " doesn't contain a parsable integer value."));
         }
     }
 
@@ -553,7 +557,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
             double parsedDouble = Double.parseDouble(information.get(key));
             consumer.accept(parsedDouble);
         } catch (NumberFormatException e) {
-            messages.add(new Message(Level.SEVERE, "The information " + key + " doesn't contain a parseble floating point value."));
+            messages.add(new Message(Level.SEVERE, "The information " + key + " doesn't contain a parsable floating point value."));
         }
     }
 
@@ -636,7 +640,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
             try {
                 value = Double.parseDouble(valueString);
             } catch (NumberFormatException e) {
-                messages.add(new Message(Level.SEVERE, "The information " + key + i + " doesn't contain a parseble double value."));
+                messages.add(new Message(Level.SEVERE, "The information " + key + i + " doesn't contain a parsable double value."));
                 continue;
             }
             parameter.get()[i - 1] = new Parameter(value, type);
