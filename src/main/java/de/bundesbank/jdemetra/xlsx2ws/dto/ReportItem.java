@@ -18,9 +18,10 @@ public class ReportItem {
 
     private static final String NEW_LINE = System.getProperty("line.separator");
 
-    public ReportItem(String documentName, String name, List<Message> messages) {
+    public ReportItem(String documentName, String name, List<Message> messages, boolean isRegressor) {
         this.documentName = documentName;
         this.name = name;
+        this.isRegressor = isRegressor;
         this.messages = messages != null ? new ArrayList<>(messages) : new ArrayList<>();
 
         highestLevel = this.messages.stream()
@@ -34,11 +35,12 @@ public class ReportItem {
     final String documentName;
     final String name;
     final ArrayList<Message> messages;
+    final boolean isRegressor;
     int highestLevel;
 
     @Override
     public String toString() {
-        return documentName + "->" + name;
+        return documentName + " -> " + name;
     }
 
     public void addMessage(Message message) {
@@ -52,13 +54,20 @@ public class ReportItem {
         }
     }
 
-    public String generateReport() {
+    public String generateReport(boolean pretab) {
         StringBuilder sb = new StringBuilder();
-        if (messages.isEmpty()) {
-            sb.append("Everything is fine!");
+        String prefix = pretab ? "\t" : "";
+        if (!messages.isEmpty()) {
+            for (Message message : messages) {
+                sb.append(prefix).append(message.getType()).append('\t').append(message.getText()).append(NEW_LINE);
+            }
+            sb.append(NEW_LINE);
         }
-        for (Message message : messages) {
-            sb.append(message.getType()).append(" ").append(message.getText()).append(NEW_LINE);
+
+        if (getHighestLevel() < Level.SEVERE.intValue()) {
+            sb.append(prefix).append("Successfully imported!");
+        } else {
+            sb.append(prefix).append("Import declined because of severe error(s)!");
         }
         return sb.toString();
     }

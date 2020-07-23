@@ -32,8 +32,6 @@ import ec.tstoolkit.timeseries.regression.TsVariables;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -63,13 +61,8 @@ import org.openide.util.Lookup;
 @Log
 public class Creator {
 
-    DateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("dd. MMMM yyyy HH:mm:ss");
-    String NEW_LINE = System.getProperty("line.separator");
-
     private final Map<String, Set<String>> map = new HashMap<>();
     private final Map<String, Set<String>> variablesMap = new HashMap<>();
-    StringBuilder sb;
-
     private Workspace ws;
 
     public void createWorkspace(File selectedFile) {
@@ -135,7 +128,7 @@ public class Creator {
         } else {
             meta.putAll(information.getMetaData());
         }
-        ReportItem reportItem = new ReportItem(multiDocumentName, saItemName, messageList);
+        ReportItem reportItem = new ReportItem(multiDocumentName, saItemName, messageList, false);
         if (reportItem.getHighestLevel() <= Level.WARNING.intValue()) {
             SaItem item = new SaItem(specification, ts);
             item.setName(saItemName);
@@ -244,7 +237,6 @@ public class Creator {
     }
 
     private MultiProcessingDocument createAbsentMultiDoc(String name) {
-        Workspace ws = WorkspaceFactory.getInstance().getActiveWorkspace();
         WorkspaceItem<?> doc = ws.searchDocumentByName(MultiProcessingManager.ID, name);
 
         if (doc == null) {
@@ -414,11 +406,10 @@ public class Creator {
             document.set(itemName, new DynamicTsVariable(ts.getRawName(), ts.getMoniker(), ts.getTsData()));
 
         }
-        return new ReportItem(variablesListName, itemName, messageList);
+        return new ReportItem(variablesListName, itemName, messageList, true);
     }
 
     private TsVariables createAbsentVariablesList(String name) {
-        Workspace ws = WorkspaceFactory.getInstance().getActiveWorkspace();
         WorkspaceItem<?> doc = ws.searchDocumentByName(VariablesDocumentManager.ID, name);
         if (doc == null) {
             VariablesDocumentManager mgr = WorkspaceFactory.getInstance().getManager(VariablesDocumentManager.class);
