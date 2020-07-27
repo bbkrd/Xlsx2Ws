@@ -64,11 +64,12 @@ public class Creator {
     private final Map<String, Set<String>> map = new HashMap<>();
     private final Map<String, Set<String>> variablesMap = new HashMap<>();
     private Workspace ws;
+    List<ReportItem> reportItems;
 
     public void createWorkspace(File selectedFile) {
         ws = WorkspaceFactory.getInstance().getActiveWorkspace();
         readExistingWorkspace(ws);
-        List<ReportItem> reportItems = new ArrayList<>();
+        reportItems = new ArrayList<>();
 
         List<RegressorInfo> regressors = readRegressorSheet(selectedFile);
 
@@ -171,6 +172,7 @@ public class Creator {
 
             Map<Integer, InformationDTO> headers = readHeaders(iterator.next());
 
+            Set<String> names = new HashSet<>();
             List<SaItemInfo> list = new ArrayList<>();
             while (iterator.hasNext()) {
                 Row currentRow = iterator.next();
@@ -199,10 +201,10 @@ public class Creator {
                         }
                         switch (informationDTO.getType()) {
                             case DOCUMENT_NAME:
-                                saItemInfo.setMultidocName(information);
+                                saItemInfo.setMultidocName(information.trim());
                                 break;
                             case ITEM_NAME:
-                                saItemInfo.setSaItemName(information);
+                                saItemInfo.setSaItemName(information.trim());
                                 break;
                             case PROVIDER_NAME:
                                 saItemInfo.setProviderName(information);
@@ -225,8 +227,12 @@ public class Creator {
                     }
 
                 }
-                if (saItemInfo.isValid()) {
+                if (saItemInfo.isValid() && names.add(saItemInfo.getSaItemName())) {
                     list.add(saItemInfo);
+                } else {
+                    ArrayList<Message> messages = new ArrayList<>();
+                    messages.add(new Message(Level.SEVERE, "Each item needs a unique name!"));
+                    reportItems.add(new ReportItem(saItemInfo.getMultidocName(), saItemInfo.getSaItemName() != null ? saItemInfo.getSaItemName() : "", messages, false));
                 }
             }
             return list;
@@ -345,10 +351,10 @@ public class Creator {
                         }
                         switch (informationDTO.getType()) {
                             case DOCUMENT_NAME:
-                                info.setDocumentName(information);
+                                info.setDocumentName(information.trim());
                                 break;
                             case ITEM_NAME:
-                                info.setName(information);
+                                info.setName(information.trim());
                                 break;
                             case PROVIDER_NAME:
                                 info.setProviderName(information);
@@ -361,7 +367,13 @@ public class Creator {
                         }
                     }
                 }
-                regressorInfos.add(info);
+                if (info.isValid()) {
+                    regressorInfos.add(info);
+                } else {
+                    ArrayList<Message> messages = new ArrayList<>();
+                    messages.add(new Message(Level.SEVERE, "Each regressor needs a valid variables input!"));
+                    reportItems.add(new ReportItem("", info.getName() != null ? info.getName() : "", messages, false));
+                }
 
             }
             return regressorInfos;

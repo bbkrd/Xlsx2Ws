@@ -15,7 +15,7 @@ import java.util.Map;
 @lombok.Data
 public final class SaItemInfo implements IProviderInfo {
 
-    private String multidocName;
+    private String multidocName = "";
     private String saItemName;
     private String providerName;
     private final Map<String, String> providerInfos = new HashMap<>();
@@ -37,6 +37,6 @@ public final class SaItemInfo implements IProviderInfo {
     }
 
     public boolean isValid() {
-        return multidocName != null && saItemName != null && !multidocName.isEmpty() && !saItemName.isEmpty();
+        return multidocName != null && saItemName != null && !saItemName.isEmpty();
     }
 }

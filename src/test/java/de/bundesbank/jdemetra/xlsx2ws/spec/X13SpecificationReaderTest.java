@@ -10,7 +10,6 @@ import de.bundesbank.jdemetra.xlsx2ws.dto.SpecificationDTO;
 import ec.satoolkit.x11.CalendarSigma;
 import ec.satoolkit.x11.SeasonalFilterOption;
 import ec.satoolkit.x11.SigmavecOption;
-import ec.satoolkit.x11.X11Exception;
 import ec.satoolkit.x11.X11Specification;
 import ec.satoolkit.x13.X13Specification;
 import ec.tstoolkit.Parameter;
@@ -377,15 +376,18 @@ public class X13SpecificationReaderTest {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.LOWER_SIGMA, "5.4");
         X13Specification specification = instance.readSpecification(null).getSpecification();
-
+        String expected = "Lower sigma is greater than the default upper sigma. Upper sigma will be set to 5.9";
+        Assert.assertEquals(new Message(Level.INFO, expected), instance.readSpecification(null).getMessages()[0]);
         Assert.assertEquals(5.4, specification.getX11Specification().getLowerSigma(), 10e-15);
     }
 
-    @Test(expected = X11Exception.class)
+    @Test
     public void testReadSpecification_LowerSigma0Point4() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.LOWER_SIGMA, "0.4");
         instance.readSpecification(null).getSpecification();
+        String expected = "Invalid sigma options";
+        Assert.assertEquals(new Message(Level.SEVERE, expected), instance.readSpecification(null).getMessages()[0]);
     }
 
     @Test
@@ -399,12 +401,13 @@ public class X13SpecificationReaderTest {
         Assert.assertEquals(5.5, specification.getX11Specification().getUpperSigma(), 10e-15);
     }
 
-    @Test(expected = X11Exception.class)
+    @Test
     public void testReadSpecification_LowerSigma5Point4AndUpperSigma5Point3() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.LOWER_SIGMA, "5.4");
         instance.putInformation(X13SpecificationReader.UPPER_SIGMA, "5.3");
-        instance.readSpecification(null).getSpecification();
+        String expected = "Invalid sigma options";
+        Assert.assertEquals(new Message(Level.SEVERE, expected), instance.readSpecification(null).getMessages()[0]);
     }
 
     @Test
@@ -457,6 +460,16 @@ public class X13SpecificationReaderTest {
 
         Assert.assertEquals(new ArimaSpec(), specification.getRegArimaSpecification().getArima());
 
+    }
+
+    @Test
+    public void testReadSpecification_NoAutoModelButNoArima() {
+        X13SpecificationReader instance = new X13SpecificationReader();
+        instance.putInformation(X13SpecificationReader.AUTOMODEL, "false");
+        SpecificationDTO<X13Specification> specificationDTO = instance.readSpecification(null);
+
+        Assert.assertEquals(new Message(Level.INFO, "No ARIMA model specified, airline model will be used."), specificationDTO.getMessages()[0]);
+        Assert.assertEquals(new ArimaSpec(), specificationDTO.getSpecification().getRegArimaSpecification().getArima());
     }
 
     @Test
@@ -868,7 +881,7 @@ public class X13SpecificationReaderTest {
 
         Assert.assertArrayEquals(new Parameter[]{new Parameter(0.1, ParameterType.Fixed)}, specification.getRegArimaSpecification().getArima().getBTheta());
         Assert.assertEquals(1, specification.getRegArimaSpecification().getArima().getBQ());
-        Assert.assertEquals(new Message(Level.INFO, "Parameter bq_1 has no known type declared. It will be assumed to be fixed."), messages[0]);
+        Assert.assertEquals(new Message(Level.WARNING, "Parameter bq_1 has no known type declared. It will be assumed to be fixed."), messages[0]);
     }
 
     @Test

@@ -122,10 +122,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
             readRegression(regArimaSpecification.getRegression());
             readOutliers(regArimaSpecification.getOutliers());
 
-            if (information.containsKey(AUTOMODEL)) {
-                boolean usingAutoModel = information.get(AUTOMODEL).equalsIgnoreCase("true");
-                regArimaSpecification.setUsingAutoModel(usingAutoModel);
-            }
+            consumeBoolean(AUTOMODEL, regArimaSpecification::setUsingAutoModel, regArimaSpecification.isUsingAutoModel());
             if (regArimaSpecification.isUsingAutoModel()) {
                 readAutoModel(regArimaSpecification.getAutoModel());
             } else {
@@ -140,7 +137,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
 
     private void readSeries(BasicSpec basicSpec) {
         consumeSpan(SERIES, basicSpec::setSpan);
-        consumeBoolean(PRELIMINARY_CHECK, basicSpec::setPreliminaryCheck);
+        consumeBoolean(PRELIMINARY_CHECK, basicSpec::setPreliminaryCheck, basicSpec.isPreliminaryCheck());
     }
 
     private void readEstimate(EstimateSpec estimateSpec) {
@@ -173,15 +170,17 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         consumeEnum(TRADING_DAYS_TYPE, TradingDaysType::valueOf, tradingDaysSpec::setTradingDaysType);
         consumeEnum(LEAP_YEAR, LengthOfPeriodType::valueOf, tradingDaysSpec::setLengthOfPeriod);
 
-        consumeBoolean(AUTO_ADJUST, tradingDaysSpec::setAutoAdjust);
+        consumeBoolean(AUTO_ADJUST, tradingDaysSpec::setAutoAdjust, tradingDaysSpec.isAutoAdjust());
 
         //EASTER
         if (information.containsKey(EASTER)) {
             Easter easter = new Easter();
-            regressionSpec.removeMovingHolidays(regressionSpec.getEaster());
+            MovingHolidaySpec prevEaster = regressionSpec.getEaster();
+            regressionSpec.removeMovingHolidays(prevEaster);
 
-            consumeBoolean(EASTER, easter::setEaster);
-            consumeBoolean(EASTER_JULIAN, easter::setJulian);
+            boolean easterDefault = prevEaster != null;
+            consumeBoolean(EASTER, easter::setEaster, easterDefault);
+            consumeBoolean(EASTER_JULIAN, easter::setJulian, easterDefault && prevEaster.getType() == MovingHolidaySpec.Type.JulianEaster);
             consumeInt(DURATION, easter::setW);
             consumeEnum(PRE_TEST, RegressionTestSpec::valueOf, easter::setRegressionTestSpec);
             easter.fill(regressionSpec);
@@ -316,36 +315,20 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         consumeDouble(CRITICAL_VALUE, outlierSpec::setDefaultCriticalValue);
 
         if (information.containsKey(AO)) {
-            boolean ao = Boolean.parseBoolean(information.get(AO));
-            if (ao) {
-                outlierSpec.add(OutlierType.AO);
-            } else {
-                outlierSpec.remove(OutlierType.AO);
-            }
+            OutlierHelper ao = new OutlierHelper(AO, outlierSpec);
+            consumeBoolean(AO, ao::setOutlier, ao.isDefaultValue());
         }
         if (information.containsKey(LS)) {
-            boolean ls = Boolean.parseBoolean(information.get(LS));
-            if (ls) {
-                outlierSpec.add(OutlierType.LS);
-            } else {
-                outlierSpec.remove(OutlierType.LS);
-            }
+            OutlierHelper ls = new OutlierHelper(LS, outlierSpec);
+            consumeBoolean(LS, ls::setOutlier, ls.isDefaultValue());
         }
         if (information.containsKey(TC)) {
-            boolean tc = Boolean.parseBoolean(information.get(TC));
-            if (tc) {
-                outlierSpec.add(OutlierType.TC);
-            } else {
-                outlierSpec.remove(OutlierType.TC);
-            }
+            OutlierHelper tc = new OutlierHelper(TC, outlierSpec);
+            consumeBoolean(TC, tc::setOutlier, tc.isDefaultValue());
         }
         if (information.containsKey(SO)) {
-            boolean so = Boolean.parseBoolean(information.get(SO));
-            if (so) {
-                outlierSpec.add(OutlierType.SO);
-            } else {
-                outlierSpec.remove(OutlierType.SO);
-            }
+            OutlierHelper so = new OutlierHelper(SO, outlierSpec);
+            consumeBoolean(SO, so::setOutlier, so.isDefaultValue());
         }
         consumeDouble(TC_RATE, outlierSpec::setMonthlyTCRate);
         consumeEnum(METHOD, OutlierSpec.Method::valueOf, outlierSpec::setMethod);
@@ -353,12 +336,12 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
     }
 
     private void readAutoModel(AutoModelSpec autoModelSpec) {
-        consumeBoolean(ACCEPT_DEFAULT, autoModelSpec::setAcceptDefault);
+        consumeBoolean(ACCEPT_DEFAULT, autoModelSpec::setAcceptDefault, autoModelSpec.isAcceptDefault());
         consumeDouble(CANCELATION_LIMIT, autoModelSpec::setCancelationLimit);
         consumeDouble(INITIAL_UR, autoModelSpec::setInitialUnitRootLimit);
         consumeDouble(FINAL_UR, autoModelSpec::setFinalUnitRootLimit);
-        consumeBoolean(MIXED, autoModelSpec::setMixed);
-        consumeBoolean(BALANCED, autoModelSpec::setBalanced);
+        consumeBoolean(MIXED, autoModelSpec::setMixed, autoModelSpec.isMixed());
+        consumeBoolean(BALANCED, autoModelSpec::setBalanced, autoModelSpec.isBalanced());
         consumeDouble(ARMALIMIT, autoModelSpec::setArmaSignificance);
         consumeDouble(REDUCE_CV, autoModelSpec::setPercentReductionCV);
         consumeDouble(LJUNGBOX_LIMIT, autoModelSpec::setLjungBoxLimit);
@@ -366,7 +349,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
     }
 
     private void readARIMA(ArimaSpec arimaSpec) {
-        consumeBoolean(MEAN, arimaSpec::setMean);
+        consumeBoolean(MEAN, arimaSpec::setMean, arimaSpec.isMean());
 
         if (information.containsKey(ARIMA)) {
             String arimaModel = information.get(ARIMA);
@@ -392,14 +375,16 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
                 consumeParameters(BQ, bq, arimaSpec::getBTheta);
 
             } else {
-                messages.add(new Message(Level.SEVERE, "The information ARIMA doesn't contain a valid ARIMA model"));
+                messages.add(new Message(Level.SEVERE, "The information ARIMA doesn't contain a valid ARIMA model."));
             }
+        } else if (information.containsKey(AUTOMODEL)) {
+            messages.add(new Message(Level.INFO, "No ARIMA model specified, airline model will be used."));
         }
     }
 
     private void readX11(X11Specification x11Specification, boolean onlyX11) {
         consumeEnum(MODE, DecompositionMode::valueOf, x11Specification::setMode);
-        consumeBoolean(SEASONAL, x11Specification::setSeasonal);
+        consumeBoolean(SEASONAL, x11Specification::setSeasonal, x11Specification.isSeasonal());
 
         if (!onlyX11) {
             consumeInt(MAXLEAD, x11Specification::setForecastHorizon);
@@ -413,7 +398,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
             readSeasonalFilter(x11Specification);
         }
 
-        consumeBoolean(EXCLUDEFORECAST, x11Specification::setExcludefcst);
+        consumeBoolean(EXCLUDEFORECAST, x11Specification::setExcludefcst, x11Specification.isExcludefcst());
         consumeEnum(CALENDARSIGMA, CalendarSigma::valueOf, x11Specification::setCalendarSigma);
 
         if (x11Specification.getCalendarSigma() == CalendarSigma.Select && information.containsKey(SIGMA_VECTOR + 1)) {
@@ -447,12 +432,16 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         SigmaLimit sigmaLimit = new SigmaLimit();
         consumeDouble(UPPER_SIGMA, sigmaLimit::setUpperSigma);
         consumeDouble(LOWER_SIGMA, sigmaLimit::setLowerSigma);
-        sigmaLimit.fill(x11Specification);
+        messages.addAll(sigmaLimit.fill(x11Specification));
     }
 
     private void consumeSpan(String part, Consumer<TsPeriodSelector> consumer) {
         if (!information.containsKey(part + START) && !information.containsKey(part + END) && !information.containsKey(part + FIRST) && !information.containsKey(part + LAST)) {
             return;
+        }
+        if ((information.containsKey(part + START) || information.containsKey(part + END))
+                && (information.containsKey(part + FIRST) || information.containsKey(part + LAST))) {
+            messages.add(new Message(Level.INFO, "Contradictory input was detected for the span of " + part.substring(0, part.length() - 1) + ". Start/end takes precedence!"));
         }
         String start = information.get(part + START);
         String end = information.get(part + END);
@@ -466,15 +455,23 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         Day endDay = parseDay(end, part + END);
         TsPeriodSelector tsPeriodSelector = new TsPeriodSelector();
         if (startDay == null && endDay == null) {
-            String first = information.get(part + FIRST);
-            String last = information.get(part + LAST);
-            OptionalInt firstOpt = tryParseInteger(first), lastOpt = tryParseInteger(last);
-            if (firstOpt.isPresent() && lastOpt.isPresent()) {
-                tsPeriodSelector.excluding(firstOpt.getAsInt(), lastOpt.getAsInt());
-            } else if (!firstOpt.isPresent() && lastOpt.isPresent()) {
-                tsPeriodSelector.last(lastOpt.getAsInt());
-            } else if (firstOpt.isPresent()) {//Implied !lastOpt.isPresent()
-                tsPeriodSelector.first(firstOpt.getAsInt());
+            SpanHelper x = new SpanHelper();
+            consumeInt(part + FIRST, x::setFirst);
+            consumeInt(part + LAST, x::setLast);
+            Integer first = x.getFirst();
+            Integer last = x.getLast();
+            if (first != null && last != null) {
+                tsPeriodSelector.excluding(first, last);
+            } else if (first == null && last != null) {
+                if (last < 0) {
+                    messages.add(new Message(Level.WARNING, "Last is smaller than 0 for the span of " + part.substring(0, part.length() - 1) + " and the only input."));
+                }
+                tsPeriodSelector.last(last);
+            } else if (first != null) {//Implied !lastOpt.isPresent()
+                if (first < 0) {
+                    messages.add(new Message(Level.WARNING, "First is smaller than 0 for the span of " + part.substring(0, part.length() - 1) + " and the only input."));
+                }
+                tsPeriodSelector.first(first);
             }
             consumer.accept(tsPeriodSelector);
             return;
@@ -594,14 +591,14 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         return options.size() != max ? null : options;
     }
 
-    private void consumeBoolean(String key, Consumer<Boolean> consumer) {
+    private void consumeBoolean(String key, Consumer<Boolean> consumer, boolean defaultValue) {
         if (!information.containsKey(key)) {
             return;
         }
 
         String value = information.get(key);
         if (value == null || !(value.equalsIgnoreCase(Boolean.TRUE.toString()) || value.equalsIgnoreCase(Boolean.FALSE.toString()))) {
-            messages.add(new Message(Level.WARNING, "The information " + key + " doesn't contain \"true\" or \"false\". It will be set to false."));
+            messages.add(new Message(Level.WARNING, "The information " + key + " doesn't contain \"true\" or \"false\". It will be set to " + defaultValue + "."));
         }
         boolean parsedBoolean = Boolean.parseBoolean(information.get(key));
         consumer.accept(parsedBoolean);
@@ -631,7 +628,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
                         type = ParameterType.Fixed;
                         break;
                     default:
-                        messages.add(new Message(Level.INFO, "Parameter " + key + i + " has no known type declared. It will be assumed to be fixed."));
+                        messages.add(new Message(Level.WARNING, "Parameter " + key + i + " has no known type declared. It will be assumed to be fixed."));
                 }
             } else {
                 valueString = get;
@@ -647,7 +644,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         }
         for (int i = lastPosition + 1; i <= 6; i++) {
             if (information.containsKey(key + i)) {
-                messages.add(new Message(Level.WARNING, "Parameter " + key + i + " is declared but does not fit the declared ARIMA model."));
+                messages.add(new Message(Level.INFO, "Parameter " + key + i + " is declared but does not fit the declared ARIMA model."));
             }
         }
     }
@@ -686,19 +683,61 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         private Double upperSigma = null;
         private Double lowerSigma = null;
 
-        public void fill(X11Specification x11Specification) {
-            if (upperSigma == null && lowerSigma != null) {
-                //TODO Log if lsigma > default usigma?
-                x11Specification.setLowerSigma(lowerSigma);
+        public List<Message> fill(X11Specification x11Specification) {
+            List<Message> list = new ArrayList<>();
+            try {
+                if (upperSigma == null && lowerSigma != null) {
+                    if (lowerSigma > X11Specification.DEF_USIGMA) {
+                        list.add(new Message(Level.INFO, "Lower sigma is greater than the default upper sigma. Upper sigma will be set to " + (lowerSigma + 0.5)));
+                    }
+                    x11Specification.setLowerSigma(lowerSigma);
+                }
+                if (upperSigma != null && lowerSigma == null) {
+                    if (upperSigma < X11Specification.DEF_LSIGMA) {
+                        list.add(new Message(Level.INFO, "Upper sigma is smaller than the default lower sigma. Lower sigma will be set to " + (upperSigma - 0.5)));
+                    }
+                    x11Specification.setUpperSigma(upperSigma);
+                }
+                if (upperSigma != null && lowerSigma != null) {
+                    x11Specification.setSigma(lowerSigma, upperSigma);
+                }
+            } catch (X11Exception e) {
+                list.add(new Message(Level.SEVERE, e.getMessage()));
             }
-            if (upperSigma != null && lowerSigma == null) {
-                //TODO Log if usigma < default lsigma?
-                x11Specification.setUpperSigma(upperSigma);
-            }
-            if (upperSigma != null && lowerSigma != null) {
-                x11Specification.setSigma(lowerSigma, upperSigma);
+            return list;
+        }
+    }
+
+    @lombok.Getter
+    @lombok.Setter
+    private static final class SpanHelper {
+
+        private Integer first = null;
+        private Integer last = null;
+    }
+
+    @lombok.Setter
+    private final class OutlierHelper {
+
+        private final OutlierType type;
+        private final OutlierSpec outlierSpec;
+        @lombok.Getter
+        private final boolean defaultValue;
+
+        public OutlierHelper(String key, OutlierSpec outlierSpec) {
+            this.type = OutlierType.valueOf(key.toUpperCase());
+            this.outlierSpec = outlierSpec;
+            defaultValue = outlierSpec.search(type) != null;
+        }
+
+        public void setOutlier(boolean active) {
+            if (active) {
+                outlierSpec.add(type);
+            } else {
+                outlierSpec.remove(type);
             }
         }
+
     }
 
     private static final StringMapComparator STRING_MAP_COMPARATOR = new StringMapComparator();
