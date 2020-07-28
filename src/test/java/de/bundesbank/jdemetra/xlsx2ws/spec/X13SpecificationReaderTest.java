@@ -719,8 +719,8 @@ public class X13SpecificationReaderTest {
         X13Specification specification = readSpecification.getSpecification();
         Message[] messages = readSpecification.getMessages();
 
-        Assert.assertEquals(false, specification.getRegArimaSpecification().getBasic().isPreliminaryCheck());
-        Assert.assertEquals(new Message(Level.WARNING, "The information preliminary_check doesn't contain \"true\" or \"false\". It will be set to false."), messages[0]);
+        Assert.assertEquals(true, specification.getRegArimaSpecification().getBasic().isPreliminaryCheck());
+        Assert.assertEquals(new Message(Level.WARNING, "The information preliminary_check doesn't contain \"true\" or \"false\". It will be set to true."), messages[0]);
     }
 
     @Test
@@ -732,8 +732,8 @@ public class X13SpecificationReaderTest {
         X13Specification specification = readSpecification.getSpecification();
         Message[] messages = readSpecification.getMessages();
 
-        Assert.assertEquals(false, specification.getRegArimaSpecification().getBasic().isPreliminaryCheck());
-        Assert.assertEquals(new Message(Level.WARNING, "The information preliminary_check doesn't contain \"true\" or \"false\". It will be set to false."), messages[0]);
+        Assert.assertEquals(true, specification.getRegArimaSpecification().getBasic().isPreliminaryCheck());
+        Assert.assertEquals(new Message(Level.WARNING, "The information preliminary_check doesn't contain \"true\" or \"false\". It will be set to true."), messages[0]);
     }
 
     @Test

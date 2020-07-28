@@ -47,12 +47,7 @@ public final class Report extends JDialog {
         this.items = new ArrayList<>(input);
         items.sort((o1, o2) -> {
             if (o1.isRegressor() == o2.isRegressor()) {
-                int compareValue = String.CASE_INSENSITIVE_ORDER.compare(o1.getDocumentName(), o2.getDocumentName());
-                if (compareValue == 0) {
-                    return String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName());
-                } else {
-                    return compareValue;
-                }
+                return String.CASE_INSENSITIVE_ORDER.compare(o1.getDocumentName(), o2.getDocumentName());
             } else {
                 return o1.isRegressor() ? 1 : -1;
             }

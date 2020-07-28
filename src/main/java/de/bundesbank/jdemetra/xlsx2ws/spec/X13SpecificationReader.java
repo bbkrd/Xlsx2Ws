@@ -125,6 +125,9 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
             consumeBoolean(AUTOMODEL, regArimaSpecification::setUsingAutoModel, regArimaSpecification.isUsingAutoModel());
             if (regArimaSpecification.isUsingAutoModel()) {
                 readAutoModel(regArimaSpecification.getAutoModel());
+                if (information.containsKey(MEAN) || information.containsKey(ARIMA)) {
+                    messages.add(new Message(Level.INFO, "Contradictory input was detected ARIMA modeling. Automodel takes precedence!"));
+                }
             } else {
                 readARIMA(regArimaSpecification.getArima());
             }
@@ -599,9 +602,11 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         String value = information.get(key);
         if (value == null || !(value.equalsIgnoreCase(Boolean.TRUE.toString()) || value.equalsIgnoreCase(Boolean.FALSE.toString()))) {
             messages.add(new Message(Level.WARNING, "The information " + key + " doesn't contain \"true\" or \"false\". It will be set to " + defaultValue + "."));
+            consumer.accept(defaultValue);
+        } else {
+            boolean parsedBoolean = Boolean.parseBoolean(information.get(key));
+            consumer.accept(parsedBoolean);
         }
-        boolean parsedBoolean = Boolean.parseBoolean(information.get(key));
-        consumer.accept(parsedBoolean);
     }
 
     private void consumeParameters(String key, int lastPosition, Supplier<Parameter[]> parameter) {
