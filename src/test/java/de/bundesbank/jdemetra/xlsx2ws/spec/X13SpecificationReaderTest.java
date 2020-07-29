@@ -468,7 +468,7 @@ public class X13SpecificationReaderTest {
         instance.putInformation(X13SpecificationReader.AUTOMODEL, "false");
         SpecificationDTO<X13Specification> specificationDTO = instance.readSpecification(null);
 
-        Assert.assertEquals(new Message(Level.INFO, "No ARIMA model specified, airline model will be used."), specificationDTO.getMessages()[0]);
+        Assert.assertEquals(new Message(Level.WARNING, "No ARIMA model specified, airline model will be used."), specificationDTO.getMessages()[0]);
         Assert.assertEquals(new ArimaSpec(), specificationDTO.getSpecification().getRegArimaSpecification().getArima());
     }
 

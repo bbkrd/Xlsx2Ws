@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 public final class MultiDocVisual extends JPanel {
@@ -25,6 +26,8 @@ public final class MultiDocVisual extends JPanel {
     public MultiDocVisual() {
         initComponents();
         listSelection = new JListSelection();
+        listSelection.setSourceHeader(new JLabel("Available"));
+        listSelection.setTargetHeader(new JLabel("Selected"));
         Workspace ws = WorkspaceFactory.getInstance().getActiveWorkspace();
         List<WorkspaceItem<MultiProcessingDocument>> existingDocuments = ws.searchDocuments(MultiProcessingDocument.class);
         existingDocuments.stream().map(x -> x.getDisplayName()).forEach(listSelection.getTargetModel()::addElement);

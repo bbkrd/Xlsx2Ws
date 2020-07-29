@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import javax.swing.DefaultListModel;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 public final class MetaDataVisual extends JPanel {
@@ -27,6 +28,8 @@ public final class MetaDataVisual extends JPanel {
     public MetaDataVisual() {
         initComponents();
         listSelection = new JListSelection();
+        listSelection.setSourceHeader(new JLabel("Available"));
+        listSelection.setTargetHeader(new JLabel("Selected"));
         Workspace ws = WorkspaceFactory.getInstance().getActiveWorkspace();
         List<WorkspaceItem<MultiProcessingDocument>> existingDocuments = ws.searchDocuments(MultiProcessingDocument.class);
         Set<String> set = new TreeSet<>();

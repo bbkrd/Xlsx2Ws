@@ -126,7 +126,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
             if (regArimaSpecification.isUsingAutoModel()) {
                 readAutoModel(regArimaSpecification.getAutoModel());
                 if (information.containsKey(MEAN) || information.containsKey(ARIMA)) {
-                    messages.add(new Message(Level.INFO, "Contradictory input was detected ARIMA modeling. Automodel takes precedence!"));
+                    messages.add(new Message(Level.WARNING, "Contradictory input was detected for ARIMA modeling. Automodel takes precedence!"));
                 }
             } else {
                 readARIMA(regArimaSpecification.getArima());
@@ -381,7 +381,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
                 messages.add(new Message(Level.SEVERE, "The information ARIMA doesn't contain a valid ARIMA model."));
             }
         } else if (information.containsKey(AUTOMODEL)) {
-            messages.add(new Message(Level.INFO, "No ARIMA model specified, airline model will be used."));
+            messages.add(new Message(Level.WARNING, "No ARIMA model specified, airline model will be used."));
         }
     }
 
@@ -444,7 +444,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         }
         if ((information.containsKey(part + START) || information.containsKey(part + END))
                 && (information.containsKey(part + FIRST) || information.containsKey(part + LAST))) {
-            messages.add(new Message(Level.INFO, "Contradictory input was detected for the span of " + part.substring(0, part.length() - 1) + ". Start/end takes precedence!"));
+            messages.add(new Message(Level.WARNING, "Contradictory input was detected for the span of " + part.substring(0, part.length() - 1) + ". Start/end takes precedence!"));
         }
         String start = information.get(part + START);
         String end = information.get(part + END);
@@ -649,7 +649,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         }
         for (int i = lastPosition + 1; i <= 6; i++) {
             if (information.containsKey(key + i)) {
-                messages.add(new Message(Level.INFO, "Parameter " + key + i + " is declared but does not fit the declared ARIMA model."));
+                messages.add(new Message(Level.WARNING, "Parameter " + key + i + " is declared but does not fit the declared ARIMA model."));
             }
         }
     }
