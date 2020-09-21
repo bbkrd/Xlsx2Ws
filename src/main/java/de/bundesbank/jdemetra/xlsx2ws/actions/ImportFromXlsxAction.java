@@ -11,18 +11,12 @@ import ec.nbdemetra.ws.WorkspaceFactory;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.prefs.Preferences;
-import javafx.application.Platform;
-import javafx.embed.swing.JFXPanel;
-import javafx.stage.FileChooser;
-import org.netbeans.api.progress.ProgressHandle;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.NbBundle.Messages;
-import org.openide.util.NbPreferences;
 
 @ActionID(
         category = "Tools",
@@ -34,14 +28,6 @@ import org.openide.util.NbPreferences;
 @ActionReference(path = "Menu/File", position = 401)
 @Messages("CTL_ImportFromXlsx=Import from Xlsx file")
 public final class ImportFromXlsxAction implements ActionListener {
-
-    private final FileChooser fileChooser;
-
-    public ImportFromXlsxAction() {
-        this.fileChooser = new FileChooser();
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Spreadsheet file", "*.xlsx"));
-        new JFXPanel();
-    }
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -57,23 +43,11 @@ public final class ImportFromXlsxAction implements ActionListener {
             }
         }
 
-        Platform.runLater(() -> {
-            ProgressHandle progressHandle = ProgressHandle.createHandle("Import from Xlsx");
-            try {
-                progressHandle.start();
-                Preferences preferences = NbPreferences.forModule(ActionUtil.class);
-                File startingDirectory = new File(preferences.get(ActionUtil.LAST_FOLDER, System.getProperty("user.home")));
-                fileChooser.setInitialDirectory(startingDirectory);
-                File file = fileChooser.showOpenDialog(null);
-                if (file != null) {
-                    ws.closeOpenDocuments();
-                    preferences.put(ActionUtil.LAST_FOLDER, file.getParent());
-                    new Creator().createWorkspace(file);
-                }
-            } finally {
-                progressHandle.finish();
-            }
+        ActionUtil.open("Import from Xlsx", this::definingAction);
+    }
 
-        });
+    private void definingAction(File file) {
+        WorkspaceFactory.getInstance().getActiveWorkspace().closeOpenDocuments();
+        new Creator().createWorkspace(file);
     }
 }
