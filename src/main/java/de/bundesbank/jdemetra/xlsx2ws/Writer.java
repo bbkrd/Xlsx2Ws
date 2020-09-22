@@ -20,6 +20,7 @@ import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationFactory;
 import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationWriter;
 import ec.nbdemetra.sa.MultiProcessingDocument;
 import ec.nbdemetra.ui.calendars.CalendarDocumentManager;
+import ec.nbdemetra.ui.variables.VariablesDocumentManager;
 import ec.nbdemetra.ws.Workspace;
 import ec.nbdemetra.ws.WorkspaceFactory;
 import ec.nbdemetra.ws.WorkspaceItem;
@@ -104,19 +105,22 @@ public class Writer {
 
             List<RegressorInfo> regressorInfos = new ArrayList<>();
             TreeSet<String> providerInfoHeaderRegressors = new TreeSet<>();
-            List<WorkspaceItem<TsVariables>> existingTsVariables = ws.searchDocuments(TsVariables.class);
-            existingTsVariables.forEach((existingTsVariable) -> {
-                String documentName = existingTsVariable.getDisplayName();
-                Collection<ITsVariable> variables = existingTsVariable.getElement().variables();
-                for (ITsVariable variable : variables) {
-                    RegressorInfo regressorInfo = new RegressorInfo();
-                    regressorInfo.setDocumentName(documentName);
-                    regressorInfo.setName(variable.getName());
-                    if (variable instanceof DynamicTsVariable) {
-                        TsMoniker moniker = ((DynamicTsVariable) variable).getMoniker();
-                        writeProviderInfo(moniker, regressorInfo, providerInfoHeaderRegressors);
+            List<WorkspaceItem<?>> existingTsVariables = ws.searchDocuments(VariablesDocumentManager.ID);
+            existingTsVariables.stream().forEach((existingTsVariable) -> {
+                Object element = existingTsVariable.getElement();
+                if (element instanceof TsVariables) {
+                    String documentName = existingTsVariable.getDisplayName();
+                    Collection<ITsVariable> variables = ((TsVariables) element).variables();
+                    for (ITsVariable variable : variables) {
+                        RegressorInfo regressorInfo = new RegressorInfo();
+                        regressorInfo.setDocumentName(documentName);
+                        regressorInfo.setName(variable.getName());
+                        if (variable instanceof DynamicTsVariable) {
+                            TsMoniker moniker = ((DynamicTsVariable) variable).getMoniker();
+                            writeProviderInfo(moniker, regressorInfo, providerInfoHeaderRegressors);
+                        }
+                        regressorInfos.add(regressorInfo);
                     }
-                    regressorInfos.add(regressorInfo);
                 }
             });
             HashMap<String, Header> headersRegressors = createHeaders(3, new PrefixSet("prov_", providerInfoHeaderRegressors));
