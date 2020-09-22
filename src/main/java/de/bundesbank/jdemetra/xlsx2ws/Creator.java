@@ -155,12 +155,15 @@ public class Creator {
             Set<String> saItems = existingDocument.getElement().getCurrent().stream().map(SaItem::getRawName).collect(Collectors.toSet());
             map.put(name, saItems);
         });
+        List<WorkspaceItem<?>> existingTsVariables = ws.searchDocuments(VariablesDocumentManager.ID);
 
-        List<WorkspaceItem<TsVariables>> existingTsVariables = ws.searchDocuments(TsVariables.class);
         existingTsVariables.forEach((existingTsVariable) -> {
-            String name = existingTsVariable.getDisplayName();
-            Set<String> variables = new HashSet<>(Arrays.asList(existingTsVariable.getElement().getNames()));
-            variablesMap.put(name, variables);
+            Object element = existingTsVariable.getElement();
+            if (element instanceof TsVariables) {
+                String name = existingTsVariable.getDisplayName();
+                Set<String> variables = new HashSet<>(Arrays.asList(((TsVariables) element).getNames()));
+                variablesMap.put(name, variables);
+            }
         });
     }
 
