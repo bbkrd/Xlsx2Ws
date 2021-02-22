@@ -117,7 +117,9 @@ public class Creator {
         MetaData meta = null;
         if (old != null) {
             ts = ts == null ? old.getTs() : ts;
-            meta = old.getMetaData().clone();
+            if (old.getMetaData() != null) {
+                meta = old.getMetaData().clone();
+            }
         }
 
         if (ts == null) {
@@ -230,7 +232,7 @@ public class Creator {
                     }
 
                 }
-                if (saItemInfo.isValid() && names.add(saItemInfo.getSaItemName())) {
+                if (saItemInfo.isValid() && names.add(saItemInfo.getMultidocName() + "-" + saItemInfo.getSaItemName())) {
                     list.add(saItemInfo);
                 } else {
                     ArrayList<Message> messages = new ArrayList<>();
