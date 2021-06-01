@@ -301,7 +301,7 @@ public class Creator {
 
         if (specificationName == null) {
             if (oldSpec != null) {
-                return new SpecificationDTO<>(oldSpec, new Message[]{new Message(Level.INFO, "No specification name declared, old specficition will be used.")});
+                return new SpecificationDTO<>(oldSpec, new Message[]{new Message(Level.INFO, "No specification name declared, old specification will be used.")});
             } else {
                 return new SpecificationDTO<>(null, new Message[]{new Message(Level.SEVERE, "Neither specification name was declared nor an old specification available as fallback.")});
             }
