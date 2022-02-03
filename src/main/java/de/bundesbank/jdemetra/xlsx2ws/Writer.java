@@ -16,6 +16,8 @@ import de.bundesbank.jdemetra.xlsx2ws.provider.GenericProvider;
 import de.bundesbank.jdemetra.xlsx2ws.provider.GenericProviderFactory;
 import de.bundesbank.jdemetra.xlsx2ws.provider.IProvider;
 import de.bundesbank.jdemetra.xlsx2ws.provider.IProviderFactory;
+import de.bundesbank.jdemetra.xlsx2ws.provider.PureDataProvider;
+import de.bundesbank.jdemetra.xlsx2ws.provider.PureDataProviderFactory;
 import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationFactory;
 import de.bundesbank.jdemetra.xlsx2ws.spec.ISpecificationWriter;
 import ec.nbdemetra.sa.MultiProcessingDocument;
@@ -32,7 +34,9 @@ import ec.tss.TsMoniker;
 import ec.tss.sa.SaItem;
 import ec.tstoolkit.MetaData;
 import ec.tstoolkit.timeseries.regression.ITsVariable;
+import ec.tstoolkit.timeseries.regression.TsVariable;
 import ec.tstoolkit.timeseries.regression.TsVariables;
+import ec.tstoolkit.timeseries.simplets.TsData;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -90,9 +94,10 @@ public class Writer {
                             }
                             TsMoniker originalMoniker = getOriginalMoniker(item.getTs().getMoniker());
                             if (originalMoniker == null) {
-                                return;
+                                writePureDataInfo(item.getName(), item.getTs().getTsData(), saItemInfo, providerInfoHeaderSaItems);
+                            } else {
+                                writeProviderInfo(originalMoniker, saItemInfo, providerInfoHeaderSaItems);
                             }
-                            writeProviderInfo(originalMoniker, saItemInfo, providerInfoHeaderSaItems);
                             writeSpecificationInfo(item, saItemInfo, specificationInfoHeader, settings);
                             saItemInfos.add(saItemInfo);
                         });
@@ -118,6 +123,8 @@ public class Writer {
                         if (variable instanceof DynamicTsVariable) {
                             TsMoniker moniker = ((DynamicTsVariable) variable).getMoniker();
                             writeProviderInfo(moniker, regressorInfo, providerInfoHeaderRegressors);
+                        } else if (variable instanceof TsVariable) {
+                            writePureDataInfo(variable.getDescription(null), ((TsVariable) variable).getTsData(), regressorInfo, providerInfoHeaderRegressors);
                         }
                         regressorInfos.add(regressorInfo);
                     }
@@ -193,6 +200,16 @@ public class Writer {
         }
 
         Map<String, String> providerInfo = provider.writeTs(moniker);
+        providerInfo.forEach((key, value) -> {
+            iProviderInfo.addProviderInfo(key, value);
+            providerInfoHeader.add(key);
+        });
+    }
+
+    private void writePureDataInfo(String name, TsData tsData, IProviderInfo iProviderInfo, TreeSet<String> providerInfoHeader) {
+        PureDataProvider provider = new PureDataProvider();
+        iProviderInfo.setProviderName(PureDataProviderFactory.NAME);
+        Map<String, String> providerInfo = provider.writeData(name, tsData);
         providerInfo.forEach((key, value) -> {
             iProviderInfo.addProviderInfo(key, value);
             providerInfoHeader.add(key);
