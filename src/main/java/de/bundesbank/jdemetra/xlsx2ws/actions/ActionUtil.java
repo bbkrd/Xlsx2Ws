@@ -21,7 +21,7 @@ import org.openide.util.NbPreferences;
 
 /**
  *
- * @author s4504tw
+ * @author Thomas Witthohn
  */
 public class ActionUtil {
 

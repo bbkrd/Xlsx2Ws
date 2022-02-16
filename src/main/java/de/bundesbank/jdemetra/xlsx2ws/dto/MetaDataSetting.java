@@ -10,7 +10,7 @@ import java.util.Set;
 
 /**
  *
- * @author s4504tw
+ * @author Thomas Witthohn
  */
 public class MetaDataSetting implements ISetting {
 

@@ -34,7 +34,7 @@ import org.junit.Test;
 
 /**
  *
- * @author s4504tw
+ * @author Thomas Witthohn
  */
 public class X13SpecificationWriterTest {
 

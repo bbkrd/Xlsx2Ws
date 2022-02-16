@@ -9,7 +9,7 @@ import org.openide.WizardDescriptor;
 
 /**
  *
- * @author s4504tw
+ * @author Thomas Witthohn
  */
 @lombok.experimental.UtilityClass
 public class WizardUtil {

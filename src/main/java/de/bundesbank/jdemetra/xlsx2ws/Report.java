@@ -35,7 +35,7 @@ import org.openide.filesystems.FileChooserBuilder;
 
 /**
  *
- * @author s4504tw
+ * @author Thomas Witthohn
  */
 public final class Report extends JDialog {
 

@@ -7,7 +7,7 @@ package de.bundesbank.jdemetra.xlsx2ws.spec.x13;
 
 /**
  *
- * @author s4504tw
+ * @author Thomas Witthohn
  */
 @lombok.Value
 public class X13MainSettingDTO {

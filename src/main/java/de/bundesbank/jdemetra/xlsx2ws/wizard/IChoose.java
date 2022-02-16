@@ -10,7 +10,7 @@ import org.openide.WizardDescriptor;
 
 /**
  *
- * @author s4504tw
+ * @author Thomas Witthohn
  */
 @ServiceDefinition
 public interface IChoose {

@@ -12,7 +12,7 @@ import de.bundesbank.jdemetra.xlsx2ws.dto.ISetting;
 
 /**
  *
- * @author s4504tw
+ * @author Thomas Witthohn
  */
 public interface ISpecificationWriter<T extends ISaSpecification, S extends ISetting> {
 

@@ -16,7 +16,7 @@ import org.openide.util.Lookup;
 
 /**
  *
- * @author s4504tw
+ * @author Thomas Witthohn
  */
 public class WizardIterator implements WizardDescriptor.InstantiatingIterator<WizardDescriptor> {
 

@@ -11,7 +11,7 @@ import java.util.logging.Level;
 
 /**
  *
- * @author s4504tw
+ * @author Thomas Witthohn
  */
 @lombok.Getter
 public class ReportItem {

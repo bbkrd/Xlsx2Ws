@@ -17,7 +17,7 @@ import org.openide.util.Exceptions;
 
 /**
  *
- * @author s4504tw
+ * @author Thomas Witthohn
  */
 public enum X13MainSetting {
     SERIES(SeriesSettingWizard.class, 1),

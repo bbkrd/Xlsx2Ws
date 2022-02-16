@@ -16,7 +16,7 @@ import de.bundesbank.jdemetra.xlsx2ws.spec.x13.X11Setting;
 
 /**
  *
- * @author s4504tw
+ * @author Thomas Witthohn
  */
 @lombok.Data
 @lombok.RequiredArgsConstructor

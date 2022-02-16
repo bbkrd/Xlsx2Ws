@@ -9,7 +9,7 @@ import java.util.logging.Level;
 
 /**
  *
- * @author s4504tw
+ * @author Thomas Witthohn
  */
 @lombok.Value
 public class Message {

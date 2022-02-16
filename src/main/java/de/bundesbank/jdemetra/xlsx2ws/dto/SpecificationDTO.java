@@ -9,7 +9,7 @@ import ec.satoolkit.ISaSpecification;
 
 /**
  *
- * @author s4504tw
+ * @author Thomas Witthohn
  */
 @lombok.Value
 public class SpecificationDTO<T extends ISaSpecification> {

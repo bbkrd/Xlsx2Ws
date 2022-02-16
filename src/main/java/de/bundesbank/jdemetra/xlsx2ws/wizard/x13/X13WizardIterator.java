@@ -15,7 +15,7 @@ import org.openide.WizardDescriptor;
 
 /**
  *
- * @author s4504tw
+ * @author Thomas Witthohn
  */
 public class X13WizardIterator implements WizardDescriptor.Iterator<WizardDescriptor> {
 

@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 
 /**
  *
- * @author s4504tw
+ * @author Thomas Witthohn
  */
 public class X13SpecificationWriter implements ISpecificationWriter<X13Specification, X13SpecificationSetting> {
 

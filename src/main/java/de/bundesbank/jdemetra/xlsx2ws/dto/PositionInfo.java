@@ -7,7 +7,7 @@ package de.bundesbank.jdemetra.xlsx2ws.dto;
 
 /**
  *
- * @author s4504tw
+ * @author Thomas Witthohn
  */
 @lombok.Value
 public class PositionInfo implements Comparable<Object> {
