@@ -810,7 +810,7 @@ public class X13SpecificationReaderTest {
     }
 
     @Test
-    public void testReadSpecification_ARIMA100000_QStarFixed() {
+    public void testReadSpecification_ARIMA001000_QStarFixed() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.ARIMA, "(001)(000)");
         instance.putInformation(X13SpecificationReader.Q + 1, "0.1*f");
@@ -825,7 +825,7 @@ public class X13SpecificationReaderTest {
     }
 
     @Test
-    public void testReadSpecification_ARIMA100000_BQStarFixed() {
+    public void testReadSpecification_ARIMA000001_BQStarFixed() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.ARIMA, "(000)(001)");
         instance.putInformation(X13SpecificationReader.BQ + 1, "0.1*f");
@@ -840,7 +840,7 @@ public class X13SpecificationReaderTest {
     }
 
     @Test
-    public void testReadSpecification_ARIMA100000_BQStarUndefined() {
+    public void testReadSpecification_ARIMA000001_BQStarUndefined() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.ARIMA, "(000)(001)");
         instance.putInformation(X13SpecificationReader.BQ + 1, "0.1*u");
@@ -855,7 +855,7 @@ public class X13SpecificationReaderTest {
     }
 
     @Test
-    public void testReadSpecification_ARIMA100000_BQStarInitial() {
+    public void testReadSpecification_ARIMA000001_BQStarInitial() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.ARIMA, "(000)(001)");
         instance.putInformation(X13SpecificationReader.BQ + 1, "0.1*i");
@@ -870,7 +870,7 @@ public class X13SpecificationReaderTest {
     }
 
     @Test
-    public void testReadSpecification_ARIMA100000_BQStarFixedDefault() {
+    public void testReadSpecification_ARIMA000001_BQStarFixedDefault() {
         X13SpecificationReader instance = new X13SpecificationReader();
         instance.putInformation(X13SpecificationReader.ARIMA, "(000)(001)");
         instance.putInformation(X13SpecificationReader.BQ + 1, "0.1*a");
