@@ -25,15 +25,15 @@ public final class SaItemInfo implements IProviderInfo {
 
     @Override
     public void addProviderInfo(String key, String value) {
-        providerInfos.put(key, value.trim());
+        providerInfos.put(key, value != null ? value.trim() : "");
     }
 
     public void addSpecificationInfo(String key, String value) {
-        specificationInfos.put(key, value.trim());
+        specificationInfos.put(key, value != null ? value.trim() : "");
     }
 
     public void addMetaData(String key, String value) {
-        metaData.put(key, value.trim());
+        metaData.put(key, value != null ? value.trim() : "");
     }
 
     public boolean isValid() {

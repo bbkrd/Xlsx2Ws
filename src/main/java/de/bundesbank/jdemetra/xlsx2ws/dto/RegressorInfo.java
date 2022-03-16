@@ -22,7 +22,7 @@ public class RegressorInfo implements IProviderInfo {
 
     @Override
     public void addProviderInfo(String key, String value) {
-        providerInfos.put(key, value.trim());
+        providerInfos.put(key, value != null ? value.trim() : "");
     }
 
     public boolean isValid() {

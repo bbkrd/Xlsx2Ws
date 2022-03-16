@@ -28,6 +28,7 @@ import ec.tss.Ts;
 import ec.tss.sa.SaItem;
 import ec.tstoolkit.MetaData;
 import ec.tstoolkit.algorithm.ProcessingContext;
+import ec.tstoolkit.timeseries.regression.TsVariable;
 import ec.tstoolkit.timeseries.regression.TsVariables;
 import java.io.File;
 import java.io.FileInputStream;
@@ -420,7 +421,11 @@ public class Creator {
             if (alreadyExists) {
                 document.remove(itemName);
             }
-            document.set(itemName, new DynamicTsVariable(ts.getRawName(), ts.getMoniker(), ts.getTsData()));
+            if (ts.getMoniker().getId() == null || ts.getMoniker().getSource() == null) {
+                document.set(itemName, new TsVariable(ts.getRawName(), ts.getTsData()));
+            } else {
+                document.set(itemName, new DynamicTsVariable(ts.getRawName(), ts.getMoniker(), ts.getTsData()));
+            }
 
         }
         return new ReportItem(variablesListName, itemName, messageList, true);
