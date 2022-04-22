@@ -279,8 +279,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
                                 regressor.setEffect(TsVariableDescriptor.UserComponentType.Undefined);
                                 break;
                             default:
-                                messages.add(new Message(Level.WARNING, x.getKey() + " has no typ and will be marked as Undefined."));
-                                regressor.setEffect(TsVariableDescriptor.UserComponentType.Undefined);
+                                messages.add(new Message(Level.SEVERE, x.getKey() + " has no typ."));
                                 break;
                         }
                         variableDescriptors.add(regressor);
@@ -294,6 +293,12 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         if (!userDefinedCalendarEffects.isEmpty()) {
             messages.add(new Message(Level.INFO, "Userdefined trading day variables were defined. All other trading day settings were overridden."));
             regressionSpec.getTradingDays().setUserVariables(userDefinedCalendarEffects.toArray(new String[userDefinedCalendarEffects.size()]));
+
+            if (variableDescriptors.isEmpty() && regressionSpec.getUserDefinedVariablesCount() > 0) {
+                regressionSpec.setUserDefinedVariables(null);
+                messages.add(new Message(Level.WARNING, "Userdefined trading day variables were set but no other userdefined variables."
+                        + " Userdefined variables were cleared."));
+            }
         }
     }
 

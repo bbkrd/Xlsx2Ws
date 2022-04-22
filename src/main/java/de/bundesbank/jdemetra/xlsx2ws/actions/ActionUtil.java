@@ -69,6 +69,10 @@ public class ActionUtil {
             file = FILE_CHOOSER.getSelectedFile();
             if (file != null) {
                 preferences.put(ActionUtil.LAST_FOLDER, file.getParent());
+                String path = file.getPath();
+                if (!path.endsWith(".xlsx")) {
+                    file = new File(path + ".xlsx");
+                }
             }
         }
         return file;

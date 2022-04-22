@@ -32,6 +32,7 @@ import ec.tss.Ts;
 import ec.tss.TsFactory;
 import ec.tss.TsMoniker;
 import ec.tss.sa.SaItem;
+import ec.tss.sa.SaProcessing;
 import ec.tstoolkit.MetaData;
 import ec.tstoolkit.timeseries.regression.ITsVariable;
 import ec.tstoolkit.timeseries.regression.TsVariable;
@@ -43,9 +44,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeSet;
 import javax.annotation.Nonnull;
 import javax.swing.JOptionPane;
@@ -79,10 +82,18 @@ public class Writer {
                     .filter(x -> multiDocSetting == null || multiDocSetting.contains(x.getDisplayName()))
                     .forEach(existingDocument -> {
                         String name = existingDocument.getDisplayName();
-                        existingDocument.getElement().getCurrent().forEach(item -> {
+                        final SaProcessing processing = existingDocument.getElement().getCurrent();
+                        Set<String> control = new HashSet<>(processing.size());
+
+                        processing.stream()
+                                .filter(item -> !item.getRawName().equals(""))
+                                .map(item -> item.getRawName())
+                                .forEach(control::add);
+
+                        processing.forEach(item -> {
                             SaItemInfo saItemInfo = new SaItemInfo();
                             saItemInfo.setMultidocName(name);
-                            saItemInfo.setSaItemName(item.getRawName().equals("") ? Integer.toString(saItemInfos.size() + 1) : item.getRawName());
+                            saItemInfo.setSaItemName(item.getRawName().equals("") ? findNewName(item, control) : item.getRawName());
                             if (item.getMetaData() != null) {
                                 item.getMetaData().entrySet().stream()
                                         .filter(e -> metaDataSetting == null || metaDataSetting.contains(e.getKey()))
@@ -122,7 +133,11 @@ public class Writer {
                         regressorInfo.setName(variable.getName());
                         if (variable instanceof DynamicTsVariable) {
                             TsMoniker moniker = ((DynamicTsVariable) variable).getMoniker();
-                            writeProviderInfo(moniker, regressorInfo, providerInfoHeaderRegressors);
+                            if (moniker.getSource() == null || moniker.getId() == null) {
+                                writePureDataInfo(variable.getDescription(null), ((DynamicTsVariable) variable).getTsData(), regressorInfo, providerInfoHeaderRegressors);
+                            } else {
+                                writeProviderInfo(moniker, regressorInfo, providerInfoHeaderRegressors);
+                            }
                         } else if (variable instanceof TsVariable) {
                             writePureDataInfo(variable.getDescription(null), ((TsVariable) variable).getTsData(), regressorInfo, providerInfoHeaderRegressors);
                         }
@@ -296,6 +311,18 @@ public class Writer {
             return (MetaDataSetting) setting;
         }
         return null;
+    }
+
+    private String findNewName(SaItem item, Set<String> control) {
+        String newName = item.getTs().getRawName();
+        int counter = 1;
+        if (!control.add(newName)) {
+            while (!control.add(newName + "(" + counter + ")")) {
+                counter++;
+            }
+            newName = newName + "(" + counter + ")";
+        }
+        return newName;
     }
 
     @lombok.Value

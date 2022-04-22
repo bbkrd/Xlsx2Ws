@@ -1250,7 +1250,7 @@ public class X13SpecificationReaderTest {
         TsVariableDescriptor expected = new TsVariableDescriptor("O.O");
         expected.setEffect(TsVariableDescriptor.UserComponentType.Undefined);
 
-        Assert.assertEquals(new Message(Level.WARNING, "regressor_1 has no typ and will be marked as Undefined."), messages[0]);
+        Assert.assertEquals(new Message(Level.SEVERE, "regressor_1 has no typ."), messages[0]);
         Assert.assertEquals(expected, specification.getRegArimaSpecification().getRegression().getUserDefinedVariables()[0]);
     }
 
@@ -1266,7 +1266,7 @@ public class X13SpecificationReaderTest {
         TsVariableDescriptor expected = new TsVariableDescriptor("O.O");
         expected.setEffect(TsVariableDescriptor.UserComponentType.Undefined);
 
-        Assert.assertEquals(new Message(Level.WARNING, "regressor_1 has no typ and will be marked as Undefined."), messages[0]);
+        Assert.assertEquals(new Message(Level.SEVERE, "regressor_1 has no typ."), messages[0]);
         Assert.assertEquals(expected, specification.getRegArimaSpecification().getRegression().getUserDefinedVariables()[0]);
     }
 
