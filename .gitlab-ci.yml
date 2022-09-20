@@ -1,3 +1,9 @@
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
 
 stages:
   - build
@@ -26,6 +32,8 @@ build:
 
 deploy:
   stage: deploy
+  only:
+       - master
   script:
     - mvn install org.apache.maven.plugins:maven-deploy-plugin:2.8.2:deploy "-DaltDeploymentRepository=nexus::default::http://m999jdeap001d.in.bundesbank.de:8081/repository/maven-releases/" "-DskipTests=true"
 
@@ -35,6 +43,8 @@ trigger_UpdateCenter:
     GROUP_ID: de.bundesbank.jdemetra
     ARTIFACT_ID: Xlsx2Ws
   stage: update
+  only:
+       - master
   trigger:
     project: statistik/jdemetra/UpdateCenter
     branch: ci/cd
