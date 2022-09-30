@@ -3,27 +3,32 @@ workflow:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
       when: never
-    - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_BRANCH == "develop"
+      when: never
+    - if: $CI_COMMIT_BRANCH   
 
 stages:
+  - process-checks
   - build
+  - test
   - deploy
   - update
 
 variables:
-  # This will suppress any download for dependencies and plugins or upload messages which would clutter the console log.
-  # `showDateTime` will show the passed time in milliseconds. You need to specify `--batch-mode` to make this work.
   MAVEN_OPTS: "-Dhttps.protocols=TLSv1.2 -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true"
-  # As of Maven 3.3.0 instead of this you may define these options in `.mvn/maven.config` so the same config is used
-  # when running from the command line.
-  # `installAtEnd` and `deployAtEnd` are only effective with recent version of the corresponding plugins.
   MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true -DdeployAtEnd=true"
-  TOKEN: $TOKEN
+  DEPLOYMENT_REPOSITORY: $DEPLOYMENT_REPOSITORY
 
 cache:
   paths:
     - .m2/repository
 
+merge_fail:
+  stage: process-checks
+  rules:
+     - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "master" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME != "develop"
+  script:
+    - exit 1
 
 build:
   stage: build
@@ -35,8 +40,7 @@ deploy:
   only:
        - master
   script:
-    - mvn install org.apache.maven.plugins:maven-deploy-plugin:2.8.2:deploy "-DaltDeploymentRepository=nexus::default::http://m999jdeap001d.in.bundesbank.de:8081/repository/maven-releases/" "-DskipTests=true"
-
+    - mvn install org.apache.maven.plugins:maven-deploy-plugin:2.8.2:deploy "-DaltDeploymentRepository=$DEPLOYMENT_REPOSITORY" "-DskipTests=true"
 
 trigger_UpdateCenter:
   variables:
