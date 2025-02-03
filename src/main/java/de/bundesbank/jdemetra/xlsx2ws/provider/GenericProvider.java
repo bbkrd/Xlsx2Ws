@@ -9,15 +9,19 @@ import ec.tss.Ts;
 import ec.tss.TsFactory;
 import ec.tss.TsInformationType;
 import ec.tss.TsMoniker;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public class GenericProvider implements IProvider {
 
     public static final String SOURCE = "moniker",
             ID = "id";
     private final Map<String, String> informations = new HashMap<>();
+    private static Set<String> HEADERS;
 
     @Override
     public Optional<Ts> readTs() {
@@ -39,6 +43,17 @@ public class GenericProvider implements IProvider {
     @Override
     public void putInformation(String key, String value) {
         informations.put(key, value);
+    }
+
+    @Override
+    public Set<String> getAllHeaders() {
+        if (HEADERS == null) {
+            Set<String> set = new HashSet<>();
+            set.add(SOURCE);
+            set.add(ID);
+            HEADERS = Collections.unmodifiableSet(set);
+        }
+        return HEADERS;
     }
 
 }

@@ -15,10 +15,13 @@ import ec.tss.tsproviders.spreadsheet.SpreadSheetBean;
 import ec.tss.tsproviders.spreadsheet.SpreadSheetProvider;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.logging.Level;
 import lombok.extern.java.Log;
 import org.openide.util.Lookup;
@@ -35,6 +38,7 @@ public class ExcelReader implements IProvider {
     public static final String PATH = "path";
     public static final String SHEET = "sheet";
     private final Map<String, String> informations = new HashMap<>();
+    private static Set<String> HEADERS;
 
     @Override
     public Optional<Ts> readTs() {
@@ -104,6 +108,18 @@ public class ExcelReader implements IProvider {
         String path = dataSet.getDataSource().getParam("file").get();
         informations.put(PATH, path);
         return informations;
+    }
+
+    @Override
+    public Set<String> getAllHeaders() {
+        if (HEADERS == null) {
+            Set<String> set = new HashSet<>();
+            set.add(PATH);
+            set.add(SHEET);
+            set.add(TIMESERIES_KEY);
+            HEADERS = Collections.unmodifiableSet(set);
+        }
+        return HEADERS;
     }
 
 }

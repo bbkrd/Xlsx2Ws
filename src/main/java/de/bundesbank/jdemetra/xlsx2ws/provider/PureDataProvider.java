@@ -17,10 +17,13 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.openide.util.Exceptions;
 
 public class PureDataProvider implements IProvider {
@@ -31,6 +34,7 @@ public class PureDataProvider implements IProvider {
             NAME = "name";
     private final Map<String, String> informations = new HashMap<>();
     private static final NumberFormat FORMATTER = DecimalFormat.getNumberInstance(Locale.US);
+    private static Set<String> HEADERS;
 
     static {
         FORMATTER.setMaximumFractionDigits(9);
@@ -93,6 +97,19 @@ public class PureDataProvider implements IProvider {
     @Override
     public void putInformation(String key, String value) {
         informations.put(key, value);
+    }
+
+    @Override
+    public Set<String> getAllHeaders() {
+        if (HEADERS == null) {
+            Set<String> set = new HashSet<>();
+            set.add(NAME);
+            set.add(START);
+            set.add(FREQUENCY);
+            set.add(DATA);
+            HEADERS = Collections.unmodifiableSet(set);
+        }
+        return HEADERS;
     }
 
 }

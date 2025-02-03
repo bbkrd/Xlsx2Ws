@@ -10,7 +10,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -46,10 +45,10 @@ public final class Report extends JDialog {
     public Report(List<ReportItem> input) {
         this.items = new ArrayList<>(input);
         items.sort((o1, o2) -> {
-            if (o1.isRegressor() == o2.isRegressor()) {
+            if (o1.getType().equals(o2.getType())) {
                 return String.CASE_INSENSITIVE_ORDER.compare(o1.getDocumentName(), o2.getDocumentName());
             } else {
-                return o1.isRegressor() ? 1 : -1;
+                return String.CASE_INSENSITIVE_ORDER.compare(o1.getType(), o2.getType()) * -1;
             }
         });
         setModalityType(DEFAULT_MODALITY_TYPE);
@@ -78,13 +77,11 @@ public final class Report extends JDialog {
 
         JButton saveReport = new JButton("Save Report");
         saveReport.setPreferredSize(buttonDimension);
-        saveReport.addActionListener(this::generateReport);
+        saveReport.addActionListener(e -> this.generateReport());
 
         JButton close = new JButton("Close");
         close.setPreferredSize(buttonDimension);
-        close.addActionListener((e) -> {
-            this.dispose();
-        });
+        close.addActionListener(e -> this.dispose());
         JScrollPane jScrollPane = new JScrollPane(itemList);
         jScrollPane.setPreferredSize(new Dimension(150, 200));
 
@@ -108,7 +105,7 @@ public final class Report extends JDialog {
         setLocationRelativeTo(null);
     }
 
-    private void generateReport(ActionEvent e) {
+    private void generateReport() {
         FileChooserBuilder fileChooserBuilder = new FileChooserBuilder(this.getClass());
         fileChooserBuilder.setFileFilter(new FileNameExtensionFilter("Log files", "log"));
         fileChooserBuilder.setAcceptAllFileFilterUsed(false);
@@ -129,13 +126,10 @@ public final class Report extends JDialog {
                 String document = item.getDocumentName();
                 if (!document.equalsIgnoreCase(lastDocument)) {
                     lastDocument = document;
-                    sb.append(NEW_LINE);
-                    if (item.isRegressor()) {
-                        sb.append("***TsVariables ");
-                    } else {
-                        sb.append("***Multidocument ");
-                    }
-                    sb.append(document).append("***").append(NEW_LINE);
+                    sb.append(NEW_LINE).append("***")
+                            .append(item.getType()).append(" ")
+                            .append(document).append("***")
+                            .append(NEW_LINE);
                 }
                 sb.append(item.getName()).append(":").append(NEW_LINE)
                         .append(item.generateReport(true)).append(NEW_LINE);

@@ -135,7 +135,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
 
         readX11(specification.getX11Specification(), onlyX11);
 
-        return new SpecificationDTO<>(specification, messages.toArray(new Message[messages.size()]));
+        return new SpecificationDTO<>(specification, messages.toArray(Message[]::new));
     }
 
     private void readSeries(BasicSpec basicSpec) {
@@ -288,11 +288,11 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
                     }
                 });
         if (!variableDescriptors.isEmpty()) {
-            regressionSpec.setUserDefinedVariables(variableDescriptors.toArray(new TsVariableDescriptor[variableDescriptors.size()]));
+            regressionSpec.setUserDefinedVariables(variableDescriptors.toArray(TsVariableDescriptor[]::new));
         }
         if (!userDefinedCalendarEffects.isEmpty()) {
             messages.add(new Message(Level.INFO, "Userdefined trading day variables were defined. All other trading day settings were overridden."));
-            regressionSpec.getTradingDays().setUserVariables(userDefinedCalendarEffects.toArray(new String[userDefinedCalendarEffects.size()]));
+            regressionSpec.getTradingDays().setUserVariables(userDefinedCalendarEffects.toArray(String[]::new));
 
             if (variableDescriptors.isEmpty() && regressionSpec.getUserDefinedVariablesCount() > 0) {
                 regressionSpec.setUserDefinedVariables(null);
@@ -310,7 +310,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
                     if (FIXED_COEFFICIENT_PATTERN.matcher(x.getValue()).matches()) {
                         String[] split = x.getValue().split("\\*");
                         String name = split[0];
-                        double[] c = Arrays.stream(split[1].split(";")).mapToDouble(s -> Double.parseDouble(s)).toArray();
+                        double[] c = Arrays.stream(split[1].split(";")).mapToDouble(s -> Double.valueOf(s)).toArray();
                         regressionSpec.setFixedCoefficients(name, c);
                     } else {
                         messages.add(new Message(Level.SEVERE, x.getKey() + " has an invalid syntax."));
@@ -425,14 +425,14 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         }
         List<SeasonalFilterOption> options = prepareEnumList(SEASONALFILTERS, SeasonalFilterOption::valueOf);
         if (options != null) {
-            x11Specification.setSeasonalFilters(options.toArray(new SeasonalFilterOption[options.size()]));
+            x11Specification.setSeasonalFilters(options.toArray(SeasonalFilterOption[]::new));
         }
     }
 
     private void readSigmaVec(X11Specification x11Specification) {
         List<SigmavecOption> options = prepareEnumList(SIGMA_VECTOR, SigmavecOption::valueOf);
         if (options != null) {
-            x11Specification.setSigmavec(options.toArray(new SigmavecOption[options.size()]));
+            x11Specification.setSigmavec(options.toArray(SigmavecOption[]::new));
         }
     }
 
@@ -585,7 +585,7 @@ public class X13SpecificationReader implements ISpecificationReader<X13Specifica
         if (list.isEmpty()) {
             return null;
         }
-        int max = list.stream().mapToInt(x -> Integer.parseInt(x.substring(key.length()))).max().getAsInt();
+        int max = list.stream().mapToInt(x -> Integer.valueOf(x.substring(key.length()))).max().getAsInt();
         if (max != list.size()) {
             messages.add(new Message(Level.SEVERE, "The maximal " + key + "(" + max + ") isn't the same as the number of " + key + "(" + list.size() + ") specified."));
             return null;

@@ -18,10 +18,10 @@ public class ReportItem {
 
     private static final String NEW_LINE = System.getProperty("line.separator");
 
-    public ReportItem(String documentName, String name, List<Message> messages, boolean isRegressor) {
+    public ReportItem(String documentName, String name, List<Message> messages, String type) {
         this.documentName = documentName;
         this.name = name;
-        this.isRegressor = isRegressor;
+        this.type = type;
         this.messages = messages != null ? new ArrayList<>(messages) : new ArrayList<>();
 
         highestLevel = this.messages.stream()
@@ -35,7 +35,7 @@ public class ReportItem {
     final String documentName;
     final String name;
     final ArrayList<Message> messages;
-    final boolean isRegressor;
+    final String type;
     int highestLevel;
 
     @Override

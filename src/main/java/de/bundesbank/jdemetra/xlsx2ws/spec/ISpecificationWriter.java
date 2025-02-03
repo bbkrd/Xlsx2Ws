@@ -9,6 +9,8 @@ import de.bundesbank.jdemetra.xlsx2ws.dto.PositionInfo;
 import ec.satoolkit.ISaSpecification;
 import java.util.Map;
 import de.bundesbank.jdemetra.xlsx2ws.dto.ISetting;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  *
@@ -17,4 +19,9 @@ import de.bundesbank.jdemetra.xlsx2ws.dto.ISetting;
 public interface ISpecificationWriter<T extends ISaSpecification, S extends ISetting> {
 
     Map<PositionInfo, String> writeSpecification(T spec, S settings);
+
+    @lombok.NonNull
+    default Set<PositionInfo> getAllHeaders() {
+        return new HashSet<>();
+    }
 }

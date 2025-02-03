@@ -7,8 +7,10 @@ package de.bundesbank.jdemetra.xlsx2ws.provider;
 
 import ec.tss.Ts;
 import ec.tss.TsMoniker;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  *
@@ -21,5 +23,10 @@ public interface IProvider {
     Map<String, String> writeTs(TsMoniker moniker);
 
     void putInformation(String key, String value);
+
+    @lombok.NonNull
+    default Set<String> getAllHeaders() {
+        return new HashSet<>();
+    }
 
 }

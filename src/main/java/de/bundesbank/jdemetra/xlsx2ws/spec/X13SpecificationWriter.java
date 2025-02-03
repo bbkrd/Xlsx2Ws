@@ -31,8 +31,11 @@ import ec.tstoolkit.timeseries.calendars.TradingDaysType;
 import ec.tstoolkit.timeseries.regression.OutlierDefinition;
 import ec.tstoolkit.timeseries.regression.OutlierType;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -106,6 +109,8 @@ public class X13SpecificationWriter implements ISpecificationWriter<X13Specifica
     public static final PositionInfo POS_BIAS_CORRECTION = new PositionInfo(198000, BIAS_CORRECTION);
     public static final PositionInfo POS_MAXLEAD = new PositionInfo(199000, MAXLEAD);
     public static final PositionInfo POS_MAXBACK = new PositionInfo(199500, MAXBACK);
+
+    private static Set<PositionInfo> HEADERS;
 
     private final Map<PositionInfo, String> information = new HashMap<>();
 
@@ -609,4 +614,84 @@ public class X13SpecificationWriter implements ISpecificationWriter<X13Specifica
         }
     }
 
+    @Override
+    public Set<PositionInfo> getAllHeaders() {
+        if (HEADERS == null) {
+            Set<PositionInfo> set = new HashSet<>();
+            set.add(POS_BASE);
+            set.add(POS_PRELIMINARY_CHECK);
+            set.add(POS_TOLERANCE);
+            set.add(POS_TRANSFORM);
+            set.add(POS_AIC_DIFFERENCE);
+            set.add(POS_ADJUST);
+            set.add(POS_HOLIDAYS);
+            set.add(POS_TRADING_DAYS_TYPE);
+            set.add(POS_AUTO_ADJUST);
+            set.add(POS_LEAP_YEAR);
+            set.add(POS_W);
+            set.add(POS_TEST);
+            set.add(POS_EASTER);
+            set.add(POS_EASTER_JULIAN);
+            set.add(POS_PRE_TEST);
+            set.add(POS_DURATION);
+            set.add(POS_CRITICAL_VALUE);
+            set.add(POS_AO);
+            set.add(POS_LS);
+            set.add(POS_TC);
+            set.add(POS_SO);
+            set.add(POS_TC_RATE);
+            set.add(POS_METHOD);
+            set.add(POS_ACCEPT_DEFAULT);
+            set.add(POS_CANCELATION_LIMIT);
+            set.add(POS_INITIAL_UR);
+            set.add(POS_FINAL_UR);
+            set.add(POS_MIXED);
+            set.add(POS_BALANCED);
+            set.add(POS_ARMALIMIT);
+            set.add(POS_REDUCE_CV);
+            set.add(POS_LJUNGBOX_LIMIT);
+            set.add(POS_URFINAL);
+            set.add(POS_AUTOMODEL);
+            set.add(POS_MEAN);
+            set.add(POS_ARIMA);
+            set.add(POS_MODE);
+            set.add(POS_SEASONAL);
+            set.add(POS_LOWER_SIGMA);
+            set.add(POS_UPPER_SIGMA);
+            set.add(POS_SEASONALFILTER);
+            set.add(POS_HENDERSON);
+            set.add(POS_CALENDARSIGMA);
+            set.add(POS_EXCLUDE_FORECAST);
+            set.add(POS_BIAS_CORRECTION);
+            set.add(POS_MAXLEAD);
+            set.add(POS_MAXBACK);
+
+            set.add(new PositionInfo(INITIAL_POS_OUTLIER, OUTLIER + "*"));
+            set.add(new PositionInfo(INITIAL_POS_REGRESSOR, REGRESSOR + "*"));
+            set.add(new PositionInfo(INITIAL_POS_FIXED, FIXED_COEFFICIENT + "*"));
+
+            set.add(new PositionInfo(INITIAL_POS_P, P + "*"));
+            set.add(new PositionInfo(INITIAL_POS_Q, Q + "*"));
+            set.add(new PositionInfo(INITIAL_POS_BP, BP + "*"));
+            set.add(new PositionInfo(INITIAL_POS_BQ, BQ + "*"));
+
+            set.add(new PositionInfo(INITIAL_POS_SEASONALFILTERS, SEASONALFILTERS + "*"));
+            set.add(new PositionInfo(INITIAL_POS_SIGMA_VECTOR, SIGMA_VECTOR + "*"));
+
+            createSpanHeaders(set, SERIES, INITIAL_POS_SERIES_SPAN);
+            createSpanHeaders(set, ESTIMATE, INITIAL_POS_ESTIMATE_SPAN);
+            createSpanHeaders(set, OUTLIER, INITIAL_POS_OUTLIER_SPAN);
+
+            HEADERS = Collections.unmodifiableSet(set);
+        }
+
+        return HEADERS;
+    }
+
+    private void createSpanHeaders(Set<PositionInfo> set, String part, int position) {
+        set.add(new PositionInfo(position + MODIFIER_START, part + START));
+        set.add(new PositionInfo(position + MODIFIER_END, part + END));
+        set.add(new PositionInfo(position + MODIFIER_FIRST, part + FIRST));
+        set.add(new PositionInfo(position + MODIFIER_LAST, part + LAST));
+    }
 }
