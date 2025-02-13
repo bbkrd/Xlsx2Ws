@@ -21,10 +21,10 @@
                     <useOSGiDependencies>false</useOSGiDependencies>
                     <publicPackages>
                         <publicPackage>de.bundesbank.jdemetra.xlsx2ws</publicPackage>
+                        <publicPackage>de.bundesbank.jdemetra.xlsx2ws.converter</publicPackage>
                         <publicPackage>de.bundesbank.jdemetra.xlsx2ws.dto</publicPackage>
                         <publicPackage>de.bundesbank.jdemetra.xlsx2ws.provider</publicPackage>
                         <publicPackage>de.bundesbank.jdemetra.xlsx2ws.spec</publicPackage>
-                        <publicPackage>de.bundesbank.jdemetra.xlsx2ws.writer</publicPackage>
                     </publicPackages>
                 </configuration>
             </plugin>
