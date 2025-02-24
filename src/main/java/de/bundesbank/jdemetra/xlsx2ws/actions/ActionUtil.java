@@ -14,6 +14,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.prefs.Preferences;
+import javax.swing.FocusManager;
 import javax.swing.JFileChooser;
 import org.jfree.ui.ExtensionFileFilter;
 import org.netbeans.api.progress.ProgressHandle;
@@ -63,7 +64,7 @@ public class ActionUtil {
         if (startingDirectory.exists()) {
             FILE_CHOOSER.setCurrentDirectory(startingDirectory);
         }
-        Integer response = function.apply(null);
+        Integer response = function.apply(FocusManager.getCurrentManager().getActiveWindow());
         File file = null;
         if (response == JFileChooser.APPROVE_OPTION) {
             file = FILE_CHOOSER.getSelectedFile();

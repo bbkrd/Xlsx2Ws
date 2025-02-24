@@ -666,17 +666,17 @@ public class X13SpecificationWriter implements ISpecificationWriter<X13Specifica
             set.add(POS_MAXLEAD);
             set.add(POS_MAXBACK);
 
-            set.add(new PositionInfo(INITIAL_POS_OUTLIER, OUTLIER + "*"));
-            set.add(new PositionInfo(INITIAL_POS_REGRESSOR, REGRESSOR + "*"));
-            set.add(new PositionInfo(INITIAL_POS_FIXED, FIXED_COEFFICIENT + "*"));
+            addNumberedHeaders(set, OUTLIER, INITIAL_POS_OUTLIER, 10);
+            addNumberedHeaders(set, REGRESSOR, INITIAL_POS_REGRESSOR, 10);
+            addNumberedHeaders(set, FIXED_COEFFICIENT, INITIAL_POS_FIXED, 10);
 
-            set.add(new PositionInfo(INITIAL_POS_P, P + "*"));
-            set.add(new PositionInfo(INITIAL_POS_Q, Q + "*"));
-            set.add(new PositionInfo(INITIAL_POS_BP, BP + "*"));
-            set.add(new PositionInfo(INITIAL_POS_BQ, BQ + "*"));
+            addNumberedHeaders(set, P, INITIAL_POS_P, 6);
+            addNumberedHeaders(set, Q, INITIAL_POS_Q, 6);
+            addNumberedHeaders(set, BP, INITIAL_POS_BP, 1);
+            addNumberedHeaders(set, BQ, INITIAL_POS_BQ, 1);
 
-            set.add(new PositionInfo(INITIAL_POS_SEASONALFILTERS, SEASONALFILTERS + "*"));
-            set.add(new PositionInfo(INITIAL_POS_SIGMA_VECTOR, SIGMA_VECTOR + "*"));
+            addNumberedHeaders(set, SEASONALFILTERS, INITIAL_POS_SEASONALFILTERS, 12);
+            addNumberedHeaders(set, SIGMA_VECTOR, INITIAL_POS_SIGMA_VECTOR, 12);
 
             createSpanHeaders(set, SERIES, INITIAL_POS_SERIES_SPAN);
             createSpanHeaders(set, ESTIMATE, INITIAL_POS_ESTIMATE_SPAN);
@@ -693,5 +693,11 @@ public class X13SpecificationWriter implements ISpecificationWriter<X13Specifica
         set.add(new PositionInfo(position + MODIFIER_END, part + END));
         set.add(new PositionInfo(position + MODIFIER_FIRST, part + FIRST));
         set.add(new PositionInfo(position + MODIFIER_LAST, part + LAST));
+    }
+
+    private void addNumberedHeaders(Set<PositionInfo> set, String part, int initialPosition, int max) {
+        for (int i = 1; i <= max; i++) {
+            set.add(new PositionInfo(initialPosition + i, part + i));
+        }
     }
 }
