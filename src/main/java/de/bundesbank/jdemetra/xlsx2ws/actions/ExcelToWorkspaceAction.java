@@ -6,11 +6,12 @@
 package de.bundesbank.jdemetra.xlsx2ws.actions;
 
 import de.bundesbank.jdemetra.xlsx2ws.Creator;
+import ec.nbdemetra.ws.FileRepository;
 import ec.nbdemetra.ws.Workspace;
 import ec.nbdemetra.ws.WorkspaceFactory;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
+import javax.swing.AbstractAction;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
@@ -25,7 +26,7 @@ import org.openide.util.NbBundle.Messages;
 )
 @ActionReference(path = "Menu/File", position = 400, separatorBefore = 399)
 @Messages("CTL_Excel2Workspace=Create new Workspace from XLSX file")
-public final class ExcelToWorkspaceAction implements ActionListener {
+public final class ExcelToWorkspaceAction extends AbstractAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -33,7 +34,16 @@ public final class ExcelToWorkspaceAction implements ActionListener {
             return;
         }
         ActionUtil.open("Creating workspace from Xlsx", this::definingAction);
+    }
 
+    @Override
+    public boolean isEnabled() {
+        refreshAction();
+        return super.isEnabled();
+    }
+
+    public void refreshAction() {
+        enabled = WorkspaceFactory.getInstance().getActiveRepository() instanceof FileRepository;
     }
 
     private void definingAction(File file) {
