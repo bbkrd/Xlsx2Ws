@@ -39,7 +39,7 @@ ui-test:
   rules:
      - if:  $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop"
   variables:
-    TESTSUITEID: 25553
+    TESTSUITEID: 2553
   trigger:
     project: statistik/jdemetra/ui-test
     branch: main
