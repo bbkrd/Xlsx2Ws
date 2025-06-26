@@ -265,10 +265,14 @@ public class MultiDocumentConverter implements SheetReader, SheetWriter {
             Workbook workbook = new XSSFWorkbook(excelFile);
             Sheet datatypeSheet = workbook.getSheet(MULTIDOCS);
             if (datatypeSheet == null) {
-                //Fallbakc (old default)
+                //Fallback (old default)
                 datatypeSheet = workbook.getSheetAt(0);
             }
             Iterator<Row> iterator = datatypeSheet.iterator();
+
+            if (!iterator.hasNext()) {
+                return new ArrayList<>();
+            }
 
             Map<Integer, InformationDTO> headers = Creator.readHeaders(iterator.next());
 

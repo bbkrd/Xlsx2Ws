@@ -159,6 +159,10 @@ public class RegressorConverter implements SheetReader, SheetWriter {
             }
             Iterator<Row> iterator = datatypeSheet.iterator();
 
+            if (!iterator.hasNext()) {
+                return new ArrayList<>();
+            }
+
             Map<Integer, InformationDTO> headers = readHeaders(iterator.next());
 
             List<RegressorInfo> regressorInfos = new ArrayList<>();
