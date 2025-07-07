@@ -19,9 +19,9 @@ public class ReportItem {
     private static final String NEW_LINE = System.getProperty("line.separator");
 
     public ReportItem(String documentName, String name, List<Message> messages, String type) {
-        this.documentName = documentName;
-        this.name = name;
-        this.type = type;
+        this.documentName = documentName != null ? documentName : "";
+        this.name = name != null ? name : "";
+        this.type = type != null ? type : "";
         this.messages = messages != null ? new ArrayList<>(messages) : new ArrayList<>();
 
         highestLevel = this.messages.stream()
@@ -32,11 +32,11 @@ public class ReportItem {
                 .orElse(Level.FINE.intValue());
     }
 
-    final String documentName;
-    final String name;
-    final ArrayList<Message> messages;
-    final String type;
-    int highestLevel;
+    private final String documentName;
+    private final String name;
+    private final ArrayList<Message> messages;
+    private final String type;
+    private int highestLevel;
 
     @Override
     public String toString() {
