@@ -73,6 +73,7 @@ import org.openide.util.lookup.ServiceProviders;
 public class MultiDocumentConverter implements SheetReader, SheetWriter {
 
     private static final String MULTIDOCS = "multidocs";
+    private static final String REPORT_ITEM_TYPE = "Multidocument";
 
     private final Map<String, Set<String>> map = new HashMap<>();
 
@@ -280,7 +281,7 @@ public class MultiDocumentConverter implements SheetReader, SheetWriter {
             List<SaItemInfo> list = new ArrayList<>();
             while (iterator.hasNext()) {
                 Row currentRow = iterator.next();
-                SaItemInfo saItemInfo = new SaItemInfo();
+                SaItemInfo saItemInfo = new SaItemInfo(currentRow.getRowNum() + 1);
                 for (Iterator<Cell> cellIterator = currentRow.cellIterator(); cellIterator.hasNext();) {
                     Cell cell = cellIterator.next();
                     int columnIndex = cell.getColumnIndex();
@@ -331,12 +332,28 @@ public class MultiDocumentConverter implements SheetReader, SheetWriter {
                     }
 
                 }
-                if (saItemInfo.isValid() && names.add(saItemInfo.getMultidocName() + "-" + saItemInfo.getSaItemName())) {
+                String saItemName = saItemInfo.getSaItemName();
+                if (!saItemInfo.isValid()) {
+                    ArrayList<Message> messages = new ArrayList<>();
+                    if (saItemName == null) {
+                        messages.add(new Message(Level.SEVERE, String.format("Invalid item in row %1$s", saItemInfo.getRow())));
+                        reportItems.add(new ReportItem(REPORT_ITEM_TYPE,
+                                "Row " + saItemInfo.getRow(), messages, REPORT_ITEM_TYPE));
+                    } else {
+                        messages.add(new Message(Level.SEVERE, String.format("Invalid item %1$s in row %2$s",
+                                saItemName, saItemInfo.getRow())));
+                        reportItems.add(new ReportItem(saItemInfo.getMultidocName(), saItemName, messages, REPORT_ITEM_TYPE));
+                    }
+                    continue;
+
+                }
+
+                if (names.add(saItemInfo.getMultidocName() + "-" + saItemName)) {
                     list.add(saItemInfo);
                 } else {
                     ArrayList<Message> messages = new ArrayList<>();
                     messages.add(new Message(Level.SEVERE, "Each item needs a unique name!"));
-                    reportItems.add(new ReportItem(saItemInfo.getMultidocName(), saItemInfo.getSaItemName() != null ? saItemInfo.getSaItemName() : "", messages, "Multidocument"));
+                    reportItems.add(new ReportItem(saItemInfo.getMultidocName(), saItemName != null ? saItemName : "", messages, REPORT_ITEM_TYPE));
                 }
             }
             return list;
@@ -396,7 +413,7 @@ public class MultiDocumentConverter implements SheetReader, SheetWriter {
         } else {
             meta.putAll(information.getMetaData());
         }
-        ReportItem reportItem = new ReportItem(multiDocumentName, saItemName, messageList, "Multidocument");
+        ReportItem reportItem = new ReportItem(multiDocumentName, saItemName, messageList, REPORT_ITEM_TYPE);
         if (reportItem.getHighestLevel() <= Level.WARNING.intValue()) {
             SaItem item = new SaItem(specification, ts);
             item.setName(saItemName);

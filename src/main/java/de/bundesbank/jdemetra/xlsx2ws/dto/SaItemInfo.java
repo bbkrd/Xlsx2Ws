@@ -23,6 +23,16 @@ public final class SaItemInfo implements IProviderInfo {
     private final Map<String, String> specificationInfos = new HashMap<>();
     private final Map<String, String> metaData = new HashMap<>();
 
+    private final int row;
+
+    public SaItemInfo() {
+        this.row = 0;
+    }
+
+    public SaItemInfo(int row) {
+        this.row = row;
+    }
+
     @Override
     public void addProviderInfo(String key, String value) {
         providerInfos.put(key, value != null ? value.trim() : "");
